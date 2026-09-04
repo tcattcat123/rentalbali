@@ -299,6 +299,35 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .similar-section{margin-top:20px}
 .similar-scroll{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 8px}
 .similar-scroll .property-card{flex:0 0 240px}
+/* full-page detail */
+.d-layout{display:grid;grid-template-columns:1.15fr 1fr;gap:20px;align-items:start}
+.d-left{min-width:0}
+.d-left .back-link{margin-bottom:12px}
+.d-left .main-photo{height:440px}
+.d-price-row{display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;gap:10px}
+.d-price-row .price{font-size:26px;margin:0}
+.d-icons{display:flex;gap:8px}
+.d-icons button{border:1px solid var(--line);background:var(--card);border-radius:8px;width:38px;height:38px;cursor:pointer;color:var(--ink2);display:grid;place-items:center}
+.d-icons button:hover{border-color:var(--acc);color:var(--acc-dark)}
+#dFav.on{color:#E23D3D;border-color:#E23D3D}
+.d-left .params{margin:0 0 8px}
+.d-locrow{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13.5px;color:var(--mut);flex-wrap:wrap}
+.d-locrow .d-loc{display:inline-flex;align-items:center;gap:4px}
+.d-meta{display:inline-flex;align-items:center;gap:6px}
+.time-pill{background:var(--line-soft);border-radius:12px;padding:3px 10px;font-size:12px;color:var(--mut)}
+.d-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btn-call{display:grid;place-items:center;border:1px solid var(--acc);color:var(--acc-dark);background:var(--card);border-radius:8px;height:44px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn-call:hover{background:var(--acc-soft)}
+.btn-tg{display:grid;place-items:center;background:var(--acc);color:#fff;border:1px solid var(--acc);border-radius:8px;height:44px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn-tg:hover{background:var(--acc-dark)}
+.d-left .legal{margin-top:12px}
+.d-right{min-width:0}
+.d-card{padding:16px;margin-bottom:16px}
+.d-card h3{font-size:15px;margin:0 0 10px}
+.d-card .chars-grid{margin-bottom:0}
+.d-card .amenities{margin-bottom:0}
+.d-card iframe{width:100%;height:280px;border:0;border-radius:4px}
+@media(max-width:900px){.d-layout{grid-template-columns:1fr}.d-left .main-photo{height:280px}}
 /* footer big gray */
 .footer{background:#EEF1F6;border-top:3px solid var(--acc);margin-top:28px;color:var(--ink)}
 .brand-row{display:flex;align-items:center;gap:10px}

@@ -326,7 +326,7 @@ function render(){
 
 function switchView(v){
   state.view=v;
-  ["list","map","fav","profile"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
+  ["list","map","fav","profile","detail"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
   document.querySelectorAll(".bn-item").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   if(v==="map")setTimeout(initMap,50);
 }
@@ -399,43 +399,48 @@ function openDetail(id){
     [state.lang==="ru"?"Залог":"Deposit",dep?moneyIDR(dep):"—"],
     [state.lang==="ru"?"Доступно":"Available",it.type==="request"?(it.moveIn||"—"):(it.available?fmtDate(it.available):(state.lang==="ru"?"Сейчас":"Now"))]];
   const agent=it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");
-  const sim=LISTINGS.filter(x=>x.dealType===it.dealType&&x.id!==it.id).sort((a,b)=>b.views-a.views).slice(0,4);
   const d=0.02,box=`${(it.lng-d).toFixed(4)},${(it.lat-d*0.7).toFixed(4)},${(it.lng+d).toFixed(4)},${(it.lat+d*0.7).toFixed(4)}`;
+  const fav=state.fav.has(it.id);
+  const chips=[`<span class="param-chip">${pTypeLabel(it.propertyType)}</span>`];
+  if(it.bedrooms>0)chips.push(`<span class="param-chip">${it.bedrooms} ${plural(it.bedrooms,["спальня","спальни","спален"])}</span>`);
+  if(it.area>0)chips.push(`<span class="param-chip">${it.area} м²</span>`);
+  chips.push(`<span class="param-chip">${term}</span>`);
   $("detailContent").innerHTML=`
-  <div class="detail-card">
-    <div class="detail-topbar"><a href="#" class="back-link" id="dBack">← ${state.lang==="ru"?"Назад":"Back"}</a>
-    <button class="btn-ghost" id="dShare">${state.lang==="ru"?"Поделиться":"Share"} ⤴</button></div>
+  <div class="d-layout"><div class="d-left">
+    <a href="#" class="back-link" id="dBack">‹ ${state.lang==="ru"?"Назад":"Back"}</a>
     <div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
       ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
       <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>
-    <div class="thumbnails">${it.images.map((s,i)=>`<img src="${s}" data-thumb="${i}" class="${i===0?"on":""}" onerror="this.onerror=null;this.src='${it.fb}'" loading="lazy">`).join("")}</div>
-    <h1>${it.title||pTypeLabel(it.propertyType)}</h1>
-    <div class="meta"><span>${SVG_PIN} ${locLabel(it)}, Бали, Индонезия</span><span>· ${timeAgo(it.createdAt)}</span><span>· ${SVG_EYE} ${it.views}</span><span>· ★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span></div>
-    <div class="price-block"><span class="price">${fmtPrice(it)}</span><span class="term">${term}</span></div>
-    <div class="chars-grid">${rows.map(r=>`<div><span class="label">${r[0]}:</span> <span class="value">${r[1]}</span></div>`).join("")}</div>
-    <div class="amenities">${(it.amenities||[]).map(a=>`<span class="chip">${a}</span>`).join("")}</div>
-        <div class="agent-card"><div><b>${agent}</b><div class="muted">★ ${it.rating||"5.0"} · ${it.isVerified?"✔ "+t("verified"):""}</div></div>
-    <button class="btn-ghost" id="dContact" style="margin-left:auto">${state.lang==="ru"?"Связаться":"Contact"}</button></div>
-    ${it.type==="request"?`<p class="muted">${t("move_in")}: ${it.moveIn||"—"}</p><button class="book-btn" data-offer="${it.id}">✉ ${t("offer_btn")}</button>`:`<button class="book-btn" id="dBook">${state.lang==="ru"?"Забронировать":"Book now"}</button>`}
-    ${it.legal?`<div class="legal">◈ ${t("legal_txt")}</div>`:""}
-    <div class="map-section"><h3>Карта · ${locLabel(it)}</h3>
+    <div class="d-price-row"><div class="price">${fmtPrice(it)}</div>
+      <div class="d-icons"><button id="dShare" title="Поделиться"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M7 8l5-5 5 5"/><path d="M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg></button>
+      <button id="dFav" class="${fav?"on":""}" title="В избранное">${fav?"♥":"♡"}</button></div></div>
+    <div class="params">${chips.join("")}</div>
+    <div class="d-locrow"><span class="d-loc">${SVG_PIN} ${locLabel(it)}, Бали</span>
+      <span class="d-meta">${SVG_EYE} ${it.views} <span class="time-pill">${timeAgo(it.createdAt)}</span></span></div>
+    <div class="d-actions">${it.type==="request"
+      ?`<button class="btn-call" data-offer="${it.id}">✉ ${t("offer_btn")}</button>`
+      :`<a class="btn-call" href="tel:+6281234567890">Позвонить</a><a class="btn-tg" href="https://t.me/renthomebali" target="_blank" rel="noopener">Написать в Telegram</a>`}</div>
+    ${it.legal?`<div class="legal">◈ ${t("legal_txt")} · ${agent}</div>`:""}
+  </div><div class="d-right">
+    <div class="card d-card"><h3>${state.lang==="ru"?"Характеристики":"Features"}</h3>
+      <div class="chars-grid">${rows.map(r=>`<div><span class="label">${r[0]}:</span> <span class="value">${r[1]}</span></div>`).join("")}</div></div>
+    <div class="card d-card"><h3>${state.lang==="ru"?"Удобства":"Amenities"}</h3>
+      <div class="amenities">${(it.amenities||[]).map(a=>`<span class="chip">${a}</span>`).join("")}</div></div>
+    <div class="card d-card"><h3>${state.lang==="ru"?"На карте":"On map"}</h3>
       <iframe title="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${it.lat},${it.lng}"></iframe>
       <div class="map-row"><span class="muted">${locLabel(it)}, Бали, Индонезия</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${state.lang==="ru"?"Построить маршрут":"Directions"} →</a></div></div>
-    <div class="similar-section"><h3>${state.lang==="ru"?"Похожие варианты":"Similar"}</h3><div class="similar-scroll">${sim.map(cardHTML).join("")}</div></div>
-  </div>`;
-  document.querySelector(".modal-box").classList.add("wide");
-  $("detailModal").classList.remove("hidden");
+  </div></div>`;
+  switchView("detail");window.scrollTo({top:0});
+  try{location.hash="listing-"+it.id;}catch(e){}
   $("dBack").onclick=e=>{e.preventDefault();closeDetail();};
-  $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href.split("#")[0]+"#listing-"+it.id);}catch(e){}alert(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
-  $("dContact").onclick=()=>alert(state.lang==="ru"?"Контакт: "+agent+", ответим в течение часа!":"Contact: "+agent);
-  const bk=$("dBook");if(bk)bk.onclick=()=>alert(state.lang==="ru"?"Заявка отправлена! Свяжемся с вами.":"Request sent!");
+  $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href);}catch(e){}alert(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
+  $("dFav").onclick=()=>{const on=!state.fav.has(it.id);on?state.fav.add(it.id):state.fav.delete(it.id);localStorage.setItem("rh_fav",JSON.stringify([...state.fav]));const b=$("dFav");b.textContent=on?"♥":"♡";b.classList.toggle("on",on);render();};
 }
-function closeDetail(){$("detailModal").classList.add("hidden");document.querySelector(".modal-box").classList.remove("wide");}
+function closeDetail(){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}switchView("list");syncDealTabs();}
 function refreshDetail(){
-  const it=LISTINGS.find(x=>x.id===detailId);if(!it||$("detailModal").classList.contains("hidden"))return;
+  const it=LISTINGS.find(x=>x.id===detailId);if(!it||state.view!=="detail")return;
   const m=$("dMain");if(m){m.src=it.images[detailIdx%it.images.length];}
   const c=$("dCount");if(c)c.textContent=`${(detailIdx%it.images.length)+1}/${it.images.length}`;
-  document.querySelectorAll("[data-thumb]").forEach(el=>el.classList.toggle("on",+el.dataset.thumb===(detailIdx%it.images.length)));
 }
 
 document.addEventListener("click",e=>{
@@ -537,3 +542,4 @@ $("creditModal").addEventListener("click",e=>{if(e.target.id==="creditModal")$("
 $("simCalc").onclick=calcCredit;
 ["simPrice","simDP","simRate","simYears"].forEach(id=>$(id).addEventListener("input",calcCredit));
 render();syncDealTabs();highlightQuick();document.body.dataset.settled="1";
+try{const m=location.hash.match(/#listing-(\d+)/);if(m)openDetail(+m[1]);}catch(e){}
