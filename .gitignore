@@ -1,0 +1,11 @@
+.vercel
+.env*
+__pycache__/
+*.pyc
+*.pyo
+bot_error.log
+bot_output.log
+uploads/
+*.log
+.DS_Store
+Thumbs.db

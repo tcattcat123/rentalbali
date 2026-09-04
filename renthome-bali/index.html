@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RentHome Bali — аренда и покупка недвижимости</title>
+<meta name="description" content="RentHome Bali — минималистичная платформа аренды и покупки недвижимости на Бали: виллы, дома, квартиры, земля.">
+<meta property="og:title" content="RentHome Bali">
+<meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0A1628">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A1628'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%235EA2EF'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="topbar"><span data-i18n="topbar">Проверенные объекты Бали · без комиссии для арендатора на части вилл</span></div>
+<header class="header">
+  <div class="header-inner">
+    <a class="logo" href="#" id="logoBtn"><span class="logo-mark">⌂</span> RentHome <em>Bali</em></a>
+    <nav class="main-tabs" role="tablist" aria-label="Deal type">
+      <button class="tab active" id="dealRent" data-deal="rent" data-i18n="deal_rent">Арендовать</button>
+      <button class="tab" id="dealBuy" data-deal="sale" data-i18n="deal_buy">Купить</button>
+      <button class="tab" id="dealMap" data-deal="map" data-i18n="deal_map">Карта</button>
+    </nav>
+    <div class="header-actions">
+      <select id="langSelect" class="mini-select" title="Language" aria-label="Language"><option value="ru">RU</option><option value="en">EN</option></select>
+      <select id="currencySelect" class="mini-select" title="Currency" aria-label="Currency"><option value="IDR">IDR</option><option value="USD">USD</option></select>
+      <button id="themeBtn" class="icon-btn" title="Theme" aria-label="Theme">○</button>
+      <button id="favHeaderBtn" class="icon-btn" title="Favorites">♡ <span id="favCount" class="fav-count">0</span></button>
+      <button id="profileBtn" class="icon-btn profile" title="Profile">→</button>
+    </div>
+    <div class="sub-tabs">
+      <button class="chip active" id="tabOffer" data-type="offer" data-i18n="tab_offer">Сдам / Продам</button>
+      <button class="chip" id="tabRequest" data-type="request" data-i18n="tab_request">Сниму / Куплю</button>
+      <span class="sub-hint" data-i18n="sub_hint">предлагаю / ищу</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section id="view-list">
+    <div class="hero">
+      <div><h1 id="heroTitle">Аренда на Бали без лишнего шума</h1><p class="muted" id="heroSub">Виллы, дома и квартиры с проверенными фото и прозрачной ценой.</p></div>
+      <div class="hero-stats"><div><b id="statCount">20</b><span data-i18n="variants">вариантов</span></div><div><b>24ч</b><span data-i18n="new">Новые</span></div><div><b>✔</b><span data-i18n="verified">Проверено</span></div></div>
+    </div>
+
+    <div class="toolbar card">
+      <div class="filters" id="filtersBar">
+        <div class="filter-group"><label data-i18n="ptype">Тип недвижимости</label>
+          <select id="fType"><option value="" data-i18n="all">Все</option><option value="villa_house" data-i18n="t_villa_house">Виллы и дома</option><option value="apartment" data-i18n="t_apartment">Квартиры</option><option value="homestay" data-i18n="t_homestay">Homestay</option><option value="land" data-i18n="t_land">Земля</option><option value="commercial" data-i18n="t_commercial">Коммерческая</option><option value="townhouse" data-i18n="t_townhouse">Таунхаусы</option><option value="boarding" data-i18n="t_boarding">Пансионы / Kost</option></select></div>
+        <div class="filter-group"><label data-i18n="district">Локация</label>
+          <select id="fDistrict"><option value="" data-i18n="any_area">Вся Бали</option><option>Чангу</option><option>Семиньяк</option><option>Убуд</option><option>Кута</option><option>Нуса-Дуа</option><option>Джимбаран</option><option>Санур</option><option>Денпасар</option><option>Ловина</option><option>Улувату</option></select></div>
+        <div class="filter-group"><label><span data-i18n="price">Цена</span> · <span id="curLabel">IDR</span></label>
+          <div class="price-inputs"><input type="number" id="priceMin" placeholder="от" min="0"><span>–</span><input type="number" id="priceMax" placeholder="до" min="0"></div></div>
+        <div class="filter-group small"><label data-i18n="bedrooms">Спальни</label>
+          <select id="fRooms"><option value="" data-i18n="any">Любой</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
+        <div class="filter-group small" id="rentCatWrap"><label data-i18n="rent_cat">Срок</label>
+          <div class="seg"><button class="seg-btn active" data-cat="monthly" id="catMonthly" data-i18n="monthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly" data-i18n="yearly">год</button></div></div>
+        <div class="filter-actions">
+          <button id="advBtn" class="btn-ghost" data-i18n="advanced">Расширенный</button>
+          <button id="applyBtn" class="btn-primary" data-i18n="apply">Показать</button>
+          <button id="resetBtn" class="btn-text" data-i18n="reset">Сбросить</button>
+        </div>
+      </div>
+      <div id="advPanel" class="adv-panel hidden">
+        <div class="filter-group"><label data-i18n="land_area">Участок, м²</label><div class="price-inputs"><input type="number" id="landMin" placeholder="от"><span>–</span><input type="number" id="landMax" placeholder="до"></div></div>
+        <div class="filter-group"><label data-i18n="build_area">Строение, м²</label><div class="price-inputs"><input type="number" id="areaMin" placeholder="от"><span>–</span><input type="number" id="areaMax" placeholder="до"></div></div>
+        <div class="filter-group"><label data-i18n="floors">Этажей</label><select id="fFloors"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
+        <div class="filter-group"><label data-i18n="year">Год от</label><input type="number" id="fYear" placeholder="2020" min="1980" max="2026"></div>
+        <div class="filter-group"><label data-i18n="furn">Меблировка</label><select id="fFurn"><option value="">—</option><option value="yes" data-i18n="yes">Да</option><option value="no" data-i18n="no">Нет</option></select></div>
+        <div class="filter-group"><label data-i18n="parking">Парковка</label><select id="fPark"><option value="">—</option><option>1</option><option>2</option><option>3</option></select></div>
+      </div>
+      <div class="subbar">
+        <div class="results-count" id="resultsCount">…</div>
+        <div class="sort-wrap">
+          <button id="filtersModalBtn" class="btn-ghost only-mobile">☰ <span data-i18n="filters">Фильтры</span></button>
+          <select id="sortSelect" class="mini-select"><option value="date_desc" data-i18n="s_date">Сначала новые</option><option value="price_asc" data-i18n="s_price_asc">Дешевле</option><option value="price_desc" data-i18n="s_price_desc">Дороже</option><option value="popular" data-i18n="s_pop">Популярные</option></select>
+        </div>
+      </div>
+    </div>
+
+    <nav id="crumbs" class="crumbs" aria-label="breadcrumb"></nav>
+
+    <section class="quick-block">
+      <div class="quick-head"><h3 data-i18n="new_objects">Подборки</h3><span class="muted">→</span></div>
+      <div class="quick-scroll" id="quickLinks">
+        <button data-q="buy_house"><i>🏠</i><span data-i18n="q_buy_house">Купить дом</span></button>
+        <button data-q="buy_land"><i>🌍</i><span data-i18n="q_buy_land">Купить землю</span></button>
+        <button data-q="rent_house"><i>🏖️</i><span data-i18n="q_rent_house">Арендовать дом</span></button>
+        <button data-q="rent_land"><i>🌿</i><span data-i18n="q_rent_land">Аренда земли</span></button>
+        <button data-q="homestay"><i>🛖</i><span data-i18n="q_homestay">Homestay</span></button>
+        <button data-q="rent_board"><i>🏘️</i><span data-i18n="q_rent_board">Аренда пансиона</span></button>
+        <button data-q="sim_credit"><i>📊</i><span data-i18n="q_sim">Моделирование кредита</span></button>
+      </div>
+    </section>
+
+    <div id="cardsGrid" class="grid"></div>
+    <div id="emptyState" class="empty hidden"><b>∅</b><p data-i18n="empty">Ничего не найдено. Попробуйте сбросить фильтры.</p></div>
+    <div id="pagination" class="pagination"></div>
+  </section>
+
+  <section id="view-map" class="hidden">
+    <div class="map-layout"><aside class="map-side card"><h3 data-i18n="deal_map">Карта</h3><p class="muted" data-i18n="map_hint">Фильтры применяются к карте.</p><div id="mapList" class="map-list"></div></aside><div id="map" class="card"></div></div>
+  </section>
+
+  <section id="view-fav" class="hidden">
+    <h2 data-i18n="fav_title">Избранное</h2>
+    <div id="favGrid" class="grid"></div>
+    <div id="favEmpty" class="empty" data-i18n="fav_empty">Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.</div>
+  </section>
+
+  <section id="view-profile" class="hidden">
+    <div class="profile-card card"><img src="https://i.pravatar.cc/120?img=12" alt="avatar" class="avatar"><div><h2>Alexander K.</h2><p class="muted">alex.k@example.com · +62 812 3456 7890</p><p><span class="badge verified">✔ <span data-i18n="verified">Проверено</span></span> <span class="badge agent">● <span data-i18n="owner">Собственник</span></span></p></div></div>
+    <h3 data-i18n="my_listings">Мои объявления</h3>
+    <div id="myGrid" class="grid"></div>
+  </section>
+</main>
+
+<footer class="footer"><div class="footer-inner">
+  <div><div class="logo small"><span class="logo-mark">⌂</span> RentHome <em>Bali</em></div><div class="muted">© 2026 · minimal estate OS</div></div>
+  <div><b data-i18n="f_product">Продукт</b><a href="#" data-i18n="q_buy_house">Купить дом</a><a href="#" data-i18n="q_homestay">Homestay</a></div>
+  <div><b data-i18n="f_help">Помощь</b><a href="#" data-i18n="q_sim">Моделирование кредита</a><a href="#">Контакты</a></div>
+  <div><b data-i18n="f_policy">Право</b><a href="#">Оферта</a><a href="#">Privacy</a></div>
+</div></footer>
+
+<div id="detailModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="detailClose">✕</button><div id="detailContent"></div></div></div>
+<div id="creditModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="creditClose">✕</button>
+<h3 data-i18n="q_sim">Моделирование кредита</h3>
+<p class="muted" data-i18n="sim_hint">Simulasi Kredit — прикиньте ежемесячный платёж.</p>
+<div class="calc-grid">
+<div class="filter-group"><label data-i18n="sim_price">Цена объекта</label><input type="number" id="simPrice" value="4500000000"></div>
+<div class="filter-group"><label data-i18n="sim_dp">Первый взнос, %</label><input type="number" id="simDP" value="20" min="0" max="90"></div>
+<div class="filter-group"><label data-i18n="sim_rate">Ставка, % годовых</label><input type="number" id="simRate" value="8" step="0.1"></div>
+<div class="filter-group"><label data-i18n="sim_years">Срок, лет</label><input type="number" id="simYears" value="15" min="1" max="30"></div>
+</div>
+<div class="calc-result" id="simResult">—</div>
+<button id="simCalc" class="btn-primary block" style="margin-top:12px" data-i18n="sim_go">Рассчитать</button>
+</div></div>
+<div id="filtersModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="filtersClose">✕</button><h3 data-i18n="filters">Фильтры</h3><p class="muted" data-i18n="filters_hint">Задайте значения и нажмите Показать.</p><button id="filtersModalApply" class="btn-primary block" data-i18n="apply">Показать</button></div></div>
+
+<nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
