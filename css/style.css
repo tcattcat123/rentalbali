@@ -113,7 +113,8 @@ button{font-family:inherit}
 .quick-scroll button.active{background:var(--acc);border-color:var(--acc);color:#fff}
 /* grid + property card */
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.property-card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.05);overflow:hidden;transition:box-shadow .25s ease;cursor:pointer;display:flex;flex-direction:column;animation:rise .5s both}
+.property-card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.05);overflow:hidden;transition:box-shadow .25s ease;cursor:pointer;display:flex;flex-direction:column}
+body:not([data-settled]) .property-card{animation:rise .5s both}
 [data-theme="dark"] .property-card{background:var(--card)}
 .property-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.1)}
 .property-card:hover .card-image img{transform:scale(1.04)}
@@ -187,8 +188,9 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .loc-exp.open{transform:rotate(90deg)}
 .loc-exp.novis{visibility:hidden}
 .loc-row .location-item{flex:1}
-.loc-kids{max-height:0;overflow:hidden;opacity:0;transition:max-height .28s ease,opacity .2s ease;padding-left:22px}
-.loc-kids.open{max-height:220px;opacity:1}
+.loc-kids{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .3s ease,opacity .25s ease;padding-left:22px}
+.loc-kids.open{grid-template-rows:1fr;opacity:1}
+.loc-kids-in{overflow:hidden;min-height:0}
 .location-item.kid{font-size:13.5px}
 .location-item{display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:13.5px;color:var(--ink2);border-radius:4px}
 [data-theme="dark"] .location-item{color:var(--ink2)}

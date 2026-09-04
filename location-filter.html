@@ -38,8 +38,9 @@ h1{font-size:22px;margin:8px 0 4px}
 .lf-exp.open{transform:rotate(90deg)}
 .lf-exp.novis{visibility:hidden}
 .lf-row .lf-item{flex:1}
-.lf-kids{max-height:0;overflow:hidden;opacity:0;transition:max-height .28s ease,opacity .2s ease;padding-left:22px}
-.lf-kids.open{max-height:220px;opacity:1}
+.lf-kids{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .3s ease,opacity .25s ease;padding-left:22px}
+.lf-kids.open{grid-template-rows:1fr;opacity:1}
+.lf-kids-in{overflow:hidden;min-height:0}
 /* ===== demo readout ===== */
 .result{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:13.5px}
 .result b{color:var(--acc-dark)}
@@ -57,19 +58,29 @@ code{background:var(--acc-soft);color:var(--acc-dark);padding:1px 6px;border-rad
 <script>
 /* ===== Reusable LocationFilter (vanilla, no deps) ===== */
 const DIST_TREE=[
- {key:"Canggu",ru:"Чангу",kids:[["Berawa","Берава"],["BatuBolong","Бату Болонг"]]},
- {key:"Seminyak",ru:"Семиньяк",kids:[["Oberoi","Оберой"],["Legian","Легиан"],["Petitenget","Петитенгет"]]},
+ {key:"Canggu",ru:"Чангу",kids:[["Berawa","Берава"],["BatuBolong","Бату Болонг"],["TumbakBayuh","Тумбак Баюх"]]},
  {key:"Pererenan",ru:"Переренан",kids:[]},
  {key:"Umalas",ru:"Умалас",kids:[]},
  {key:"Kerobokan",ru:"Керобокан",kids:[]},
+ {key:"Seseh",ru:"Сесех",kids:[]},
+ {key:"Buduk",ru:"Будук",kids:[]},
+ {key:"Seminyak",ru:"Семиньяк",kids:[["Oberoi","Оберой"],["Legian","Легиан"],["Petitenget","Петитенгет"]]},
  {key:"Kuta",ru:"Кута",kids:[]},
- {key:"Uluwatu",ru:"Улувату",kids:[]},
+ {key:"TanahLot",ru:"Танах Лот",kids:[["Kedungu","Кедунгу"],["Cemagi","Чемаги"]]},
+ {key:"Uluwatu",ru:"Улувату",kids:[["Bingin","Бингин"],["Balangan","Балаган"]]},
  {key:"Jimbaran",ru:"Джимбаран",kids:[]},
  {key:"NusaDua",ru:"Нуса-Дуа",kids:[]},
- {key:"Ubud",ru:"Убуд",kids:[]},
+ {key:"Ungasan",ru:"Унгасан",kids:[["Pecatu","Печату"]]},
+ {key:"Ubud",ru:"Убуд",kids:[["Mas","Мас"],["Payangan","Паянган"]]},
  {key:"Denpasar",ru:"Денпасар",kids:[]},
  {key:"Sanur",ru:"Санур",kids:[]},
- {key:"Tabanan",ru:"Табанан",kids:[]}];
+ {key:"Gianyar",ru:"Гианьяр",kids:[["Sukawati","Сукавати"]]},
+ {key:"Tabanan",ru:"Табанан",kids:[["Mengwi","Менгви"]]},
+ {key:"Lovina",ru:"Ловина",kids:[["Singaraja","Сингараджа"]]},
+ {key:"Pemuteran",ru:"Пемутеран",kids:[]},
+ {key:"Amed",ru:"Амед",kids:[["Candidasa","Кандидаса"]]},
+ {key:"Sidemen",ru:"Сидемен",kids:[]},
+ {key:"NusaPenida",ru:"Нуса-Пенида",kids:[["NusaLembongan","Нуса-Лембонган"]]}];
 function createLocationFilter(mount,{groups=DIST_TREE,selected=new Set(),lang="ru",anyLabel="Любая локация",onChange}={}){
   const open=new Set(["Canggu","Seminyak"]);
   const name=key=>{for(const n of groups){if(n.key===key)return lang==="ru"?n.ru:n.key;for(const [k,r] of (n.kids||[]))if(k===key)return lang==="ru"?r:k;}return key;};
@@ -84,7 +95,7 @@ function createLocationFilter(mount,{groups=DIST_TREE,selected=new Set(),lang="r
   function paintDrop(){
     drop.innerHTML=groups.map(n=>{
       const kids=n.kids||[];
-      const kh=kids.length?`<div class="lf-kids${open.has(n.key)?" open":""}">${kids.map(([k,r])=>`<label class="lf-item"><input type="checkbox" data-d="${k}"${selected.has(k)?" checked":""}> ${lang==="ru"?r:k}</label>`).join("")}</div>`:"";
+      const kh=kids.length?`<div class="lf-kids${open.has(n.key)?" open":""}"><div class="lf-kids-in">${kids.map(([k,r])=>`<label class="lf-item"><input type="checkbox" data-d="${k}"${selected.has(k)?" checked":""}> ${lang==="ru"?r:k}</label>`).join("")}</div></div>`:"";
       return`<div class="lf-node"><div class="lf-row"><button type="button" class="lf-exp${kids.length?"":" novis"}${open.has(n.key)?" open":""}" data-exp="${n.key}" tabindex="-1">›</button><label class="lf-item"><input type="checkbox" data-d="${n.key}" data-p="${n.key}"${selected.has(n.key)?" checked":""}> ${lang==="ru"?n.ru:n.key}</label></div>${kh}</div>`;
     }).join("")+`<div class="lf-foot"><button class="lf-clear" id="lfClr">Очистить</button></div>`;
     drop.querySelectorAll("[data-exp]").forEach(b=>b.onclick=e=>{e.stopPropagation();open.has(b.dataset.exp)?open.delete(b.dataset.exp):open.add(b.dataset.exp);paintDrop();});
@@ -92,8 +103,16 @@ function createLocationFilter(mount,{groups=DIST_TREE,selected=new Set(),lang="r
       const node=groups.find(n=>n.key===cb.dataset.d);
       if(node&&(node.kids||[]).length)node.kids.forEach(([k])=>cb.checked?selected.add(k):selected.delete(k));
       cb.checked?selected.add(cb.dataset.d):selected.delete(cb.dataset.d);
-      paintLabel();paintDrop();onChange&&onChange(new Set(selected));
+      paintLabel();paintStates();onChange&&onChange(new Set(selected));
     });
+    function paintStates(){
+      drop.querySelectorAll("[data-p]").forEach(p=>{
+        const node=groups.find(n=>n.key===p.dataset.p),ks=((node||{}).kids||[]).map(([k])=>k);
+        p.indeterminate=!!(ks.length&&ks.some(k=>selected.has(k))&&!ks.every(k=>selected.has(k)));
+        p.checked=selected.has(p.dataset.p);
+      });
+      drop.querySelectorAll("[data-d]:not([data-p])").forEach(cb=>{cb.checked=selected.has(cb.dataset.d);});
+    }
     drop.querySelectorAll("[data-p]").forEach(p=>{
       const node=groups.find(n=>n.key===p.dataset.p),ks=(node.kids||[]).map(([k])=>k);
       if(ks.length&&ks.some(k=>selected.has(k))&&!ks.every(k=>selected.has(k)))p.indeterminate=true;

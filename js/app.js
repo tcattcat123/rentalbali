@@ -59,34 +59,56 @@ en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_bu
 
 const state = {deal:"rent",role:"offer",rentCat:"monthly",tenure:"",query:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem("rh_fav")||"[]")),carIdx:{},districts:new Set()};
 const DIST_TREE=[
- {key:"Canggu",ru:"Чангу",kids:[["Berawa","Берава"],["BatuBolong","Бату Болонг"]]},
- {key:"Seminyak",ru:"Семиньяк",kids:[["Oberoi","Оберой"],["Legian","Легиан"],["Petitenget","Петитенгет"]]},
+ {key:"Canggu",ru:"Чангу",kids:[["Berawa","Берава"],["BatuBolong","Бату Болонг"],["TumbakBayuh","Тумбак Баюх"]]},
  {key:"Pererenan",ru:"Переренан",kids:[]},
  {key:"Umalas",ru:"Умалас",kids:[]},
  {key:"Kerobokan",ru:"Керобокан",kids:[]},
+ {key:"Seseh",ru:"Сесех",kids:[]},
+ {key:"Buduk",ru:"Будук",kids:[]},
+ {key:"Seminyak",ru:"Семиньяк",kids:[["Oberoi","Оберой"],["Legian","Легиан"],["Petitenget","Петитенгет"]]},
  {key:"Kuta",ru:"Кута",kids:[]},
- {key:"Uluwatu",ru:"Улувату",kids:[]},
+ {key:"TanahLot",ru:"Танах Лот",kids:[["Kedungu","Кедунгу"],["Cemagi","Чемаги"]]},
+ {key:"Uluwatu",ru:"Улувату",kids:[["Bingin","Бингин"],["Balangan","Балаган"]]},
  {key:"Jimbaran",ru:"Джимбаран",kids:[]},
  {key:"NusaDua",ru:"Нуса-Дуа",kids:[]},
- {key:"Ubud",ru:"Убуд",kids:[]},
+ {key:"Ungasan",ru:"Унгасан",kids:[["Pecatu","Печату"]]},
+ {key:"Ubud",ru:"Убуд",kids:[["Mas","Мас"],["Payangan","Паянган"]]},
  {key:"Denpasar",ru:"Денпасар",kids:[]},
  {key:"Sanur",ru:"Санур",kids:[]},
- {key:"Tabanan",ru:"Табанан",kids:[]}];
+ {key:"Gianyar",ru:"Гианьяр",kids:[["Sukawati","Сукавати"]]},
+ {key:"Tabanan",ru:"Табанан",kids:[["Mengwi","Менгви"]]},
+ {key:"Lovina",ru:"Ловина",kids:[["Singaraja","Сингараджа"]]},
+ {key:"Pemuteran",ru:"Пемутеран",kids:[]},
+ {key:"Amed",ru:"Амед",kids:[["Candidasa","Кандидаса"]]},
+ {key:"Sidemen",ru:"Сидемен",kids:[]},
+ {key:"NusaPenida",ru:"Нуса-Пенида",kids:[["NusaLembongan","Нуса-Лембонган"]]}
+];
+let locNoRebuild=false;
+function paintIndeterminate(){
+  const dd=$("locDropdown");if(!dd)return;
+  dd.querySelectorAll("[data-parent]").forEach(p=>{
+    const node=DIST_TREE.find(n=>n.key===p.dataset.parent);
+    const ks=((node||{}).kids||[]).map(([k])=>k);
+    p.indeterminate=!!(ks.length&&ks.some(k=>state.districts.has(k))&&!ks.every(k=>state.districts.has(k)));
+    p.checked=state.districts.has(p.dataset.parent);
+  });
+  dd.querySelectorAll("[data-dist]:not([data-parent])").forEach(cb=>{cb.checked=state.districts.has(cb.dataset.dist);});
+}
 state.locOpen=new Set(["Canggu","Seminyak"]);
 function locName(key){for(const n of DIST_TREE){if(n.key===key)return state.lang==="ru"?n.ru:n.key;for(const [k,r] of (n.kids||[]))if(k===key)return state.lang==="ru"?r:k;}return key;}
 function renderLocDropdown(){
   const dd=$("locDropdown");if(!dd)return;
   dd.innerHTML=DIST_TREE.map(n=>{
     const kids=n.kids||[];
-    const kidHtml=kids.length?`<div class="loc-kids${state.locOpen.has(n.key)?" open":""}" data-kids="${n.key}">${kids.map(([k,r])=>`<label class="location-item kid"><input type="checkbox" data-dist="${k}"${state.districts.has(k)?" checked":""}> ${state.lang==="ru"?r:k}</label>`).join("")}</div>`:"";
+    const kidHtml=kids.length?`<div class="loc-kids${state.locOpen.has(n.key)?" open":""}" data-kids="${n.key}"><div class="loc-kids-in">${kids.map(([k,r])=>`<label class="location-item kid"><input type="checkbox" data-dist="${k}"${state.districts.has(k)?" checked":""}> ${state.lang==="ru"?r:k}</label>`).join("")}</div></div>`:"";
     return`<div class="loc-node"><div class="loc-row"><button type="button" class="loc-exp${kids.length?"":" novis"}${state.locOpen.has(n.key)?" open":""}" data-exp="${n.key}" tabindex="-1">›</button><label class="location-item"><input type="checkbox" data-dist="${n.key}" data-parent="${n.key}"${state.districts.has(n.key)?" checked":""}> ${state.lang==="ru"?n.ru:n.key}</label></div>${kidHtml}</div>`;
   }).join("")+`<div class="loc-foot"><button class="loc-clear" id="locClear">${t("loc_clear")}</button></div>`;
   dd.querySelectorAll("[data-exp]").forEach(b=>b.onclick=e=>{e.stopPropagation();state.locOpen.has(b.dataset.exp)?state.locOpen.delete(b.dataset.exp):state.locOpen.add(b.dataset.exp);renderLocDropdown();});
   dd.querySelectorAll("[data-dist]").forEach(cb=>cb.onchange=()=>{
     const node=DIST_TREE.find(n=>n.key===cb.dataset.dist);
-    if(node&&node.kids.length){node.kids.forEach(([k])=>cb.checked?state.districts.add(k):state.districts.delete(k));}
+    if(node&&(node.kids||[]).length)node.kids.forEach(([k])=>cb.checked?state.districts.add(k):state.districts.delete(k));
     cb.checked?state.districts.add(cb.dataset.dist):state.districts.delete(cb.dataset.dist);
-    state.page=1;updateLocLabel();render();updateMarkersSafe();
+    state.page=1;locNoRebuild=true;updateLocLabel();render();paintIndeterminate();updateMarkersSafe();
   });
   dd.querySelectorAll("[data-parent]").forEach(p=>{
     const node=DIST_TREE.find(n=>n.key===p.dataset.parent);
@@ -271,7 +293,7 @@ function render(){
   if($("tenureWrap"))$("tenureWrap").style.display=state.deal==="sale"?"":"none";
   if($("availWrap"))$("availWrap").style.display=state.deal==="rent"?"":"none";
   document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat||(b.dataset.tenure&&b.dataset.tenure===state.tenure)));
-  renderCrumbs();renderLocDropdown();updateLocLabel();syncDropdowns();
+  renderCrumbs();if(locNoRebuild){locNoRebuild=false;}else{renderLocDropdown();}updateLocLabel();syncDropdowns();
   const fc=$("fcount");if(fc){const n=countActiveFilters();fc.textContent=n;fc.classList.toggle("hidden",n===0);}
   document.querySelectorAll("[data-mdeal]").forEach(b=>b.classList.toggle("active",(b.dataset.mdeal==="rent")===(state.deal==="rent")));
   document.querySelectorAll("[data-mtype]").forEach(b=>b.classList.toggle("active",$("fType").value===b.dataset.mtype));
@@ -503,4 +525,4 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
 $("creditModal").addEventListener("click",e=>{if(e.target.id==="creditModal")$("creditModal").classList.add("hidden");});
 $("simCalc").onclick=calcCredit;
 ["simPrice","simDP","simRate","simYears"].forEach(id=>$(id).addEventListener("input",calcCredit));
-render();syncDealTabs();highlightQuick();
+render();syncDealTabs();highlightQuick();document.body.dataset.settled="1";
