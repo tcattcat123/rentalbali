@@ -103,11 +103,13 @@ function charsHTML(it){
   return `<div class="extra-chars">${c.join("")}</div>`;
 }
 
-function cardHTML(it){
+function cardHTML(it,i){
+  i=i||0;
   const idx=state.carIdx[it.id]||0;
   const fav=state.fav.has(it.id);
   const heart=fav?"♥":"♡";
   let badges="";
+  if(it.dealType==="sale"&&it.tenure)badges+=`<span class="badge tenure">${it.tenure==="freehold"?"Hak Milik":"Hak Sewa"}</span>`;
   if(isNew(it))badges+=`<span class="badge new">⭐ ${t("new")}</span>`;
   if(it.isVerified)badges+=`<span class="badge verified">✓ ${t("verified")}</span>`;
   if(it.isTop)badges+=`<span class="badge top">${t("top")}</span>`;
@@ -123,7 +125,7 @@ function cardHTML(it){
   if(it.furnished)tags.push(`<span class="tag">${state.lang==="ru"?"Меблировано":"Furnished"}</span>`);
   if(it.isVerified)tags.push(`<span class="tag blue">✔ ${t("verified")}</span>`);
   const extra=it.type==="request"?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`:"";
-  return `<div class="property-card" data-card="${it.id}">
+  return `<div class="property-card" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
     <div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="Фото объекта">
       ${it.images.length>1?`<button class="car-btn prev" data-car="prev" data-id="${it.id}" aria-label="prev">‹</button><button class="car-btn next" data-car="next" data-id="${it.id}" aria-label="next">›</button>`:""}
       <span class="photo-counter">${(idx%it.images.length)+1}/${it.images.length}</span>
@@ -204,7 +206,7 @@ function render(){
   const pages=Math.max(1,Math.ceil(arr.length/state.perPage));
   if(state.page>pages)state.page=pages;
   const slice=arr.slice((state.page-1)*state.perPage,state.page*state.perPage);
-  $("cardsGrid").innerHTML=slice.map(cardHTML).join("");
+  $("cardsGrid").innerHTML=slice.map((it,i)=>cardHTML(it,i)).join("");
   $("emptyState").classList.toggle("hidden",slice.length>0);
   $("pagination").innerHTML=Array.from({length:pages},(_,i)=>`<button class="${state.page===i+1?"active":""}" data-page="${i+1}">${i+1}</button>`).join("");
   const favs=LISTINGS.filter(x=>state.fav.has(x.id));
