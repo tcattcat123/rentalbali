@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=26">
+<link rel="stylesheet" href="css/style.css?v=27">
 </head>
 <body>
 <div class="topbar"><span data-i18n="topbar">Проверенные объекты Бали · без комиссии для арендатора на части вилл</span></div>
@@ -80,19 +80,24 @@
           <select id="fLiving"><option value="">Любая</option><option value="1">1</option><option value="2">2+</option></select></div>
         <div class="filter-group"><label>Мебель</label>
           <select id="furnQ"><option value="">Любая</option><option value="yes">Да</option><option value="no">Нет</option></select></div>
+        <div id="advPanel" class="adv-panel hidden">
+        <div class="filter-group"><label data-i18n="land_area">Участок, м²</label><div class="price-inputs"><input type="number" id="landMin" placeholder="от"><span>–</span><input type="number" id="landMax" placeholder="до"></div></div>
+        <div class="filter-group"><label data-i18n="build_area">Строение, м²</label><div class="price-inputs"><input type="number" id="areaMin" placeholder="от"><span>–</span><input type="number" id="areaMax" placeholder="до"></div></div>
+        <div class="filter-group"><label data-i18n="floors">Этажей</label><select id="fFloors"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
+        <div class="filter-group"><label data-i18n="year">Год от</label><input type="number" id="fYear" placeholder="2020" min="1980" max="2026"></div>
+        <div class="filter-group"><label data-i18n="parking">Парковка</label><select id="fPark"><option value="">—</option><option>1</option><option>2</option><option>3</option></select></div>
+        </div>
+        <div class="sheet-foot">
+          <button id="sheetAdv" class="btn-ghost">Расширенный</button>
+          <button id="sheetReset" class="btn-text">Сбросить</button>
+          <button id="sheetApply" class="btn-primary">Показать</button>
+        </div>
       </div>
       <div class="actions-row">
         <button id="resetBtn" class="btn-text">Сбросить всё</button>
         <span style="flex:1"></span>
         <button id="advBtn" class="btn-ghost">Расширенный +</button>
         <button id="applyBtn" class="btn-primary">Показать</button>
-      </div>
-      <div id="advPanel" class="adv-panel hidden">
-        <div class="filter-group"><label data-i18n="land_area">Участок, м²</label><div class="price-inputs"><input type="number" id="landMin" placeholder="от"><span>–</span><input type="number" id="landMax" placeholder="до"></div></div>
-        <div class="filter-group"><label data-i18n="build_area">Строение, м²</label><div class="price-inputs"><input type="number" id="areaMin" placeholder="от"><span>–</span><input type="number" id="areaMax" placeholder="до"></div></div>
-        <div class="filter-group"><label data-i18n="floors">Этажей</label><select id="fFloors"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
-        <div class="filter-group"><label data-i18n="year">Год от</label><input type="number" id="fYear" placeholder="2020" min="1980" max="2026"></div>
-        <div class="filter-group"><label data-i18n="parking">Парковка</label><select id="fPark"><option value="">—</option><option>1</option><option>2</option><option>3</option></select></div>
       </div>
       <div class="subbar">
         <div class="results-count" id="resultsCount">…</div>

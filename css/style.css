@@ -84,6 +84,8 @@ button{font-family:inherit}
 .btn-text{background:transparent;border:0;color:var(--mut);cursor:pointer;font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:6px 4px}
 .btn-text:hover{color:var(--ink)}
 .adv-panel{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft)}
+#filtersBar > #advPanel{flex:1 1 100%}
+.sheet-foot{display:none}
 .subbar{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap}
 .results-count{font-weight:600;font-size:13.5px}
 /* crumbs compact */
@@ -293,7 +295,12 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
   .container{padding:10px 12px}
   .grid{gap:10px}
   #filtersBar{display:none}
-  #filtersBar.open{display:flex;flex-direction:column;position:fixed;left:0;right:0;bottom:0;top:auto;z-index:80;background:var(--card);border-radius:14px 14px 0 0;max-height:85vh;overflow-y:auto;padding:14px 14px 24px;box-shadow:0 -8px 32px rgba(0,0,0,.2);animation:sheetUp .28s ease}
+  #filtersBar.open{display:flex;flex-direction:column;align-items:stretch;position:fixed;left:0;right:0;bottom:0;top:auto;z-index:80;background:var(--card);border-radius:14px 14px 0 0;max-height:85vh;overflow-y:auto;padding:14px 14px 24px;box-shadow:0 -8px 32px rgba(0,0,0,.2);animation:sheetUp .28s ease}
+  #filtersBar.open .filter-group{width:100%}
+  #filtersBar.open .seg-btn{flex:1}
+  #filtersBar.open .sheet-foot{display:flex;gap:8px;align-items:center;margin-top:12px;position:sticky;bottom:0;background:var(--card);padding:10px 0 4px}
+  #sheetApply{flex:1;height:40px;font-size:14px}
+  .actions-row{display:none}
   #filtersBar.open .filter-dropdown{position:static;width:auto;max-width:none;box-shadow:none;border:1px solid var(--line);margin-top:6px}
   #filtersBar.open .dd-panel{position:static;box-shadow:none;border:1px solid var(--line);margin-top:4px;min-width:0}
   #filtersBar.open .filter-group{min-width:0}
