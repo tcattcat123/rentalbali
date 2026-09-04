@@ -3,23 +3,23 @@ const RATE = 16000;
 const now = Date.now();
 const H = 3600e3, M = 60e3;
 const LISTINGS = [
-{id:1,type:"offer",dealType:"rent",category:"monthly",title:"Вилла с бассейном в Чангу",price:25000000,currency:"IDR",propertyType:"villa_house",bedrooms:3,bathrooms:2,area:180,landArea:250,floors:2,yearBuilt:2021,furnished:true,parking:1,location:"Чангу",locationEn:"Canggu",lat:-8.6478,lng:115.1385,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali1-${i}/640/360`),createdAt:now-4*M,isVerified:true,isAgent:true,agentName:"Иван",isTop:true,isUrgent:false,legal:true,rating:4.8,reviews:46,views:1240,mine:true},
+{id:1,type:"offer",dealType:"rent",category:"monthly",title:"Вилла с бассейном в Чангу",price:25000000,currency:"IDR",propertyType:"villa",bedrooms:3,bathrooms:2,area:180,landArea:250,floors:2,yearBuilt:2021,furnished:true,parking:1,location:"Чангу",locationEn:"Canggu",lat:-8.6478,lng:115.1385,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali1-${i}/640/360`),createdAt:now-4*M,isVerified:true,isAgent:true,agentName:"Иван",isTop:true,isUrgent:false,legal:true,rating:4.8,reviews:46,views:1240,mine:true},
 {id:2,type:"offer",dealType:"rent",category:"monthly",title:"Квартира 1BR в Семиньяке",price:7500000,currency:"IDR",propertyType:"apartment",bedrooms:1,bathrooms:1,area:35,landArea:0,floors:5,yearBuilt:2022,furnished:true,parking:0,location:"Семиньяк",locationEn:"Seminyak",lat:-8.6905,lng:115.1665,images:[1,2].map(i=>`https://picsum.photos/seed/bali2-${i}/640/360`),createdAt:now-4*M,isVerified:true,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.6,reviews:46,views:860,mine:false},
-{id:3,type:"offer",dealType:"rent",category:"monthly",title:"Дом 2 спальни в Убуде",price:12000000,currency:"IDR",propertyType:"villa_house",bedrooms:2,bathrooms:2,area:95,landArea:150,floors:1,yearBuilt:2019,furnished:true,parking:1,location:"Убуд",locationEn:"Ubud",lat:-8.5069,lng:115.2625,images:[1,2,3,4].map(i=>`https://picsum.photos/seed/bali3-${i}/640/360`),createdAt:now-2*H,isVerified:false,isAgent:true,agentName:"Made",isTop:false,isUrgent:true,legal:true,rating:4.9,reviews:21,views:540,mine:false},
+{id:3,type:"offer",dealType:"rent",category:"monthly",title:"Дом 2 спальни в Убуде",price:12000000,currency:"IDR",propertyType:"house",bedrooms:2,bathrooms:2,area:95,landArea:150,floors:1,yearBuilt:2019,furnished:true,parking:1,location:"Убуд",locationEn:"Ubud",lat:-8.5069,lng:115.2625,images:[1,2,3,4].map(i=>`https://picsum.photos/seed/bali3-${i}/640/360`),createdAt:now-2*H,isVerified:false,isAgent:true,agentName:"Made",isTop:false,isUrgent:true,legal:true,rating:4.9,reviews:21,views:540,mine:false},
 {id:4,type:"offer",dealType:"rent",category:"monthly",title:"Sewa Kos в Улувату у океана",price:3500000,currency:"IDR",propertyType:"boarding",bedrooms:1,bathrooms:1,area:20,landArea:0,floors:2,yearBuilt:2020,furnished:true,parking:0,location:"Улувату",locationEn:"Uluwatu",lat:-8.8150,lng:115.1725,images:[`https://picsum.photos/seed/bali4-1/640/360`],createdAt:now-26*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.2,reviews:8,views:210,mine:false},
 {id:5,type:"offer",dealType:"rent",category:"yearly",title:"Таунхаус в Сануре (год)",price:180000000,currency:"IDR",propertyType:"townhouse",bedrooms:3,bathrooms:2,area:120,landArea:110,floors:2,yearBuilt:2021,furnished:false,parking:1,location:"Санур",locationEn:"Sanur",lat:-8.6930,lng:115.2628,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali5-${i}/640/360`),createdAt:now-5*H,isVerified:true,isAgent:false,isTop:true,isUrgent:false,legal:true,rating:4.7,reviews:33,views:980,mine:true},
-{id:6,type:"offer",dealType:"rent",category:"monthly",title:"Вилла в Нуса-Дуа",price:45000000,currency:"IDR",propertyType:"villa_house",bedrooms:4,bathrooms:3,area:250,landArea:400,floors:2,yearBuilt:2023,furnished:true,parking:2,location:"Нуса-Дуа",locationEn:"Nusa Dua",lat:-8.7962,lng:115.2229,images:[1,2].map(i=>`https://picsum.photos/seed/bali6-${i}/640/360`),createdAt:now-50*M,isVerified:true,isAgent:true,agentName:"Ketut",isTop:false,isUrgent:false,legal:true,rating:5.0,reviews:12,views:430,mine:false},
-{id:7,type:"offer",dealType:"rent",category:"monthly",title:"Дом в Денпасаре для семьи",price:9000000,currency:"IDR",propertyType:"villa_house",bedrooms:3,bathrooms:1,area:110,landArea:140,floors:1,yearBuilt:2018,furnished:false,parking:1,location:"Денпасар",locationEn:"Denpasar",lat:-8.6705,lng:115.2126,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali7-${i}/640/360`),createdAt:now-3*24*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.3,reviews:15,views:300,mine:false},
+{id:6,type:"offer",dealType:"rent",category:"monthly",title:"Вилла в Нуса-Дуа",price:45000000,currency:"IDR",propertyType:"villa",bedrooms:4,bathrooms:3,area:250,landArea:400,floors:2,yearBuilt:2023,furnished:true,parking:2,location:"Нуса-Дуа",locationEn:"Nusa Dua",lat:-8.7962,lng:115.2229,images:[1,2].map(i=>`https://picsum.photos/seed/bali6-${i}/640/360`),createdAt:now-50*M,isVerified:true,isAgent:true,agentName:"Ketut",isTop:false,isUrgent:false,legal:true,rating:5.0,reviews:12,views:430,mine:false},
+{id:7,type:"offer",dealType:"rent",category:"monthly",title:"Дом в Денпасаре для семьи",price:9000000,currency:"IDR",propertyType:"house",bedrooms:3,bathrooms:1,area:110,landArea:140,floors:1,yearBuilt:2018,furnished:false,parking:1,location:"Денпасар",locationEn:"Denpasar",lat:-8.6705,lng:115.2126,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali7-${i}/640/360`),createdAt:now-3*24*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.3,reviews:15,views:300,mine:false},
 {id:8,type:"offer",dealType:"rent",category:"monthly",title:"Пентхаус в Семиньяке",price:30000000,currency:"IDR",propertyType:"apartment",bedrooms:2,bathrooms:2,area:85,landArea:0,floors:8,yearBuilt:2022,furnished:true,parking:1,location:"Семиньяк",locationEn:"Seminyak",lat:-8.6871,lng:115.1674,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali8-${i}/640/360`),createdAt:now-10*H,isVerified:true,isAgent:true,agentName:"Anna",isTop:true,isUrgent:false,legal:true,rating:4.9,reviews:58,views:2100,mine:false},
-{id:9,type:"offer",dealType:"rent",category:"yearly",title:"Вилла в Джимбаране (год)",price:240000000,currency:"IDR",propertyType:"villa_house",bedrooms:5,bathrooms:4,area:300,landArea:500,floors:3,yearBuilt:2020,furnished:true,parking:2,location:"Джимбаран",locationEn:"Jimbaran",lat:-8.7775,lng:115.1637,images:[1,2].map(i=>`https://picsum.photos/seed/bali9-${i}/640/360`),createdAt:now-30*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.5,reviews:19,views:670,mine:false},
+{id:9,type:"offer",dealType:"rent",category:"yearly",title:"Вилла в Джимбаране (год)",price:240000000,currency:"IDR",propertyType:"villa",bedrooms:5,bathrooms:4,area:300,landArea:500,floors:3,yearBuilt:2020,furnished:true,parking:2,location:"Джимбаран",locationEn:"Jimbaran",lat:-8.7775,lng:115.1637,images:[1,2].map(i=>`https://picsum.photos/seed/bali9-${i}/640/360`),createdAt:now-30*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.5,reviews:19,views:670,mine:false},
 {id:10,type:"offer",dealType:"rent",category:"monthly",title:"Студия в Чангу",price:6000000,currency:"IDR",propertyType:"apartment",bedrooms:1,bathrooms:1,area:28,landArea:0,floors:3,yearBuilt:2023,furnished:true,parking:0,location:"Чангу",locationEn:"Canggu",lat:-8.6499,lng:115.1339,images:[1,2].map(i=>`https://picsum.photos/seed/bali10-${i}/640/360`),createdAt:now-20*M,isVerified:false,isAgent:false,isTop:false,isUrgent:true,legal:false,rating:4.4,reviews:9,views:390,mine:false},
-{id:17,type:"offer",dealType:"sale",title:"Вилла с бассейном в Убуде — продажа",price:4500000000,currency:"IDR",propertyType:"villa_house",bedrooms:3,bathrooms:3,area:200,landArea:300,floors:2,yearBuilt:2021,furnished:true,parking:2,location:"Убуд",locationEn:"Ubud",lat:-8.5120,lng:115.2700,images:[1,2,3].map(i=>`https://picsum.photos/seed/sale17-${i}/640/360`),createdAt:now-6*H,isVerified:true,isAgent:true,agentName:"Wayan",isTop:true,isUrgent:false,legal:true,rating:4.9,reviews:27,views:1500,mine:true},
+{id:17,type:"offer",dealType:"sale",title:"Вилла с бассейном в Убуде — продажа",price:4500000000,currency:"IDR",propertyType:"villa",bedrooms:3,bathrooms:3,area:200,landArea:300,floors:2,yearBuilt:2021,furnished:true,parking:2,location:"Убуд",locationEn:"Ubud",lat:-8.5120,lng:115.2700,images:[1,2,3].map(i=>`https://picsum.photos/seed/sale17-${i}/640/360`),createdAt:now-6*H,isVerified:true,isAgent:true,agentName:"Wayan",isTop:true,isUrgent:false,legal:true,rating:4.9,reviews:27,views:1500,mine:true},
 {id:18,type:"offer",dealType:"sale",title:"Земля 10 соток в Улувату",price:2800000000,currency:"IDR",propertyType:"land",bedrooms:0,bathrooms:0,area:0,landArea:1000,floors:0,yearBuilt:0,furnished:false,parking:0,location:"Улувату",locationEn:"Uluwatu",lat:-8.8200,lng:115.1750,images:[1,2].map(i=>`https://picsum.photos/seed/sale18-${i}/640/360`),createdAt:now-14*H,isVerified:true,isAgent:false,isTop:false,isUrgent:false,legal:true,rating:4.7,reviews:11,views:620,mine:false},
 {id:19,type:"offer",dealType:"sale",title:"Коммерческое помещение в Куте",price:5200000000,currency:"IDR",propertyType:"commercial",bedrooms:0,bathrooms:2,area:150,landArea:120,floors:2,yearBuilt:2019,furnished:false,parking:3,location:"Кута",locationEn:"Kuta",lat:-8.7184,lng:115.1686,images:[1,2].map(i=>`https://picsum.photos/seed/sale19-${i}/640/360`),createdAt:now-2*24*H,isVerified:false,isAgent:true,agentName:"Made",isTop:false,isUrgent:false,legal:true,rating:4.5,reviews:7,views:410,mine:false},
 {id:20,type:"offer",dealType:"sale",title:"Квартира 2BR в Денпасаре",price:1800000000,currency:"IDR",propertyType:"apartment",bedrooms:2,bathrooms:1,area:60,landArea:0,floors:10,yearBuilt:2022,furnished:true,parking:1,location:"Денпасар",locationEn:"Denpasar",lat:-8.6720,lng:115.2150,images:[1,2].map(i=>`https://picsum.photos/seed/sale20-${i}/640/360`),createdAt:now-1*H,isVerified:true,isAgent:false,isTop:false,isUrgent:true,legal:false,rating:4.6,reviews:14,views:530,mine:false},
 {id:11,type:"request",dealType:"rent",category:"monthly",title:"Сниму 1BR в Чангу до 8 млн",price:8000000,currency:"IDR",propertyType:"apartment",bedrooms:1,bathrooms:1,area:30,landArea:0,floors:0,yearBuilt:0,furnished:true,parking:0,location:"Чангу",locationEn:"Canggu",lat:-8.6500,lng:115.1400,images:[`https://picsum.photos/seed/req11/640/360`],createdAt:now-40*M,isVerified:true,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:0,reviews:3,views:120,moveIn:"2026-10-01"},
-{id:12,type:"request",dealType:"sale",title:"Куплю виллу в Улувату",price:3500000000,currency:"IDR",propertyType:"villa_house",bedrooms:3,bathrooms:2,area:200,landArea:250,floors:2,yearBuilt:0,furnished:false,parking:0,location:"Улувату",locationEn:"Uluwatu",lat:-8.8100,lng:115.1700,images:[`https://picsum.photos/seed/req12/640/360`],createdAt:now-3*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:0,reviews:1,views:80,moveIn:"2026-11-15"},
-{id:13,type:"request",dealType:"rent",category:"monthly",title:"Сниму дом в Убуде на 3 мес",price:10000000,currency:"IDR",propertyType:"villa_house",bedrooms:2,bathrooms:1,area:80,landArea:100,floors:1,yearBuilt:0,furnished:true,parking:0,location:"Убуд",locationEn:"Ubud",lat:-8.5100,lng:115.2600,images:[`https://picsum.photos/seed/req13/640/360`],createdAt:now-12*H,isVerified:true,isAgent:false,isTop:true,isUrgent:false,legal:false,rating:0,reviews:5,views:230,moveIn:"2026-09-20"},
+{id:12,type:"request",dealType:"sale",title:"Куплю виллу в Улувату",price:3500000000,currency:"IDR",propertyType:"villa",bedrooms:3,bathrooms:2,area:200,landArea:250,floors:2,yearBuilt:0,furnished:false,parking:0,location:"Улувату",locationEn:"Uluwatu",lat:-8.8100,lng:115.1700,images:[`https://picsum.photos/seed/req12/640/360`],createdAt:now-3*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:0,reviews:1,views:80,moveIn:"2026-11-15"},
+{id:13,type:"request",dealType:"rent",category:"monthly",title:"Сниму дом в Убуде на 3 мес",price:10000000,currency:"IDR",propertyType:"house",bedrooms:2,bathrooms:1,area:80,landArea:100,floors:1,yearBuilt:0,furnished:true,parking:0,location:"Убуд",locationEn:"Ubud",lat:-8.5100,lng:115.2600,images:[`https://picsum.photos/seed/req13/640/360`],createdAt:now-12*H,isVerified:true,isAgent:false,isTop:true,isUrgent:false,legal:false,rating:0,reviews:5,views:230,moveIn:"2026-09-20"},
 {id:14,type:"request",dealType:"rent",category:"monthly",title:"Ищу sewa kos в Семиньяке",price:4000000,currency:"IDR",propertyType:"boarding",bedrooms:1,bathrooms:1,area:18,landArea:0,floors:0,yearBuilt:0,furnished:true,parking:0,location:"Семиньяк",locationEn:"Seminyak",lat:-8.6900,lng:115.1650,images:[`https://picsum.photos/seed/req14/640/360`],createdAt:now-8*H,isVerified:false,isAgent:false,isTop:false,isUrgent:true,legal:false,rating:0,reviews:2,views:150,moveIn:"2026-09-10"},
 {id:15,type:"request",dealType:"rent",category:"yearly",title:"Сниму таунхаус в Сануре на год",price:150000000,currency:"IDR",propertyType:"townhouse",bedrooms:3,bathrooms:2,area:110,landArea:100,floors:2,yearBuilt:0,furnished:false,parking:1,location:"Санур",locationEn:"Sanur",lat:-8.6950,lng:115.2600,images:[`https://picsum.photos/seed/req15/640/360`],createdAt:now-2*24*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:0,reviews:0,views:60,moveIn:"2026-10-10"},
 {id:16,type:"request",dealType:"sale",title:"Куплю квартиру в Денпасаре",price:1200000000,currency:"IDR",propertyType:"apartment",bedrooms:2,bathrooms:1,area:60,landArea:0,floors:0,yearBuilt:0,furnished:false,parking:0,location:"Денпасар",locationEn:"Denpasar",lat:-8.6710,lng:115.2100,images:[`https://picsum.photos/seed/req16/640/360`],createdAt:now-30*M,isVerified:true,isAgent:true,agentName:"Wayan",isTop:false,isUrgent:false,legal:true,rating:0,reviews:4,views:190,moveIn:"2026-12-01"},
@@ -33,16 +33,17 @@ const LISTINGS = [
 
 const U=id=>`https://images.unsplash.com/${id}?w=640&q=70&auto=format&fit=crop`;
 const POOL={
-villa_house:[U("photo-1613490493576-7fde63acd811"),U("photo-1512917774080-9991f1c4c750"),U("photo-1600596542815-ffad4c1539a9"),U("photo-1584132967334-10e028bd69f7")],
+villa:[U("photo-1613490493576-7fde63acd811"),U("photo-1512917774080-9991f1c4c750"),U("photo-1600596542815-ffad4c1539a9"),U("photo-1584132967334-10e028bd69f7")],
+house:[U("photo-1564013799919-ab600027ffc6d"),U("photo-1600585154340-be6161a56a0c"),U("photo-1580587771525-78b9dba3b914"),U("photo-1600047509807-ba8f99d2cdde")],
 apartment:[U("photo-1522708323590-d24dbb6b0267"),U("photo-1560448204-e02f11c3d0e2"),U("photo-1493809842364-78817add7ffb")],
 homestay:[U("photo-1595526114035-0d45ed16cfbf"),U("photo-1554995207-c18c203602cb"),U("photo-1571896349842-33c89424de2d")],
 boarding:[U("photo-1595526114035-0d45ed16cfbf"),U("photo-1554995207-c18c203602cb")],
 townhouse:[U("photo-1570129477492-45c003edd2be"),U("photo-1580587771525-78b9dba3b914"),U("photo-1600047509807-ba8f99d2cdde")],
 land:[U("photo-1500382017468-9049fed747ef"),U("photo-1472214103451-9374bd1c798e")],
 commercial:[U("photo-1486406146926-c627a92ad1ab"),U("photo-1564013799919-ab600027ffc6d")]};
-LISTINGS.forEach((it,i)=>{const p=POOL[it.propertyType]||POOL.villa_house;const n=it.type==="request"?1:(it.propertyType==="land"?2:3);it.images=Array.from({length:n},(_,k)=>p[(i+k)%p.length]);it.fb=`https://picsum.photos/seed/bali${it.id}/640/360`;});
-const AM={villa_house:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
-LISTINGS.forEach((it,i)=>{const a=AM[it.propertyType]||AM.villa_house;it.amenities=a.slice(0,4+(i%3));});
+LISTINGS.forEach((it,i)=>{const p=POOL[it.propertyType]||POOL.villa;const n=it.type==="request"?1:(it.propertyType==="land"?2:3);it.images=Array.from({length:n},(_,k)=>p[(i+k)%p.length]);it.fb=`https://picsum.photos/seed/bali${it.id}/640/360`;});
+const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],house:["Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад","Телевизор"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
+LISTINGS.forEach((it,i)=>{const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
 const TEN={17:"freehold",18:"freehold",19:"leasehold",20:"freehold",12:"leasehold",16:"freehold"};
 LISTINGS.forEach(it=>{if(it.dealType==="sale")it.tenure=TEN[it.id]||"freehold";});
 LISTINGS.forEach(it=>{it.living=(it.propertyType==="land"||it.propertyType==="commercial")?0:(it.bedrooms>=4?2:(it.bedrooms>=2?1:0));});
@@ -52,11 +53,11 @@ function fmtDate(iso){const[a,b,c]=iso.split("-");return`${c}.${b}.${a}`;}
 let detailId=null,detailIdx=0;
 
 const I18N = {
-ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",sub_hint:"предлагаю / ищу",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",t_villa_house:"Виллы и дома",t_apartment:"Квартиры",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
-en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",sub_hint:"offer / wanted",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",t_villa_house:"Villas & houses",t_apartment:"Apartments",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
+ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",sub_hint:"предлагаю / ищу",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",t_villa:"Вилла",t_house:"Дом",t_apartment:"Квартиры",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
+en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",sub_hint:"offer / wanted",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
 };
 
-const state = {deal:"rent",role:"offer",rentCat:"monthly",tenure:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem("rh_fav")||"[]")),carIdx:{},districts:new Set()};
+const state = {deal:"rent",role:"offer",rentCat:"monthly",tenure:"",query:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem("rh_fav")||"[]")),carIdx:{},districts:new Set()};
 const DIST_GROUPS=[
  {g:"ПЛЯЖНАЯ ЗОНА И ЦЕНТР",items:[["Seminyak","Семиньяк"],["Oberoi","Оберой"],["Legian","Легиан"],["Kuta","Кута"]]},
  {g:"ЖИЛАЯ ЗОНА",items:[["Canggu","Чангу"],["Pererenan","Переренан"],["Umalas","Умалас"]]},
@@ -204,7 +205,7 @@ function getFiltered(){
   if(state.deal==="sale"&&state.tenure)arr=arr.filter(x=>x.tenure===state.tenure);
   if(!isNaN(pMin))arr=arr.filter(x=>x.price>=pMin);
   if(!isNaN(pMax))arr=arr.filter(x=>x.price<=pMax);
-  if(fT)arr=arr.filter(x=>x.propertyType===fT||(fT==="villa_house"&&(x.propertyType==="villa"||x.propertyType==="house")));
+  if(fT)arr=arr.filter(x=>x.propertyType===fT);
   if(fR)arr=arr.filter(x=>fR==="5"?x.bedrooms>=5:x.bedrooms==+fR);
   if(state.districts.size)arr=arr.filter(x=>state.districts.has(x.locationEn||x.location)||[...state.districts].some(d=>locName(d)===x.location));
   if(!isNaN(lMin))arr=arr.filter(x=>(x.landArea||0)>=lMin);
@@ -217,6 +218,11 @@ function getFiltered(){
   if(fFu==="no")arr=arr.filter(x=>!x.furnished);
   if(fAv)arr=arr.filter(x=>!x.available||x.available.slice(0,7)<=fAv);
   if(fLv)arr=arr.filter(x=>fLv==="2"?(x.living||0)>=2:(x.living||0)===1);
+  const q=(state.query||"").trim().toLowerCase();
+  if(q){
+    if(/^\d+$/.test(q)){const n=+q;const lim=n<100000?n*1000000:n;arr=arr.filter(x=>x.price<=lim);}
+    else arr=arr.filter(x=>(x.title+" "+x.location+" "+(x.locationEn||"")).toLowerCase().includes(q));
+  }
   if(fP)arr=arr.filter(x=>(x.parking||0)>=+fP);
   if(state.sort==="price_asc")arr.sort((a,b)=>a.price-b.price);
   else if(state.sort==="price_desc")arr.sort((a,b)=>b.price-a.price);
@@ -247,12 +253,13 @@ function render(){
   if($("availWrap"))$("availWrap").style.display=state.deal==="rent"?"":"none";
   document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat||(b.dataset.tenure&&b.dataset.tenure===state.tenure)));
   renderCrumbs();renderLocDropdown();updateLocLabel();syncDropdowns();
+  const fc=$("fcount");if(fc){const n=countActiveFilters();fc.textContent=n;fc.classList.toggle("hidden",n===0);}
+  document.querySelectorAll("[data-mdeal]").forEach(b=>b.classList.toggle("active",(b.dataset.mdeal==="rent")===(state.deal==="rent")));
+  document.querySelectorAll("[data-mtype]").forEach(b=>b.classList.toggle("active",$("fType").value===b.dataset.mtype));
   const arr=getFiltered();
   $("resultsCount").textContent=`${arr.length} ${t("variants")}`;
   if($("statCount"))$("statCount").textContent=LISTINGS.length;
-  if($("heroTitle"))$("heroTitle").textContent=state.deal==="sale"
-    ?(state.lang==="ru"?"Покупка на Бали без лишнего шума":"Buy in Bali, no noise")
-    :(state.lang==="ru"?"Аренда на Бали без лишнего шума":"Rent in Bali, no noise");
+  if($("heroTitle"))$("heroTitle").textContent=state.lang==="ru"?"Недвижимость на Бали без лишнего шума":"Bali property with no hassle";
   if($("advBtn"))$("advBtn").textContent=t("advanced")+($("advPanel").classList.contains("hidden")?"  +":"  –");
   const pages=Math.max(1,Math.ceil(arr.length/state.perPage));
   if(state.page>pages)state.page=pages;
@@ -309,6 +316,19 @@ function updateMarkers(){
     markers.push(m);
   });
 }
+function countActiveFilters(){
+  let n=0;
+  if($("fType").value)n++;if(state.districts.size)n++;
+  if($("priceMin").value||$("priceMax").value)n++;
+  if($("fRooms").value)n++;if(state.rentCat)n++;if(state.tenure)n++;
+  if($("fAvail").value)n++;if($("fLiving").value)n++;if($("furnQ").value)n++;
+  if($("landMin").value||$("landMax").value||$("areaMin").value||$("areaMax").value)n++;
+  if($("fFloors").value||$("fYear").value||$("fPark").value)n++;
+  if(state.query)n++;
+  return n;
+}
+function openSheet(){$("filtersBar").classList.add("open");$("sheetBg").classList.remove("hidden");}
+function closeSheet(){$("filtersBar").classList.remove("open");$("sheetBg").classList.add("hidden");}
 function updateMarkersSafe(){if(map)updateMarkers();}
 
 function moneyIDR(v){return state.currency==="USD"?"$ "+Math.round(v/RATE).toLocaleString("en-US"):Math.round(v).toLocaleString("ru-RU")+" IDR";}
@@ -395,7 +415,7 @@ document.addEventListener("click",e=>{
 function resetFilters(){
   ["priceMin","priceMax","landMin","landMax","areaMin","areaMax","fYear","fAvail","fLiving"].forEach(id=>{if($(id))$(id).value="";});
   ["fType","fRooms","fFloors","furnQ","fPark"].forEach(id=>{if($(id))$(id).value="";});
-  state.districts.clear();state.tenure="";
+  state.districts.clear();state.tenure="";state.query="";if($("mquery"))$("mquery").value="";
   state.page=1;activeQuick="";highlightQuick();
 }
 let activeQuick="";
@@ -403,9 +423,9 @@ function applyQuick(key){
   if(key==="sim_credit"){openCredit();return;}
   resetFilters();
   activeQuick=key;
-  if(key==="buy_house"){state.deal="sale";state.role="offer";$("fType").value="villa_house";syncRoleTabs();}
+  if(key==="buy_house"){state.deal="sale";state.role="offer";$("fType").value="";syncRoleTabs();}
   if(key==="buy_land"){state.deal="sale";state.role="offer";$("fType").value="land";syncRoleTabs();}
-  if(key==="rent_house"){state.deal="rent";state.role="offer";$("fType").value="villa_house";state.rentCat="";syncRoleTabs();}
+  if(key==="rent_house"){state.deal="rent";state.role="offer";$("fType").value="";state.rentCat="";syncRoleTabs();}
   if(key==="rent_land"){state.deal="rent";state.role="offer";$("fType").value="land";state.rentCat="";syncRoleTabs();}
   if(key==="homestay"){state.deal="rent";state.role="offer";$("fType").value="homestay";state.rentCat="";syncRoleTabs();}
   if(key==="rent_board"){state.deal="rent";state.role="offer";$("fType").value="boarding";state.rentCat="";syncRoleTabs();}
@@ -423,8 +443,8 @@ function calcCredit(){
   $("simResult").textContent=`≈ ${val} ${cur} / мес`;
 }
 
-$("applyBtn").onclick=()=>{state.page=1;render();if(state.view!=="list")switchView("list");syncDealTabs();updateMarkersSafe();if(window.innerWidth<768)$("filtersBar").classList.remove("open");};
-$("resetBtn").onclick=()=>{resetFilters();state.rentCat="";render();};
+$("applyBtn").onclick=()=>{state.page=1;render();if(state.view!=="list")switchView("list");syncDealTabs();updateMarkersSafe();closeSheet();};
+$("resetBtn").onclick=()=>{resetFilters();state.rentCat="";closeSheet();render();};
 $("advBtn").onclick=()=>$("advPanel").classList.toggle("hidden");
 $("sortSelect").onchange=e=>{state.sort=e.target.value;state.page=1;render();};
 $("dealRent").onclick=()=>setDeal("rent");
@@ -439,11 +459,20 @@ $("logoBtn").onclick=e=>{e.preventDefault();switchView("list");syncDealTabs();};
 ["fType","fRooms","fLiving","furnQ","fFloors","fPark","sortSelect","currencySelect"].forEach(id=>{const el=$(id);if(el)enhanceSelect(el);});
 if($("fAvail"))enhanceMonth($("fAvail"));
 document.addEventListener("click",e=>{if(!e.target.closest(".dd"))closeAllDD();});
+let qTimer=null;
+document.querySelectorAll("[data-mdeal]").forEach(b=>b.onclick=()=>{state.deal=b.dataset.mdeal;state.role="offer";state.page=1;syncRoleTabs();switchView("list");syncDealTabs();render();updateMarkersSafe();});
+document.querySelectorAll("[data-mtype]").forEach(b=>b.onclick=()=>{const cur=$("fType").value===b.dataset.mtype;$("fType").value=cur?"":b.dataset.mtype;state.page=1;render();});
+if($("mquery"))$("mquery").addEventListener("input",e=>{clearTimeout(qTimer);qTimer=setTimeout(()=>{state.query=e.target.value;state.page=1;render();},250);});
+if($("mshow"))$("mshow").onclick=()=>{state.page=1;render();document.getElementById("cardsGrid").scrollIntoView({behavior:"smooth"});};
+if($("mfilterBtn"))$("mfilterBtn").onclick=()=>openSheet();
+if($("mreset"))$("mreset").onclick=()=>{resetFilters();state.rentCat="";render();};
+if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render();window.scrollTo({top:0,behavior:"smooth"});};
+if($("sheetBg"))$("sheetBg").onclick=()=>closeSheet();
 $("locHeader").onclick=e=>{e.stopPropagation();toggleLoc();};
 document.addEventListener("click",e=>{if(!e.target.closest("#locFilter"))toggleLoc(false);});
 $("detailClose").onclick=()=>closeDetail();
 $("detailModal").addEventListener("click",e=>{if(e.target.id==="detailModal")closeDetail();});
-$("filtersModalBtn").onclick=()=>{const bar=$("filtersBar");if(window.innerWidth<768){bar.style.display=bar.style.display==="flex"?"":"flex";bar.classList.add("open");}else{$("filtersModal").classList.remove("hidden");}};
+$("filtersModalBtn").onclick=()=>{openSheet();};
 $("filtersClose").onclick=()=>$("filtersModal").classList.add("hidden");
 $("filtersModalApply").onclick=()=>{$("filtersModal").classList.add("hidden");$("applyBtn").click();};
 $("currencySelect").onchange=e=>{state.currency=e.target.value;render();};

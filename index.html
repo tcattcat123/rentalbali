@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=22">
+<link rel="stylesheet" href="css/style.css?v=23">
 </head>
 <body>
 <div class="topbar"><span data-i18n="topbar">Проверенные объекты Бали · без комиссии для арендатора на части вилл</span></div>
@@ -34,9 +34,20 @@
 <main class="container">
   <section id="view-list">
     <div class="hero">
-      <div><h1 id="heroTitle">Аренда на Бали без лишнего шума</h1><p class="muted" id="heroSub">Виллы, дома и квартиры с проверенными фото и прозрачной ценой.</p></div>
+      <div><h1 id="heroTitle">Недвижимость на Бали без лишнего шума</h1>
+        <div class="trust"><span>🛡 Проверенные объекты</span><span>🛡 Прозрачная цена</span><span>🛡 Русскоязычная поддержка</span></div></div>
       <div class="hero-stats"><div><b id="statCount">20</b><span data-i18n="variants">вариантов</span></div><div><b>24ч</b><span data-i18n="new">Новые</span></div><div><b>✔</b><span data-i18n="verified">Проверено</span></div></div>
     </div>
+
+    <section id="msearch" class="msearch">
+      <div class="mseg"><button data-mdeal="rent" class="active">Аренда</button><button data-mdeal="sale">Купить</button></div>
+      <div class="msearch-input"><span>⌕</span><input id="mquery" placeholder="Район, объект или бюджет" autocomplete="off"></div>
+      <div class="mchips">
+        <button data-mtype="villa">🏠 Виллы</button><button data-mtype="house">🏡 Дома</button><button data-mtype="apartment">🏢 Квартиры</button><button data-mtype="land">🌿 Земля</button>
+      </div>
+      <button id="mshow" class="btn-primary">Показать варианты</button>
+      <div class="mrow"><button id="mfilterBtn">☰ Фильтры <span id="fcount" class="fav-count hidden">0</span></button><button id="mreset" class="btn-text">Сбросить все</button></div>
+    </section>
 
     <div class="toolbar card">
       <div class="deal-tabs" role="tablist">
@@ -46,7 +57,7 @@
       </div>
       <div class="filters" id="filtersBar">
         <div class="filter-group"><label>Тип недвижимости</label>
-          <select id="fType"><option value="">Все</option><option value="villa_house">Виллы и дома</option><option value="apartment">Квартиры</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="commercial">Коммерческая</option><option value="townhouse">Таунхаусы</option><option value="boarding">Sewa Kos</option></select></div>
+          <select id="fType"><option value="">Все</option><option value="villa">Виллы</option><option value="house">Дома</option><option value="apartment">Квартиры</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="commercial">Коммерческая</option><option value="townhouse">Таунхаусы</option><option value="boarding">Sewa Kos</option></select></div>
         <div class="filter-group" id="rentCatWrap"><label>Срок</label>
           <div class="seg"><button class="seg-btn active" data-cat="monthly" id="catMonthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly">год</button></div></div>
         <div class="filter-group" id="tenureWrap"><label>Тип владения</label>
@@ -107,6 +118,7 @@
       </div>
     </section>
 
+    <div class="sec-head"><h2>Проверенные объекты</h2><button id="seeAll">Смотреть все</button></div>
     <div id="cardsGrid" class="grid"></div>
     <div id="emptyState" class="empty hidden"><b>∅</b><p data-i18n="empty">Ничего не найдено. Попробуйте сбросить фильтры.</p></div>
     <div id="pagination" class="pagination"></div>
@@ -158,8 +170,9 @@
 </div></div>
 <div id="filtersModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="filtersClose">✕</button><h3 data-i18n="filters">Фильтры</h3><p class="muted" data-i18n="filters_hint">Задайте значения и нажмите Показать.</p><button id="filtersModalApply" class="btn-primary block" data-i18n="apply">Показать</button></div></div>
 
+<div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=22"></script>
+<script src="js/app.js?v=23"></script>
 </body>
 </html>

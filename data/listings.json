@@ -7,7 +7,7 @@
     "title": "Вилла с бассейном в Чангу",
     "price": 25000000,
     "currency": "IDR",
-    "propertyType": "villa_house",
+    "propertyType": "villa",
     "bedrooms": 3,
     "bathrooms": 2,
     "area": 180,
@@ -25,7 +25,7 @@
       "https://picsum.photos/seed/bali1-2/640/360",
       "https://picsum.photos/seed/bali1-3/640/360"
     ],
-    "createdAt": "2026-09-04T08:57:36.101Z",
+    "createdAt": "2026-09-04T09:31:29.363Z",
     "isVerified": true,
     "isAgent": true,
     "agentName": "Иван",
@@ -62,7 +62,7 @@
       "https://picsum.photos/seed/bali2-1/640/360",
       "https://picsum.photos/seed/bali2-2/640/360"
     ],
-    "createdAt": "2026-09-04T08:57:36.101Z",
+    "createdAt": "2026-09-04T09:31:29.363Z",
     "isVerified": true,
     "isAgent": false,
     "isTop": false,
@@ -81,7 +81,7 @@
     "title": "Дом 2 спальни в Убуде",
     "price": 12000000,
     "currency": "IDR",
-    "propertyType": "villa_house",
+    "propertyType": "house",
     "bedrooms": 2,
     "bathrooms": 2,
     "area": 95,
@@ -100,7 +100,7 @@
       "https://picsum.photos/seed/bali3-3/640/360",
       "https://picsum.photos/seed/bali3-4/640/360"
     ],
-    "createdAt": "2026-09-04T07:01:36.101Z",
+    "createdAt": "2026-09-04T07:35:29.363Z",
     "isVerified": false,
     "isAgent": true,
     "agentName": "Made",
@@ -136,7 +136,7 @@
     "images": [
       "https://picsum.photos/seed/bali4-1/640/360"
     ],
-    "createdAt": "2026-09-03T07:01:36.101Z",
+    "createdAt": "2026-09-03T07:35:29.363Z",
     "isVerified": false,
     "isAgent": false,
     "isTop": false,
@@ -173,7 +173,7 @@
       "https://picsum.photos/seed/bali5-2/640/360",
       "https://picsum.photos/seed/bali5-3/640/360"
     ],
-    "createdAt": "2026-09-04T04:01:36.101Z",
+    "createdAt": "2026-09-04T04:35:29.363Z",
     "isVerified": true,
     "isAgent": false,
     "isTop": true,
@@ -192,7 +192,7 @@
     "title": "Вилла в Нуса-Дуа",
     "price": 45000000,
     "currency": "IDR",
-    "propertyType": "villa_house",
+    "propertyType": "villa",
     "bedrooms": 4,
     "bathrooms": 3,
     "area": 250,
@@ -209,7 +209,7 @@
       "https://picsum.photos/seed/bali6-1/640/360",
       "https://picsum.photos/seed/bali6-2/640/360"
     ],
-    "createdAt": "2026-09-04T08:11:36.101Z",
+    "createdAt": "2026-09-04T08:45:29.363Z",
     "isVerified": true,
     "isAgent": true,
     "agentName": "Ketut",
@@ -229,7 +229,7 @@
     "title": "Дом в Денпасаре для семьи",
     "price": 9000000,
     "currency": "IDR",
-    "propertyType": "villa_house",
+    "propertyType": "house",
     "bedrooms": 3,
     "bathrooms": 1,
     "area": 110,
@@ -247,7 +247,7 @@
       "https://picsum.photos/seed/bali7-2/640/360",
       "https://picsum.photos/seed/bali7-3/640/360"
     ],
-    "createdAt": "2026-09-01T09:01:36.101Z",
+    "createdAt": "2026-09-01T09:35:29.363Z",
     "isVerified": false,
     "isAgent": false,
     "isTop": false,
@@ -284,7 +284,7 @@
       "https://picsum.photos/seed/bali8-2/640/360",
       "https://picsum.photos/seed/bali8-3/640/360"
     ],
-    "createdAt": "2026-09-03T23:01:36.101Z",
+    "createdAt": "2026-09-03T23:35:29.363Z",
     "isVerified": true,
     "isAgent": true,
     "agentName": "Anna",
@@ -304,7 +304,7 @@
     "title": "Вилла в Джимбаране (год)",
     "price": 240000000,
     "currency": "IDR",
-    "propertyType": "villa_house",
+    "propertyType": "villa",
     "bedrooms": 5,
     "bathrooms": 4,
     "area": 300,
@@ -321,7 +321,7 @@
       "https://picsum.photos/seed/bali9-1/640/360",
       "https://picsum.photos/seed/bali9-2/640/360"
     ],
-    "createdAt": "2026-09-03T03:01:36.101Z",
+    "createdAt": "2026-09-03T03:35:29.363Z",
     "isVerified": false,
     "isAgent": false,
     "isTop": false,
@@ -357,7 +357,7 @@
       "https://picsum.photos/seed/bali10-1/640/360",
       "https://picsum.photos/seed/bali10-2/640/360"
     ],
-    "createdAt": "2026-09-04T08:41:36.101Z",
+    "createdAt": "2026-09-04T09:15:29.363Z",
     "isVerified": false,
     "isAgent": false,
     "isTop": false,
@@ -375,7 +375,7 @@
     "title": "Вилла с бассейном в Убуде — продажа",
     "price": 4500000000,
     "currency": "IDR",
-    "propertyType": "villa_house",
+    "propertyType": "villa",
     "bedrooms": 3,
     "bathrooms": 3,
     "area": 200,
@@ -393,7 +393,7 @@
       "https://picsum.photos/seed/sale17-2/640/360",
       "https://picsum.photos/seed/sale17-3/640/360"
     ],
-    "createdAt": "2026-09-04T03:01:36.101Z",
+    "createdAt": "2026-09-04T03:35:29.363Z",
     "isVerified": true,
     "isAgent": true,
     "agentName": "Wayan",
@@ -429,7 +429,7 @@
       "https://picsum.photos/seed/sale18-1/640/360",
       "https://picsum.photos/seed/sale18-2/640/360"
     ],
-    "createdAt": "2026-09-03T19:01:36.101Z",
+    "createdAt": "2026-09-03T19:35:29.363Z",
     "isVerified": true,
     "isAgent": false,
     "isTop": false,
@@ -464,7 +464,7 @@
       "https://picsum.photos/seed/sale19-1/640/360",
       "https://picsum.photos/seed/sale19-2/640/360"
     ],
-    "createdAt": "2026-09-02T09:01:36.101Z",
+    "createdAt": "2026-09-02T09:35:29.363Z",
     "isVerified": false,
     "isAgent": true,
     "agentName": "Made",
@@ -500,7 +500,7 @@
       "https://picsum.photos/seed/sale20-1/640/360",
       "https://picsum.photos/seed/sale20-2/640/360"
     ],
-    "createdAt": "2026-09-04T08:01:36.101Z",
+    "createdAt": "2026-09-04T08:35:29.363Z",
     "isVerified": true,
     "isAgent": false,
     "isTop": false,
@@ -535,7 +535,7 @@
     "images": [
       "https://picsum.photos/seed/req11/640/360"
     ],
-    "createdAt": "2026-09-04T08:21:36.101Z",
+    "createdAt": "2026-09-04T08:55:29.363Z",
     "isVerified": true,
     "isAgent": false,
     "isTop": false,
@@ -553,7 +553,7 @@
     "title": "Куплю виллу в Улувату",
     "price": 3500000000,
     "currency": "IDR",
-    "propertyType": "villa_house",
+    "propertyType": "villa",
     "bedrooms": 3,
     "bathrooms": 2,
     "area": 200,
@@ -569,7 +569,7 @@
     "images": [
       "https://picsum.photos/seed/req12/640/360"
     ],
-    "createdAt": "2026-09-04T06:01:36.101Z",
+    "createdAt": "2026-09-04T06:35:29.363Z",
     "isVerified": false,
     "isAgent": false,
     "isTop": false,
@@ -588,7 +588,7 @@
     "title": "Сниму дом в Убуде на 3 мес",
     "price": 10000000,
     "currency": "IDR",
-    "propertyType": "villa_house",
+    "propertyType": "house",
     "bedrooms": 2,
     "bathrooms": 1,
     "area": 80,
@@ -604,7 +604,7 @@
     "images": [
       "https://picsum.photos/seed/req13/640/360"
     ],
-    "createdAt": "2026-09-03T21:01:36.101Z",
+    "createdAt": "2026-09-03T21:35:29.363Z",
     "isVerified": true,
     "isAgent": false,
     "isTop": true,
@@ -639,7 +639,7 @@
     "images": [
       "https://picsum.photos/seed/req14/640/360"
     ],
-    "createdAt": "2026-09-04T01:01:36.101Z",
+    "createdAt": "2026-09-04T01:35:29.363Z",
     "isVerified": false,
     "isAgent": false,
     "isTop": false,
@@ -674,7 +674,7 @@
     "images": [
       "https://picsum.photos/seed/req15/640/360"
     ],
-    "createdAt": "2026-09-02T09:01:36.101Z",
+    "createdAt": "2026-09-02T09:35:29.363Z",
     "isVerified": false,
     "isAgent": false,
     "isTop": false,
@@ -708,7 +708,7 @@
     "images": [
       "https://picsum.photos/seed/req16/640/360"
     ],
-    "createdAt": "2026-09-04T08:31:36.101Z",
+    "createdAt": "2026-09-04T09:05:29.363Z",
     "isVerified": true,
     "isAgent": true,
     "agentName": "Wayan",
@@ -745,7 +745,7 @@
       "https://picsum.photos/seed/land21-1/640/360",
       "https://picsum.photos/seed/land21-2/640/360"
     ],
-    "createdAt": "2026-09-04T06:01:36.101Z",
+    "createdAt": "2026-09-04T06:35:29.363Z",
     "isVerified": true,
     "isAgent": false,
     "isTop": false,
@@ -780,7 +780,7 @@
     "images": [
       "https://picsum.photos/seed/land22-1/640/360"
     ],
-    "createdAt": "2026-09-04T02:01:36.101Z",
+    "createdAt": "2026-09-04T02:35:29.363Z",
     "isVerified": false,
     "isAgent": true,
     "agentName": "Ketut",
@@ -818,7 +818,7 @@
       "https://picsum.photos/seed/home23-2/640/360",
       "https://picsum.photos/seed/home23-3/640/360"
     ],
-    "createdAt": "2026-09-04T07:31:36.101Z",
+    "createdAt": "2026-09-04T08:05:29.363Z",
     "isVerified": true,
     "isAgent": false,
     "isTop": true,
@@ -854,7 +854,7 @@
       "https://picsum.photos/seed/home24-1/640/360",
       "https://picsum.photos/seed/home24-2/640/360"
     ],
-    "createdAt": "2026-09-03T22:01:36.101Z",
+    "createdAt": "2026-09-03T22:35:29.363Z",
     "isVerified": false,
     "isAgent": false,
     "isTop": false,
@@ -889,7 +889,7 @@
     "images": [
       "https://picsum.photos/seed/home25-1/640/360"
     ],
-    "createdAt": "2026-09-04T04:01:36.101Z",
+    "createdAt": "2026-09-04T04:35:29.363Z",
     "isVerified": true,
     "isAgent": false,
     "isTop": false,
@@ -925,7 +925,7 @@
       "https://picsum.photos/seed/apt26-1/640/360",
       "https://picsum.photos/seed/apt26-2/640/360"
     ],
-    "createdAt": "2026-09-04T00:01:36.101Z",
+    "createdAt": "2026-09-04T00:35:29.363Z",
     "isVerified": false,
     "isAgent": true,
     "agentName": "Made",
