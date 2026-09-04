@@ -193,7 +193,7 @@ const SVG_EYE='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentCo
 const SVG_BED='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 20v-9a2 2 0 012-2h16a2 2 0 012 2v9"/><path d="M2 17h20"/><circle cx="6" cy="11" r="1.6"/></svg>';
 const SVG_BATH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13h16v2a5 5 0 01-5 5H9a5 5 0 01-5-5v-2z"/><path d="M6 13V6a2 2 0 014 0"/><path d="M8 20l-1 2M16 20l1 2"/></svg>';
 const SVG_AREA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>';
-const SVG_POOL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="17" cy="6" r="2.5"/><path d="M2 15c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><path d="M2 19h20"/></svg>';
+const SVG_POOL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3v10M17 3v10M7 7h10M7 11h10"/><path d="M2 17c2 0 2-1.2 4-1.2s2 1.2 4 1.2 2-1.2 4-1.2 2 1.2 4 1.2 2-1.2 4-1.2"/><path d="M2 21h20"/></svg>';
 const SVG_SHIELD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>';
 const SVG_CUP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H4a3 3 0 003 5M17 5h3a3 3 0 01-3 5M12 14v4M8 21h8"/></svg>';
 function plural(n,f){n=Math.abs(n)%100;const d=n%10;if(n>10&&n<20)return f[2];if(d>1&&d<5)return f[1];if(d===1)return f[0];return f[2];}
@@ -227,6 +227,7 @@ function cardHTML(it,i){
       <span class="photo-counter">${(idx%it.images.length)+1}/${it.images.length}</span>
       <div class="badges">${badges}</div>
       <button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav">${heart}</button>
+      ${it.bedrooms>0?`<span class="bed-badge">${SVG_BED} ${it.bedrooms}</span>`:""}
       <div class="photo-titles"><div class="pt-title">${it.title||pTypeLabel(it.propertyType)}</div>${sub?`<div class="pt-sub">${sub}</div>`:""}</div></div>
     <div class="card-body"><div class="price">${fmtPrice(it)}</div>
       <div class="location-sm">${locLabel(it)}, Бали</div>
