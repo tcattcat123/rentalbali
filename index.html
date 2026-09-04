@@ -10,13 +10,13 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=16">
+<link rel="stylesheet" href="css/style.css?v=17">
 </head>
 <body>
 <div class="topbar"><span data-i18n="topbar">Проверенные объекты Бали · без комиссии для арендатора на части вилл</span></div>
 <header class="header">
   <div class="header-inner">
-    <a class="logo" href="#" id="logoBtn"><span class="logo-mark">⌂</span> RentHome <em>Bali</em></a>
+    <a class="logo" href="#" id="logoBtn">RentHome <em>Bali</em></a>
     <div class="header-actions">
       <select id="currencySelect" class="mini-select" title="Валюта"><option value="IDR">IDR</option><option value="USD">USD</option></select>
       <button id="themeBtn" class="icon-btn" title="Тема">○</button>
@@ -126,11 +126,14 @@
 </main>
 
 <footer class="footer"><div class="footer-inner">
-  <div><div class="logo small"><span class="logo-mark">⌂</span> RentHome <em>Bali</em></div><div class="muted">© 2026 · minimal estate OS</div></div>
-  <div><b data-i18n="f_product">Продукт</b><a href="#" data-i18n="q_buy_house">Купить дом</a><a href="#" data-i18n="q_homestay">Homestay</a></div>
-  <div><b data-i18n="f_help">Помощь</b><a href="#" data-i18n="q_sim">Моделирование кредита</a><a href="location-filter.html">Фильтр локации (демо)</a><a href="#">Контакты</a></div>
-  <div><b data-i18n="f_policy">Право</b><a href="#">Оферта</a><a href="#">Privacy</a></div>
-</div></footer>
+  <div class="f-brand"><div class="logo">RentHome <em>Bali</em></div>
+    <p class="muted">Аренда и покупка недвижимости на Бали: виллы, дома, квартиры, земля — с проверенными фото и прозрачной ценой.</p>
+    <p class="f-contact">+62 812 3456 7890<br>hello@renthome-bali.com</p></div>
+  <div><b>Продукт</b><a href="#" data-i18n="q_buy_house">Купить дом</a><a href="#" data-i18n="q_buy_land">Купить землю</a><a href="#" data-i18n="q_rent_house">Арендовать дом</a><a href="#" data-i18n="q_homestay">Homestay</a></div>
+  <div><b>Помощь</b><a href="#" data-i18n="q_sim">Моделирование кредита</a><a href="location-filter.html">Фильтр локации (демо)</a><a href="#">Контакты</a><a href="#">Вопросы и ответы</a></div>
+  <div><b>Право</b><a href="#">Оферта</a><a href="#">Конфиденциальность</a><a href="#">Условия аренды</a></div>
+</div>
+<div class="footer-bottom"><span>© 2026 RentHome Bali</span><span class="muted">Сделано для Бали 🌴</span></div></footer>
 
 <div id="detailModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="detailClose">✕</button><div id="detailContent"></div></div></div>
 <div id="creditModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="creditClose">✕</button>
