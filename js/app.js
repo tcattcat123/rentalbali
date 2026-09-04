@@ -43,6 +43,8 @@ commercial:[U("photo-1486406146926-c627a92ad1ab"),U("photo-1564013799919-ab60002
 LISTINGS.forEach((it,i)=>{const p=POOL[it.propertyType]||POOL.villa_house;const n=it.type==="request"?1:(it.propertyType==="land"?2:3);it.images=Array.from({length:n},(_,k)=>p[(i+k)%p.length]);it.fb=`https://picsum.photos/seed/bali${it.id}/640/360`;});
 const AM={villa_house:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
 LISTINGS.forEach((it,i)=>{const a=AM[it.propertyType]||AM.villa_house;it.amenities=a.slice(0,4+(i%3));});
+const TEN={17:"freehold",18:"freehold",19:"leasehold",20:"freehold",12:"leasehold",16:"freehold"};
+LISTINGS.forEach(it=>{if(it.dealType==="sale")it.tenure=TEN[it.id]||"freehold";});
 let detailId=null,detailIdx=0;
 
 const I18N = {
@@ -50,7 +52,7 @@ ru:{topbar:"Проверенные объекты Бали · прозрачна
 en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",sub_hint:"offer / wanted",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",t_villa_house:"Villas & houses",t_apartment:"Apartments",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
 };
 
-const state = {deal:"rent",role:"offer",rentCat:"monthly",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem("rh_fav")||"[]")),carIdx:{},districts:new Set()};
+const state = {deal:"rent",role:"offer",rentCat:"monthly",tenure:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem("rh_fav")||"[]")),carIdx:{},districts:new Set()};
 const DIST_GROUPS=[
  {g:"BEACHSIDE & CENTER",items:[["Seminyak","Семиньяк"],["Oberoi","Оберой"],["Legian","Легиан"],["Kuta","Кута"]]},
  {g:"RESIDENTIAL SIDE",items:[["Canggu","Чангу"],["Pererenan","Переренан"],["Umalas","Умалас"]]},
@@ -150,6 +152,7 @@ function getFiltered(){
   const fT=gv("fType"),fR=gv("fRooms");
   const fFl=gv("fFloors"),fY=parseFloat(gv("fYear")),fFu=gv("fFurn"),fP=gv("fPark");
   if(state.deal==="rent"&&state.rentCat)arr=arr.filter(x=>x.category===state.rentCat);
+  if(state.deal==="sale"&&state.tenure)arr=arr.filter(x=>x.tenure===state.tenure);
   if(!isNaN(pMin))arr=arr.filter(x=>x.price>=pMin);
   if(!isNaN(pMax))arr=arr.filter(x=>x.price<=pMax);
   if(fT)arr=arr.filter(x=>x.propertyType===fT||(fT==="villa_house"&&(x.propertyType==="villa"||x.propertyType==="house")));
@@ -188,7 +191,8 @@ function render(){
   $("favCount").textContent=state.fav.size;
   $("curLabel").textContent=state.currency;
   $("rentCatWrap").style.display=state.deal==="rent"?"":"none";
-  document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));
+  if($("tenureWrap"))$("tenureWrap").style.display=state.deal==="sale"?"":"none";
+  document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat||(b.dataset.tenure&&b.dataset.tenure===state.tenure)));
   renderCrumbs();renderLocDropdown();updateLocLabel();
   const arr=getFiltered();
   $("resultsCount").textContent=`${arr.length} ${t("variants")}`;
@@ -336,7 +340,7 @@ document.addEventListener("click",e=>{
 
 function resetFilters(){
   ["priceMin","priceMax","landMin","landMax","areaMin","areaMax","fYear"].forEach(id=>{if($(id))$(id).value="";});
-  $("fType").value="";$("fRooms").value="";state.districts.clear();$("fFloors").value="";$("fFurn").value="";$("fPark").value="";
+  $("fType").value="";$("fRooms").value="";state.districts.clear();state.tenure="";$("fFloors").value="";$("fFurn").value="";$("fPark").value="";
   state.page=1;activeQuick="";highlightQuick();
 }
 let activeQuick="";
@@ -373,7 +377,7 @@ $("dealBuy").onclick=()=>setDeal("sale");
 $("dealMap").onclick=()=>setDeal("map");
 $("tabOffer").onclick=()=>{state.role="offer";state.page=1;$("tabOffer").classList.add("active");$("tabRequest").classList.remove("active");render();updateMarkersSafe();};
 $("tabRequest").onclick=()=>{state.role="request";state.page=1;$("tabRequest").classList.add("active");$("tabOffer").classList.remove("active");render();updateMarkersSafe();};
-document.querySelectorAll(".seg-btn").forEach(b=>b.onclick=()=>{state.rentCat=state.rentCat===b.dataset.cat?"":b.dataset.cat;state.page=1;render();});
+document.querySelectorAll(".seg-btn").forEach(b=>b.onclick=()=>{if(b.dataset.cat){state.rentCat=state.rentCat===b.dataset.cat?"":b.dataset.cat;}if(b.dataset.tenure){state.tenure=state.tenure===b.dataset.tenure?"":b.dataset.tenure;}state.page=1;render();});
 $("favHeaderBtn").onclick=()=>{switchView("fav");syncDealTabs();};
 $("profileBtn").onclick=()=>{switchView("profile");syncDealTabs();};
 $("logoBtn").onclick=e=>{e.preventDefault();switchView("list");syncDealTabs();};
@@ -384,7 +388,6 @@ $("detailModal").addEventListener("click",e=>{if(e.target.id==="detailModal")clo
 $("filtersModalBtn").onclick=()=>{const bar=$("filtersBar");if(window.innerWidth<768){bar.style.display=bar.style.display==="flex"?"":"flex";bar.classList.add("open");}else{$("filtersModal").classList.remove("hidden");}};
 $("filtersClose").onclick=()=>$("filtersModal").classList.add("hidden");
 $("filtersModalApply").onclick=()=>{$("filtersModal").classList.add("hidden");$("applyBtn").click();};
-$("langSelect").onchange=e=>{state.lang=e.target.value;document.documentElement.lang=state.lang;render();};
 $("currencySelect").onchange=e=>{state.currency=e.target.value;render();};
 $("themeBtn").onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme==="dark";r.dataset.theme=dark?"":"dark";$("themeBtn").textContent=dark?"○":"●";};
 $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");

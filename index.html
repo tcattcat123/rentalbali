@@ -10,27 +10,18 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0A1628">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A1628'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%235EA2EF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=11">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=13">
 </head>
 <body>
 <div class="topbar"><span data-i18n="topbar">Проверенные объекты Бали · без комиссии для арендатора на части вилл</span></div>
 <header class="header">
   <div class="header-inner">
     <a class="logo" href="#" id="logoBtn"><span class="logo-mark">⌂</span> RentHome <em>Bali</em></a>
-    <nav class="main-tabs" role="tablist" aria-label="Deal type">
-      <button class="tab active" id="dealRent" data-deal="rent" data-i18n="deal_rent">Арендовать</button>
-      <button class="tab" id="dealBuy" data-deal="sale" data-i18n="deal_buy">Купить</button>
-      <button class="tab" id="dealMap" data-deal="map" data-i18n="deal_map">Карта</button>
-    </nav>
     <div class="header-actions">
-      <select id="langSelect" class="mini-select" title="Language" aria-label="Language"><option value="ru">RU</option><option value="en">EN</option></select>
-      <select id="currencySelect" class="mini-select" title="Currency" aria-label="Currency"><option value="IDR">IDR</option><option value="USD">USD</option></select>
-      <button id="themeBtn" class="icon-btn" title="Theme" aria-label="Theme">○</button>
-      <button id="favHeaderBtn" class="icon-btn" title="Favorites">♡ <span id="favCount" class="fav-count">0</span></button>
-      <button id="profileBtn" class="icon-btn profile" title="Profile">→</button>
+      <select id="currencySelect" class="mini-select" title="Валюта"><option value="IDR">IDR</option><option value="USD">USD</option></select>
+      <button id="themeBtn" class="icon-btn" title="Тема">○</button>
+      <button id="favHeaderBtn" class="icon-btn" title="Избранное">♡ <span id="favCount" class="fav-count">0</span></button>
+      <button id="profileBtn" class="icon-btn profile" title="Профиль">→</button>
     </div>
     <div class="sub-tabs">
       <button class="chip active" id="tabOffer" data-type="offer" data-i18n="tab_offer">Сдам / Продам</button>
@@ -48,10 +39,17 @@
     </div>
 
     <div class="toolbar card">
+      <div class="deal-tabs" role="tablist">
+        <button class="dtab" id="dealBuy" data-deal="sale">Купить</button>
+        <button class="dtab active" id="dealRent" data-deal="rent">Арендовать</button>
+        <button class="dtab" id="dealMap" data-deal="map">Поиск по карте</button>
+      </div>
       <div class="filters" id="filtersBar">
-        <div class="filter-group"><label data-i18n="ptype">Тип недвижимости</label>
-          <select id="fType"><option value="" data-i18n="all">Все</option><option value="villa_house" data-i18n="t_villa_house">Виллы и дома</option><option value="apartment" data-i18n="t_apartment">Квартиры</option><option value="homestay" data-i18n="t_homestay">Homestay</option><option value="land" data-i18n="t_land">Земля</option><option value="commercial" data-i18n="t_commercial">Коммерческая</option><option value="townhouse" data-i18n="t_townhouse">Таунхаусы</option><option value="boarding" data-i18n="t_boarding">Sewa Kos</option></select></div>
-        <div class="filter-group"><label data-i18n="district">Локация</label>
+        <div class="filter-group"><label>Тип недвижимости</label>
+          <select id="fType"><option value="">Все</option><option value="villa_house">Виллы и дома</option><option value="apartment">Квартиры</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="commercial">Коммерческая</option><option value="townhouse">Таунхаусы</option><option value="boarding">Sewa Kos</option></select></div>
+        <div class="filter-group" id="tenureWrap"><label>Тип владения</label>
+          <div class="seg"><button class="seg-btn" data-tenure="freehold">Freehold</button><button class="seg-btn" data-tenure="leasehold">Leasehold</button></div></div>
+        <div class="filter-group"><label>Локация</label>
           <div class="filter-location" id="locFilter">
             <button type="button" class="filter-header" id="locHeader" aria-haspopup="true" aria-expanded="false">
               <span class="filter-selected" id="locSelected">Любая</span>
@@ -60,17 +58,18 @@
             <div class="filter-dropdown hidden" id="locDropdown" role="menu"></div>
           </div>
         </div>
-        <div class="filter-group"><label><span data-i18n="price">Цена</span> · <span id="curLabel">IDR</span></label>
+        <div class="filter-group"><label>Цена · <span id="curLabel">IDR</span></label>
           <div class="price-inputs"><input type="number" id="priceMin" placeholder="от" min="0"><span>–</span><input type="number" id="priceMax" placeholder="до" min="0"></div></div>
-        <div class="filter-group small"><label data-i18n="bedrooms">Спальни</label>
-          <select id="fRooms"><option value="" data-i18n="any">Любой</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
-        <div class="filter-group small" id="rentCatWrap"><label data-i18n="rent_cat">Срок</label>
-          <div class="seg"><button class="seg-btn active" data-cat="monthly" id="catMonthly" data-i18n="monthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly" data-i18n="yearly">год</button></div></div>
-        <div class="filter-actions">
-          <button id="advBtn" class="btn-ghost" data-i18n="advanced">Расширенный</button>
-          <button id="applyBtn" class="btn-primary" data-i18n="apply">Показать</button>
-          <button id="resetBtn" class="btn-text" data-i18n="reset">Сбросить</button>
-        </div>
+        <div class="filter-group"><label>Спальни</label>
+          <select id="fRooms"><option value="">Все</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
+        <div class="filter-group" id="rentCatWrap"><label>Срок</label>
+          <div class="seg"><button class="seg-btn active" data-cat="monthly" id="catMonthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly">год</button></div></div>
+      </div>
+      <div class="actions-row">
+        <button id="resetBtn" class="btn-text">Сбросить всё</button>
+        <span style="flex:1"></span>
+        <button id="advBtn" class="btn-ghost">Расширенный +</button>
+        <button id="applyBtn" class="btn-primary">Показать</button>
       </div>
       <div id="advPanel" class="adv-panel hidden">
         <div class="filter-group"><label data-i18n="land_area">Участок, м²</label><div class="price-inputs"><input type="number" id="landMin" placeholder="от"><span>–</span><input type="number" id="landMax" placeholder="до"></div></div>
@@ -150,6 +149,6 @@
 
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=11"></script>
+<script src="js/app.js?v=13"></script>
 </body>
 </html>
