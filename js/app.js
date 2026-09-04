@@ -407,7 +407,6 @@ function openDetail(id){
   chips.push(`<span class="param-chip">${term}</span>`);
   $("detailContent").innerHTML=`
   <div class="d-layout"><div class="d-left">
-    <a href="#" class="back-link" id="dBack">‹ ${state.lang==="ru"?"Назад":"Back"}</a>
     <div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
       ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
       <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>
@@ -432,7 +431,6 @@ function openDetail(id){
   </div></div>`;
   switchView("detail");window.scrollTo({top:0});
   try{location.hash="listing-"+it.id;}catch(e){}
-  $("dBack").onclick=e=>{e.preventDefault();closeDetail();};
   $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href);}catch(e){}alert(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
   $("dFav").onclick=()=>{const on=!state.fav.has(it.id);on?state.fav.add(it.id):state.fav.delete(it.id);localStorage.setItem("rh_fav",JSON.stringify([...state.fav]));const b=$("dFav");b.textContent=on?"♥":"♡";b.classList.toggle("on",on);render();};
 }
@@ -511,7 +509,13 @@ $("tabRequest").onclick=()=>{state.role="request";state.page=1;$("tabRequest").c
 document.querySelectorAll(".seg-btn").forEach(b=>b.onclick=()=>{if(b.dataset.cat){state.rentCat=state.rentCat===b.dataset.cat?"":b.dataset.cat;}if(b.dataset.tenure){state.tenure=state.tenure===b.dataset.tenure?"":b.dataset.tenure;}state.page=1;render();});
 $("favHeaderBtn").onclick=()=>{switchView("fav");syncDealTabs();};
 $("profileBtn").onclick=()=>{switchView("profile");syncDealTabs();};
-$("logoBtn").onclick=e=>{e.preventDefault();switchView("list");syncDealTabs();};
+$("logoBtn").onclick=e=>{e.preventDefault();closeDetail();window.scrollTo({top:0,behavior:"smooth"});};
+document.querySelectorAll(".logo-palm").forEach(p=>p.addEventListener("click",e=>{
+  e.preventDefault();e.stopPropagation();
+  const logo=p.closest(".logo");if(!logo||logo.querySelector(".fall-nut"))return;
+  const n=document.createElement("span");n.className="fall-nut";logo.appendChild(n);
+  n.addEventListener("animationend",()=>n.remove());
+}));
 ["fType","fRooms","fLiving","furnQ","fFloors","fPark","fAmen","sortSelect","currencySelect"].forEach(id=>{const el=$(id);if(el)enhanceSelect(el);});
 if($("fAvail"))enhanceMonth($("fAvail"));
 document.addEventListener("click",e=>{if(!e.target.closest(".dd"))closeAllDD();});
