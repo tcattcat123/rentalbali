@@ -209,11 +209,13 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .similar-scroll .property-card{flex:0 0 240px}
 /* footer big gray */
 .footer{background:#EEF1F6;margin-top:28px;color:var(--ink)}
-.footer-wave{overflow:hidden;line-height:0;background:var(--bg)}
-.footer-wave svg{display:block;width:3000px;max-width:none;height:26px;animation:wave 7s linear infinite}
-.footer-wave .wave-back{fill:#BFD9FF;opacity:.55;animation:wave 11s linear infinite}
-.footer-wave .wave-front{fill:var(--acc)}
-@keyframes wave{to{transform:translateX(-150px)}}
+.footer-wave{overflow:hidden;line-height:0;background:var(--bg);position:relative;height:26px}
+.wave-track{position:absolute;top:0;left:0;display:flex;width:max-content;animation:wave 7s linear infinite}
+.wave-track.slow{animation-duration:12s}
+.wave-track svg{display:block;width:1500px;height:26px;flex:0 0 auto}
+.wave-track.slow svg path{fill:#BFD9FF;opacity:.55}
+.wave-track:not(.slow) svg path{fill:var(--acc)}
+@keyframes wave{to{transform:translateX(-50%)}}
 .brand-row{display:flex;align-items:center;gap:10px}
 .footer-fish{width:44px;height:28px;animation:floaty 3.5s ease-in-out infinite}
 @keyframes floaty{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(-5deg)}}
