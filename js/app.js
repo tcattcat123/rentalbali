@@ -140,14 +140,8 @@ function timeAgo(ts){
 }
 function pTypeLabel(v){return t("t_"+v)||v;}
 function locLabel(it){return state.lang==="ru"?it.location:it.locationEn||it.location;}
-
-function charsHTML(it){
-  const c=[];
-  if(it.landArea>0)c.push(`<span class="char-chip">🌿 Участок: ${it.landArea} м²</span>`);
-  if(it.floors>1)c.push(`<span class="char-chip">🏗️ Этажей: ${it.floors}</span>`);
-  if(!c.length)return"";
-  return `<div class="extra-chars">${c.join("")}</div>`;
-}
+const SVG_PIN='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+const SVG_EYE='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
 
 function cardHTML(it,i){
   i=i||0;
@@ -156,10 +150,10 @@ function cardHTML(it,i){
   const heart=fav?"♥":"♡";
   let badges="";
   if(it.dealType==="sale"&&it.tenure)badges+=`<span class="badge tenure">${it.tenure==="freehold"?"Hak Milik":"Hak Sewa"}</span>`;
-  if(isNew(it))badges+=`<span class="badge new">⭐ ${t("new")}</span>`;
+  if(isNew(it))badges+=`<span class="badge new">★ ${t("new")}</span>`;
   if(it.isVerified)badges+=`<span class="badge verified">✓ ${t("verified")}</span>`;
   if(it.isTop)badges+=`<span class="badge top">${t("top")}</span>`;
-  if(it.isAgent)badges+=`<span class="badge agent">💼 ${t("agent")}${it.agentName?" · "+it.agentName:""}</span>`;
+  if(it.isAgent)badges+=`<span class="badge agent">${t("agent")}${it.agentName?" · "+it.agentName:""}</span>`;
   if(it.isUrgent)badges+=`<span class="badge urgent">${t("urgent")}</span>`;
   const chips=[`<button class="param-chip" data-chip="type" data-v="${it.propertyType}">${pTypeLabel(it.propertyType)}</button>`];
   if(it.bedrooms>0)chips.push(`<button class="param-chip" data-chip="bed" data-v="${it.bedrooms}">${it.bedrooms}</button>`);
@@ -181,7 +175,7 @@ function cardHTML(it,i){
     <div class="card-body"><div class="title">${it.title||pTypeLabel(it.propertyType)}</div>
       <div class="price">${fmtPrice(it)}</div>
       <div class="params">${chips.join("")}</div>
-      <div class="location-meta"><span>📍 ${locLabel(it)}</span><span>· ${timeAgo(it.createdAt)}</span><span>· 👁 ${it.views}</span><span>· ★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span></div>
+      <div class="location-meta"><span>${SVG_PIN} ${locLabel(it)}</span><span>· ${timeAgo(it.createdAt)}</span><span>· ${SVG_EYE} ${it.views}</span><span>· ★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span></div>
       ${tags.length?`<div class="tags">${tags.join("")}</div>`:""}
       <div class="actions"><button class="save-link${fav?" on":""}" data-fav="${it.id}">${heart} ${state.lang==="ru"?"Сохранённое":"Saved"}</button></div>
       ${extra}</div></div>`;
@@ -271,7 +265,7 @@ function render(){
   $("favGrid").innerHTML=favs.map(cardHTML).join("");
   $("favEmpty").style.display=favs.length?"none":"block";
   $("myGrid").innerHTML=LISTINGS.filter(x=>x.mine).map(cardHTML).join("");
-  $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini" data-card="${x.id}"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>📍 ${locLabel(x)}</div>`).join("");
+  $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini" data-card="${x.id}"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>${locLabel(x)}</div>`).join("");
 }
 
 function switchView(v){
@@ -312,7 +306,7 @@ function updateMarkers(){
   markers.forEach(m=>m.remove());markers=[];
   getFiltered().forEach(it=>{
     const m=L.marker([it.lat,it.lng]).addTo(map);
-    m.bindPopup(`<b>${fmtPrice(it)}</b><br>${pTypeLabel(it.propertyType)}<br>📍 ${locLabel(it)}`);
+    m.bindPopup(`<b>${fmtPrice(it)}</b><br>${pTypeLabel(it.propertyType)}<br>${locLabel(it)}`);
     markers.push(m);
   });
 }
@@ -359,7 +353,7 @@ function openDetail(id){
       <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>
     <div class="thumbnails">${it.images.map((s,i)=>`<img src="${s}" data-thumb="${i}" class="${i===0?"on":""}" onerror="this.onerror=null;this.src='${it.fb}'" loading="lazy">`).join("")}</div>
     <h1>${it.title||pTypeLabel(it.propertyType)}</h1>
-    <div class="meta"><span>📍 ${locLabel(it)}, Бали, Индонезия</span><span>· ${timeAgo(it.createdAt)}</span><span>· ♠ ${it.views}</span><span>· ★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span></div>
+    <div class="meta"><span>${SVG_PIN} ${locLabel(it)}, Бали, Индонезия</span><span>· ${timeAgo(it.createdAt)}</span><span>· ${SVG_EYE} ${it.views}</span><span>· ★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span></div>
     <div class="price-block"><span class="price">${fmtPrice(it)}</span><span class="term">${term}</span></div>
     <div class="chars-grid">${rows.map(r=>`<div><span class="label">${r[0]}:</span> <span class="value">${r[1]}</span></div>`).join("")}</div>
     <div class="amenities">${(it.amenities||[]).map(a=>`<span class="chip">${a}</span>`).join("")}</div>
@@ -367,7 +361,7 @@ function openDetail(id){
     <button class="btn-ghost" id="dContact" style="margin-left:auto">${state.lang==="ru"?"Связаться":"Contact"}</button></div>
     ${it.type==="request"?`<p class="muted">${t("move_in")}: ${it.moveIn||"—"}</p><button class="book-btn" data-offer="${it.id}">✉ ${t("offer_btn")}</button>`:`<button class="book-btn" id="dBook">${state.lang==="ru"?"Забронировать":"Book now"}</button>`}
     ${it.legal?`<div class="legal">◈ ${t("legal_txt")}</div>`:""}
-    <div class="map-section"><h3>📍 ${locLabel(it)}</h3>
+    <div class="map-section"><h3>Карта · ${locLabel(it)}</h3>
       <iframe title="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${it.lat},${it.lng}"></iframe>
       <div class="map-row"><span class="muted">${locLabel(it)}, Бали, Индонезия</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${state.lang==="ru"?"Построить маршрут":"Directions"} →</a></div></div>
     <div class="similar-section"><h3>${state.lang==="ru"?"Похожие варианты":"Similar"}</h3><div class="similar-scroll">${sim.map(cardHTML).join("")}</div></div>
