@@ -59,14 +59,10 @@ function locLabel(it){return state.lang==="ru"?it.location:it.locationEn||it.loc
 
 function charsHTML(it){
   const c=[];
-  if(it.landArea>0)c.push(`<span class="char-item">◍ ${it.landArea} м²</span>`);
-  if(it.area>0)c.push(`<span class="char-item">⌂ ${it.area} м²</span>`);
-  if(it.bedrooms>0)c.push(`<span class="char-item">▤ ${it.bedrooms} ${t("char_bed")}</span>`);
-  if(it.bathrooms>0)c.push(`<span class="char-item">◐ ${it.bathrooms} ${t("char_bath")}</span>`);
-  if(it.floors>0)c.push(`<span class="char-item">▦ ${it.floors} ${t("char_floors")}</span>`);
-  if(it.yearBuilt>0)c.push(`<span class="char-item">· ${it.yearBuilt}</span>`);
+  if(it.landArea>0)c.push(`<span class="char-chip">🌿 Участок: ${it.landArea} м²</span>`);
+  if(it.floors>1)c.push(`<span class="char-chip">🏗️ Этажей: ${it.floors}</span>`);
   if(!c.length)return"";
-  return `<div class="card-characteristics">${c.join("")}</div>`;
+  return `<div class="extra-chars">${c.join("")}</div>`;
 }
 
 function cardHTML(it){
@@ -74,31 +70,28 @@ function cardHTML(it){
   const fav=state.fav.has(it.id)?"active":"";
   const heart=state.fav.has(it.id)?"♥":"♡";
   let badges="";
-  if(isNew(it))badges+=`<span class="badge new">${t("new")}</span>`;
-  if(it.isVerified)badges+=`<span class="badge verified">✔ ${t("verified")}</span>`;
+  if(isNew(it))badges+=`<span class="badge new">⭐ ${t("new")}</span>`;
+  if(it.isVerified)badges+=`<span class="badge verified">✓ ${t("verified")}</span>`;
   if(it.isTop)badges+=`<span class="badge top">${t("top")}</span>`;
-  if(it.isAgent)badges+=`<span class="badge agent">${t("agent")}${it.agentName?" · "+it.agentName:""}</span>`;
+  if(it.isAgent)badges+=`<span class="badge agent">💼 ${t("agent")}${it.agentName?" · "+it.agentName:""}</span>`;
   if(it.isUrgent)badges+=`<span class="badge urgent">${t("urgent")}</span>`;
   const extra=it.type==="request"
-    ?`<div class="muted" style="font-size:13px">${t("move_in")}: ${it.moveIn||"—"}</div><button class="offer-btn" data-offer="${it.id}">${t("offer_btn")} →</button>`
+    ?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`
     :`${it.legal?`<div class="legal">◈ ${t("legal_txt")}</div>`:""}`;
-  const sub=it.dealType==="sale"
-    ?`${pTypeLabel(it.propertyType)}`
-    :`${pTypeLabel(it.propertyType)} · ${it.bedrooms} ${t("char_bed")}`;
-  const per=it.dealType==="sale"?t("total"):(it.category==="yearly"?t("year_per"):t("month"));
-  const priceOnly=fmtPrice(it).replace(per,"").trim();
-  return `<article class="listing" data-card="${it.id}">
-    <div class="media"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" alt="">
+  const bedTxt=it.bedrooms>0?`${it.bedrooms}`:"—";
+  const areaTxt=it.area>0?`${it.area} м²`:(it.landArea>0?`${it.landArea} м²`:"—");
+  return `<div class="property-card" data-card="${it.id}">
+    <div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" alt="Фото объекта">
       ${it.images.length>1?`<button class="car-btn prev" data-car="prev" data-id="${it.id}" aria-label="prev">‹</button><button class="car-btn next" data-car="next" data-id="${it.id}" aria-label="next">›</button>`:""}
-      <span class="photo-counter">${(idx%it.images.length)+1} / ${it.images.length}</span>
+      <span class="photo-counter">${(idx%it.images.length)+1}/${it.images.length}</span>
       <div class="badges">${badges}</div>
       <button class="favorite-btn ${fav}" data-fav="${it.id}" aria-label="fav">${heart}</button></div>
-    <div class="body"><div class="price-row"><div class="price">${priceOnly}</div><div class="per">${per} · ${state.currency}</div></div>
-      <div class="title">${it.title||sub}</div>
-      <div class="location"><span>◎</span> ${locLabel(it)} · ${sub}</div>
+    <div class="card-body"><div class="price">${fmtPrice(it)}</div>
+      <div class="main-params"><span class="param"><span class="icon">🏷️</span> ${pTypeLabel(it.propertyType)}</span><span class="param"><span class="icon">🛏️</span> ${bedTxt}</span><span class="param"><span class="icon">📐</span> ${areaTxt}</span></div>
+      <div class="location">📍 ${locLabel(it)}</div>
       ${charsHTML(it)}
-      <div class="meta"><span>★ ${it.rating?it.rating.toFixed(1):"—"} · ${it.reviews} · 👁 ${it.views}</span><span>${timeAgo(it.createdAt)}</span></div>
-      ${extra}</div></article>`;
+      <div class="card-footer"><span class="rating">★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span><span class="time">${timeAgo(it.createdAt)}</span></div>
+      ${extra}</div></div>`;
 }
 
 function convToIDR(v){ // input in current currency -> IDR for compare
@@ -224,7 +217,7 @@ function openDetail(id){
     <div class="detail-gallery">${it.images.map(s=>`<img src="${s}" loading="lazy">`).join("")}</div>
     <h2>${it.title||pTypeLabel(it.propertyType)}</h2>
     <div class="price" style="margin:8px 0">${fmtPrice(it)}</div>
-    <p class="muted">${pTypeLabel(it.propertyType)} · ▤ ${it.bedrooms} · ◐ ${it.bathrooms||"—"} · ⌂ ${it.area||"—"} м² ${it.landArea?`· ◍ ${it.landArea} м²`:""} ${it.floors?`· ▦ ${it.floors}`:""} ${it.yearBuilt?`· ${it.yearBuilt}`:""}</p>
+    <p class="muted">🏷️ ${pTypeLabel(it.propertyType)} · 🛏️ ${it.bedrooms} · 📐 ${it.area||"—"} м² ${it.landArea?`· 🌿 ${it.landArea} м²`:""} ${it.floors?`· 🏗️ ${it.floors}`:""} ${it.yearBuilt?`· ${it.yearBuilt}`:""}</p>
     <p class="muted">◎ ${locLabel(it)} · ${timeAgo(it.createdAt)} · 👁 ${it.views} · ★ ${it.rating||"—"} (${it.reviews})</p>
     <p>${it.furnished?(state.lang==="ru"?"Меблировано":"Furnished")+" · ":""}${it.parking?`Parking ${it.parking} · `:""}${it.isVerified?"✔ "+t("verified")+" · ":""}${it.isAgent?t("agent")+": "+(it.agentName||"")+" · ":""}${it.isTop?t("top"):""}</p>
     ${it.legal?`<p class="legal">◈ ${t("legal_txt")}</p>`:""}
