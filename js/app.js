@@ -423,9 +423,9 @@ function openDetail(id){
     ${it.legal?`<div class="legal">◈ ${t("legal_txt")} · ${agent}</div>`:""}
   </div><div class="d-right">
     <div class="card d-card"><h3>${state.lang==="ru"?"Характеристики":"Features"}</h3>
-      <div class="chars-grid">${rows.map(r=>`<div><span class="label">${r[0]}:</span> <span class="value">${r[1]}</span></div>`).join("")}</div></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">${rows.map(r=>`<div class="flex items-center justify-between py-2 border-b border-slate-100 hover:bg-slate-50 rounded px-2 -mx-2 transition-colors"><span class="text-sm text-slate-500">${r[0]}</span><span class="text-sm font-semibold text-slate-800">${r[1]}</span></div>`).join("")}</div></div>
     <div class="card d-card"><h3>${state.lang==="ru"?"Удобства":"Amenities"}</h3>
-      <div class="amenities">${(it.amenities||[]).map(a=>`<span class="chip">${a}</span>`).join("")}</div></div>
+      <div class="flex flex-wrap gap-2">${(it.amenities||[]).map(a=>`<span class="rounded-full bg-brand-soft text-brand-dark text-[13px] font-semibold px-3.5 py-1">${a}</span>`).join("")}</div></div>
     <div class="card d-card"><h3>${state.lang==="ru"?"На карте":"On map"}</h3>
       <iframe title="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${it.lat},${it.lng}"></iframe>
       <div class="map-row"><span class="muted">${locLabel(it)}, Бали, Индонезия</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${state.lang==="ru"?"Построить маршрут":"Directions"} →</a></div></div>
