@@ -260,6 +260,11 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 @media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}.adv-panel{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:767px){
   body{padding-bottom:76px}
+  .topbar{display:none}
+  .sub-tabs{display:none}
+  #themeBtn{display:none}
+  .crumbs{display:none}
+  .quick-block{display:none}
   .grid{grid-template-columns:1fr}
   .bottom-nav{display:flex}
   .only-mobile{display:inline-block}
