@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0A1628">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A1628'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%235EA2EF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=9">
+<link rel="stylesheet" href="css/style.css?v=10">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -52,7 +52,14 @@
         <div class="filter-group"><label data-i18n="ptype">Тип недвижимости</label>
           <select id="fType"><option value="" data-i18n="all">Все</option><option value="villa_house" data-i18n="t_villa_house">Виллы и дома</option><option value="apartment" data-i18n="t_apartment">Квартиры</option><option value="homestay" data-i18n="t_homestay">Homestay</option><option value="land" data-i18n="t_land">Земля</option><option value="commercial" data-i18n="t_commercial">Коммерческая</option><option value="townhouse" data-i18n="t_townhouse">Таунхаусы</option><option value="boarding" data-i18n="t_boarding">Sewa Kos</option></select></div>
         <div class="filter-group"><label data-i18n="district">Локация</label>
-          <select id="fDistrict"><option value="" data-i18n="any_area">Вся Бали</option><option>Чангу</option><option>Семиньяк</option><option>Убуд</option><option>Кута</option><option>Нуса-Дуа</option><option>Джимбаран</option><option>Санур</option><option>Денпасар</option><option>Ловина</option><option>Улувату</option></select></div>
+          <div class="filter-location" id="locFilter">
+            <button type="button" class="filter-header" id="locHeader" aria-haspopup="true" aria-expanded="false">
+              <span class="filter-selected" id="locSelected">Любая</span>
+              <span class="filter-arrow" id="locArrow">▼</span>
+            </button>
+            <div class="filter-dropdown hidden" id="locDropdown" role="menu"></div>
+          </div>
+        </div>
         <div class="filter-group"><label><span data-i18n="price">Цена</span> · <span id="curLabel">IDR</span></label>
           <div class="price-inputs"><input type="number" id="priceMin" placeholder="от" min="0"><span>–</span><input type="number" id="priceMax" placeholder="до" min="0"></div></div>
         <div class="filter-group small"><label data-i18n="bedrooms">Спальни</label>
@@ -143,6 +150,6 @@
 
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=9"></script>
+<script src="js/app.js?v=10"></script>
 </body>
 </html>
