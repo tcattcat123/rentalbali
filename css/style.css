@@ -17,7 +17,7 @@ body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans
 .ic-lg{width:17px;height:17px}
 .trust svg{width:13px;height:13px;color:var(--acc)}
 .quick-scroll button svg,.mchips button svg{width:13px;height:13px;flex:0 0 auto}
-.bed-badge{position:absolute;top:44px;right:8px;z-index:2;background:rgba(10,22,40,.72);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;display:flex;gap:4px;align-items:center;backdrop-filter:blur(4px)}
+.bed-badge{position:absolute;top:10px;right:46px;z-index:2;background:rgba(10,22,40,.78);color:#fff;font-size:11.5px;font-weight:700;padding:5px 9px;border-radius:999px;display:flex;gap:4px;align-items:center;backdrop-filter:blur(4px);box-shadow:0 1px 6px rgba(0,0,0,.3)}
 .bed-badge svg{width:13px;height:13px}
 .location-meta span{display:inline-flex;align-items:center;gap:3px}
 .detail-card .meta span{display:inline-flex;align-items:center;gap:3px}
