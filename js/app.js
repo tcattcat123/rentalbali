@@ -39,6 +39,9 @@ townhouse:[U("photo-1570129477492-45c003edd2be"),U("photo-1580587771525-78b9dba3
 land:[U("photo-1500382017468-9049fed747ef"),U("photo-1472214103451-9374bd1c798e")],
 commercial:[U("photo-1486406146926-c627a92ad1ab"),U("photo-1564013799919-ab600027ffc6d")]};
 LISTINGS.forEach((it,i)=>{const p=POOL[it.propertyType]||POOL.villa_house;const n=it.type==="request"?1:(it.propertyType==="land"?2:3);it.images=Array.from({length:n},(_,k)=>p[(i+k)%p.length]);it.fb=`https://picsum.photos/seed/bali${it.id}/640/360`;});
+const AM={villa_house:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
+LISTINGS.forEach((it,i)=>{const a=AM[it.propertyType]||AM.villa_house;it.amenities=a.slice(0,4+(i%3));});
+let detailId=null,detailIdx=0;
 
 const I18N = {
 ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",sub_hint:"предлагаю / ищу",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",t_villa_house:"Виллы и дома",t_apartment:"Квартиры",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
@@ -78,30 +81,36 @@ function charsHTML(it){
 
 function cardHTML(it){
   const idx=state.carIdx[it.id]||0;
-  const fav=state.fav.has(it.id)?"active":"";
-  const heart=state.fav.has(it.id)?"♥":"♡";
+  const fav=state.fav.has(it.id);
+  const heart=fav?"♥":"♡";
   let badges="";
   if(isNew(it))badges+=`<span class="badge new">⭐ ${t("new")}</span>`;
   if(it.isVerified)badges+=`<span class="badge verified">✓ ${t("verified")}</span>`;
   if(it.isTop)badges+=`<span class="badge top">${t("top")}</span>`;
   if(it.isAgent)badges+=`<span class="badge agent">💼 ${t("agent")}${it.agentName?" · "+it.agentName:""}</span>`;
   if(it.isUrgent)badges+=`<span class="badge urgent">${t("urgent")}</span>`;
-  const extra=it.type==="request"
-    ?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`
-    :`${it.legal?`<div class="legal">◈ ${t("legal_txt")}</div>`:""}`;
-  const bedTxt=it.bedrooms>0?`${it.bedrooms}`:"—";
-  const areaTxt=it.area>0?`${it.area} м²`:(it.landArea>0?`${it.landArea} м²`:"—");
+  const chips=[`<button class="param-chip" data-chip="type" data-v="${it.propertyType}">${pTypeLabel(it.propertyType)}</button>`];
+  if(it.bedrooms>0)chips.push(`<button class="param-chip" data-chip="bed" data-v="${it.bedrooms}">${it.bedrooms}</button>`);
+  const areaV=it.area>0?it.area:it.landArea;
+  if(areaV>0)chips.push(`<span class="param-chip">${areaV} м²</span>`);
+  if(it.floors>0&&it.yearBuilt>0)chips.push(`<span class="param-chip">${it.floors} · ${it.yearBuilt}</span>`);
+  else if(it.yearBuilt>0)chips.push(`<span class="param-chip">${it.yearBuilt}</span>`);
+  const tags=[];
+  if(it.furnished)tags.push(`<span class="tag">${state.lang==="ru"?"Меблировано":"Furnished"}</span>`);
+  if(it.isVerified)tags.push(`<span class="tag blue">✔ ${t("verified")}</span>`);
+  const extra=it.type==="request"?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`:"";
   return `<div class="property-card" data-card="${it.id}">
     <div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="Фото объекта">
       ${it.images.length>1?`<button class="car-btn prev" data-car="prev" data-id="${it.id}" aria-label="prev">‹</button><button class="car-btn next" data-car="next" data-id="${it.id}" aria-label="next">›</button>`:""}
       <span class="photo-counter">${(idx%it.images.length)+1}/${it.images.length}</span>
       <div class="badges">${badges}</div>
-      <button class="favorite-btn ${fav}" data-fav="${it.id}" aria-label="fav">${heart}</button></div>
-    <div class="card-body"><div class="price">${fmtPrice(it)}</div>
-      <div class="main-params"><span class="param"><span class="icon">🏷️</span> ${pTypeLabel(it.propertyType)}</span><span class="param"><span class="icon">🛏️</span> ${bedTxt}</span><span class="param"><span class="icon">📐</span> ${areaTxt}</span></div>
-      <div class="location">📍 ${locLabel(it)}</div>
-      ${charsHTML(it)}
-      <div class="card-footer"><span class="rating">★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span><span class="time">${timeAgo(it.createdAt)}</span></div>
+      <button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav">${heart}</button></div>
+    <div class="card-body"><div class="title">${it.title||pTypeLabel(it.propertyType)}</div>
+      <div class="price">${fmtPrice(it)}</div>
+      <div class="params">${chips.join("")}</div>
+      <div class="location-meta"><span>📍 ${locLabel(it)}</span><span>· ${timeAgo(it.createdAt)}</span><span>· 👁 ${it.views}</span><span>· ★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span></div>
+      ${tags.length?`<div class="tags">${tags.join("")}</div>`:""}
+      <div class="actions"><button class="save-link${fav?" on":""}" data-fav="${it.id}">${heart} ${state.lang==="ru"?"Сохранённое":"Saved"}</button></div>
       ${extra}</div></div>`;
 }
 
@@ -222,18 +231,69 @@ function updateMarkers(){
 }
 function updateMarkersSafe(){if(map)updateMarkers();}
 
+function moneyIDR(v){return state.currency==="USD"?"$ "+Math.round(v/RATE).toLocaleString("en-US"):Math.round(v).toLocaleString("ru-RU")+" IDR";}
 function openDetail(id){
   const it=LISTINGS.find(x=>x.id==id);if(!it)return;
+  detailId=it.id;detailIdx=0;
+  const term=it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term"));
+  const dep=it.dealType==="rent"?(it.category==="yearly"?Math.round(it.price/12):it.price):0;
+  const rows=[
+    ["🏷️",state.lang==="ru"?"Тип":"Type",pTypeLabel(it.propertyType)],
+    ["🛏️",state.lang==="ru"?"Спальни":"Bedrooms",it.bedrooms||"—"],
+    ["📐",state.lang==="ru"?"Площадь":"Area",(it.area||0)+" м²"],
+    ["🌿",state.lang==="ru"?"Участок":"Land",(it.landArea||0)+" м²"],
+    ["🏗️",state.lang==="ru"?"Этажей":"Floors",it.floors||"—"],
+    ["🚿",state.lang==="ru"?"Ванные":"Baths",it.bathrooms||"—"],
+    ["📅",state.lang==="ru"?"Год":"Year",it.yearBuilt||"—"],
+    ["💰",state.lang==="ru"?"Залог":"Deposit",dep?moneyIDR(dep):"—"],
+    ["🪑",state.lang==="ru"?"Мебель":"Furniture",it.furnished?(state.lang==="ru"?"Да":"Yes"):"—"],
+    ["🟢",state.lang==="ru"?"Доступно":"Available",it.type==="request"?(it.moveIn||"—"):(state.lang==="ru"?"Сейчас":"Now")]];
+  const agent=it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");
+  const sim=LISTINGS.filter(x=>x.dealType===it.dealType&&x.id!==it.id).sort((a,b)=>b.views-a.views).slice(0,4);
+  const d=0.02,box=`${(it.lng-d).toFixed(4)},${(it.lat-d*0.7).toFixed(4)},${(it.lng+d).toFixed(4)},${(it.lat+d*0.7).toFixed(4)}`;
   $("detailContent").innerHTML=`
-    <div class="detail-gallery">${it.images.map(s=>`<img src="${s}" loading="lazy" onerror="this.onerror=null;this.src='${it.fb}'">`).join("")}</div>
-    <h2>${it.title||pTypeLabel(it.propertyType)}</h2>
-    <div class="price" style="margin:8px 0">${fmtPrice(it)}</div>
-    <p class="muted">🏷️ ${pTypeLabel(it.propertyType)} · 🛏️ ${it.bedrooms} · 📐 ${it.area||"—"} м² ${it.landArea?`· 🌿 ${it.landArea} м²`:""} ${it.floors?`· 🏗️ ${it.floors}`:""} ${it.yearBuilt?`· ${it.yearBuilt}`:""}</p>
-    <p class="muted">◎ ${locLabel(it)} · ${timeAgo(it.createdAt)} · 👁 ${it.views} · ★ ${it.rating||"—"} (${it.reviews})</p>
-    <p>${it.furnished?(state.lang==="ru"?"Меблировано":"Furnished")+" · ":""}${it.parking?`Parking ${it.parking} · `:""}${it.isVerified?"✔ "+t("verified")+" · ":""}${it.isAgent?t("agent")+": "+(it.agentName||"")+" · ":""}${it.isTop?t("top"):""}</p>
-    ${it.legal?`<p class="legal">◈ ${t("legal_txt")}</p>`:""}
-    ${it.type==="request"?`<p>${t("move_in")}: ${it.moveIn||"—"}</p><button class="btn-primary" onclick="alert('OK!')">${t("offer_btn")} →</button>`:`<button class="btn-primary" data-fav="${it.id}">${state.fav.has(it.id)?"♥":"♡"} ${t("nav_fav")}</button>`}`;
+  <div class="detail-page">
+    <div class="detail-topbar"><button class="btn-ghost" id="dBack">← ${state.lang==="ru"?"Назад":"Back"}</button>
+    <button class="btn-ghost" id="dShare">${state.lang==="ru"?"Поделиться":"Share"} ⤴</button></div>
+    <div class="detail-grid">
+      <div class="gallery-col">
+        <div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
+          ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
+          <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>
+        <div class="thumbnails">${it.images.map((s,i)=>`<img src="${s}" data-thumb="${i}" class="${i===0?"on":""}" onerror="this.onerror=null;this.src='${it.fb}'" loading="lazy">`).join("")}</div>
+      </div>
+      <div class="info-col">
+        <h1>${it.title||pTypeLabel(it.propertyType)}</h1>
+        <div class="muted">📍 ${locLabel(it)}, Бали, Индонезия · ${timeAgo(it.createdAt)} · 👁 ${it.views} · ★ ${it.rating||"—"} (${it.reviews})</div>
+        <div class="price-block"><span class="price-big">${fmtPrice(it)}</span><span class="term-badge">${term}</span></div>
+        <h3>${state.lang==="ru"?"Характеристики":"Features"}</h3>
+        <div class="chars-grid">${rows.map(r=>`<div class="char-item"><span>${r[0]}</span><span class="muted">${r[1]}:</span><b>${r[2]}</b></div>`).join("")}</div>
+        <h3>${state.lang==="ru"?"Удобства":"Amenities"}</h3>
+        <div class="amenities">${(it.amenities||[]).map(a=>`<span class="amenity-chip">${a}</span>`).join("")}</div>
+        <div class="agent-card"><img src="https://i.pravatar.cc/96?img=${(it.id*7)%70+1}" alt=""><div><b>${agent}</b><div class="muted">★ ${it.rating||"5.0"} · ${it.isVerified?"✔ "+t("verified"):""}</div></div>
+        <button class="btn-ghost" id="dContact" style="margin-left:auto">${state.lang==="ru"?"Связаться":"Contact"}</button></div>
+        ${it.type==="request"?`<p class="muted">${t("move_in")}: ${it.moveIn||"—"}</p><button class="book-btn" data-offer="${it.id}">✉ ${t("offer_btn")}</button>`:`<button class="book-btn" id="dBook">${state.lang==="ru"?"Забронировать":"Book now"}</button>`}
+        ${it.legal?`<div class="legal">◈ ${t("legal_txt")}</div>`:""}
+      </div>
+    </div>
+    <div class="map-section"><h3>📍 ${locLabel(it)}</h3>
+      <iframe title="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${it.lat},${it.lng}"></iframe>
+      <div class="map-row"><span class="muted">${locLabel(it)}, Бали, Индонезия</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${state.lang==="ru"?"Построить маршрут":"Directions"} →</a></div></div>
+    <div class="similar-section"><h3>${state.lang==="ru"?"Похожие варианты":"Similar"}</h3><div class="similar-scroll">${sim.map(cardHTML).join("")}</div></div>
+  </div>`;
+  document.querySelector(".modal-box").classList.add("wide");
   $("detailModal").classList.remove("hidden");
+  $("dBack").onclick=()=>closeDetail();
+  $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href.split("#")[0]+"#listing-"+it.id);}catch(e){}alert(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
+  $("dContact").onclick=()=>alert(state.lang==="ru"?"Контакт: "+agent+", ответим в течение часа!":"Contact: "+agent);
+  const bk=$("dBook");if(bk)bk.onclick=()=>alert(state.lang==="ru"?"Заявка отправлена! Свяжемся с вами.":"Request sent!");
+}
+function closeDetail(){$("detailModal").classList.add("hidden");document.querySelector(".modal-box").classList.remove("wide");}
+function refreshDetail(){
+  const it=LISTINGS.find(x=>x.id===detailId);if(!it||$("detailModal").classList.contains("hidden"))return;
+  const m=$("dMain");if(m){m.src=it.images[detailIdx%it.images.length];}
+  const c=$("dCount");if(c)c.textContent=`${(detailIdx%it.images.length)+1}/${it.images.length}`;
+  document.querySelectorAll("[data-thumb]").forEach(el=>el.classList.toggle("on",+el.dataset.thumb===(detailIdx%it.images.length)));
 }
 
 document.addEventListener("click",e=>{
@@ -249,6 +309,12 @@ document.addEventListener("click",e=>{
   if(cr){const k=cr.dataset.crumb;if(k==="home")resetFilters();if(k==="deal"){$("fType").value="";$("fDistrict").value="";}if(k==="role"){}state.page=1;render();return;}
   const q=e.target.closest("[data-q]");
   if(q){applyQuick(q.dataset.q);return;}
+  const th=e.target.closest("[data-thumb]");
+  if(th){detailIdx=+th.dataset.thumb;refreshDetail();return;}
+  const dn=e.target.closest("[data-dnav]");
+  if(dn){const it=LISTINGS.find(x=>x.id===detailId);if(it){detailIdx=(detailIdx+(dn.dataset.dnav==="next"?1:-1)+it.images.length)%it.images.length;refreshDetail();}return;}
+  const chip=e.target.closest("[data-chip]");
+  if(chip){e.stopPropagation();if(chip.dataset.chip==="type")$("fType").value=chip.dataset.v;if(chip.dataset.chip==="bed")$("fRooms").value=chip.dataset.v;state.page=1;render();window.scrollTo({top:0,behavior:"smooth"});return;}
   const card=e.target.closest("[data-card]");
   if(card&&!e.target.closest("button")){openDetail(card.dataset.card);return;}
   const bn=e.target.closest(".bn-item");
@@ -298,8 +364,8 @@ document.querySelectorAll(".seg-btn").forEach(b=>b.onclick=()=>{state.rentCat=st
 $("favHeaderBtn").onclick=()=>{switchView("fav");syncDealTabs();};
 $("profileBtn").onclick=()=>{switchView("profile");syncDealTabs();};
 $("logoBtn").onclick=e=>{e.preventDefault();switchView("list");syncDealTabs();};
-$("detailClose").onclick=()=>$("detailModal").classList.add("hidden");
-$("detailModal").addEventListener("click",e=>{if(e.target.id==="detailModal")$("detailModal").classList.add("hidden");});
+$("detailClose").onclick=()=>closeDetail();
+$("detailModal").addEventListener("click",e=>{if(e.target.id==="detailModal")closeDetail();});
 $("filtersModalBtn").onclick=()=>{const bar=$("filtersBar");if(window.innerWidth<768){bar.style.display=bar.style.display==="flex"?"":"flex";bar.classList.add("open");}else{$("filtersModal").classList.remove("hidden");}};
 $("filtersClose").onclick=()=>$("filtersModal").classList.add("hidden");
 $("filtersModalApply").onclick=()=>{$("filtersModal").classList.add("hidden");$("applyBtn").click();};
