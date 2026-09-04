@@ -23,8 +23,8 @@ h1{font-size:22px;margin:8px 0 4px}
 .lf-value{display:flex;align-items:center;gap:4px;margin-top:2px;font-size:14px;font-weight:500;color:var(--ink)}
 .lf-value svg{width:14px;height:14px;color:#A0AEC0;transition:transform .2s}
 .lf.open .lf-value svg{transform:rotate(180deg)}
-.lf-drop{position:absolute;top:calc(100% + 6px);left:0;z-index:50;background:#fff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:12px 14px;min-width:260px;max-width:320px;max-height:0;overflow:hidden;opacity:0;transition:max-height .25s ease,opacity .2s ease,padding .2s ease}
-.lf.open .lf-drop{max-height:384px;overflow-y:auto;opacity:1}
+.lf-drop{position:absolute;top:calc(100% + 6px);left:0;z-index:50;background:#fff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:0;min-width:260px;max-width:320px;max-height:0;overflow:hidden;opacity:0;transition:max-height .25s ease,opacity .2s ease,padding .2s ease}
+.lf.open .lf-drop{max-height:384px;overflow-y:auto;opacity:1;padding:16px}
 .lf-group{margin:10px 0 0}
 .lf-group:first-child{margin-top:0}
 .lf-gtitle{font-size:11px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
@@ -50,11 +50,11 @@ code{background:var(--acc-soft);color:var(--acc-dark);padding:1px 6px;border-rad
 <script>
 /* ===== Reusable LocationFilter (vanilla, no deps) ===== */
 const DIST_GROUPS=[
- {g:"BEACHSIDE & CENTER",items:[["Seminyak","Семиньяк"],["Oberoi","Оберой"],["Legian","Легиан"],["Kuta","Кута"]]},
- {g:"RESIDENTIAL SIDE",items:[["Canggu","Чангу"],["Pererenan","Переренан"],["Umalas","Умалас"]]},
- {g:"SOUTH",items:[["Uluwatu","Улувату"],["Jimbaran","Джимбаран"],["Nusa Dua","Нуса-Дуа"]]},
- {g:"CENTER & EAST",items:[["Ubud","Убуд"],["Denpasar","Денпасар"],["Sanur","Санур"],["Tabanan","Табанан"]]}];
-function createLocationFilter(mount,{groups=DIST_GROUPS,selected=new Set(),lang="ru",anyLabel="Любая",onChange}={}){
+ {g:"ПЛЯЖНАЯ ЗОНА И ЦЕНТР",items:[["Seminyak","Семиньяк"],["Oberoi","Оберой"],["Legian","Легиан"],["Kuta","Кута"]]},
+ {g:"ЖИЛАЯ ЗОНА",items:[["Canggu","Чангу"],["Pererenan","Переренан"],["Umalas","Умалас"]]},
+ {g:"ЮГ",items:[["Uluwatu","Улувату"],["Jimbaran","Джимбаран"],["Nusa Dua","Нуса-Дуа"]]},
+ {g:"ЦЕНТР И ВОСТОК",items:[["Ubud","Убуд"],["Denpasar","Денпасар"],["Sanur","Санур"],["Tabanan","Табанан"]]}];
+function createLocationFilter(mount,{groups=DIST_GROUPS,selected=new Set(),lang="ru",anyLabel="Любая локация",onChange}={}){
   const name=en=>{for(const gr of groups)for(const [e,r] of gr.items)if(e===en)return lang==="ru"?r:e;return en;};
   mount.innerHTML=`<div class="lf" id="lfBox">
     <div class="lf-head" id="lfHead" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
