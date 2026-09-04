@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=20">
+<link rel="stylesheet" href="css/style.css?v=21">
 </head>
 <body>
 <div class="topbar"><span data-i18n="topbar">Проверенные объекты Бали · без комиссии для арендатора на части вилл</span></div>
@@ -64,6 +64,11 @@
           <select id="fRooms"><option value="">Все</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
         <div class="filter-group" id="rentCatWrap"><label>Срок</label>
           <div class="seg"><button class="seg-btn active" data-cat="monthly" id="catMonthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly">год</button></div></div>
+        <div class="filter-group" id="availWrap"><label>Доступно с</label><input type="month" id="fAvail" min="2026-09" max="2028-12"></div>
+        <div class="filter-group"><label>Гостиная</label>
+          <select id="fLiving"><option value="">Любая</option><option value="1">1</option><option value="2">2+</option></select></div>
+        <div class="filter-group"><label>Мебель</label>
+          <select id="furnQ"><option value="">Любая</option><option value="yes">Да</option><option value="no">Нет</option></select></div>
       </div>
       <div class="actions-row">
         <button id="resetBtn" class="btn-text">Сбросить всё</button>
@@ -76,14 +81,13 @@
         <div class="filter-group"><label data-i18n="build_area">Строение, м²</label><div class="price-inputs"><input type="number" id="areaMin" placeholder="от"><span>–</span><input type="number" id="areaMax" placeholder="до"></div></div>
         <div class="filter-group"><label data-i18n="floors">Этажей</label><select id="fFloors"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
         <div class="filter-group"><label data-i18n="year">Год от</label><input type="number" id="fYear" placeholder="2020" min="1980" max="2026"></div>
-        <div class="filter-group"><label data-i18n="furn">Меблировка</label><select id="fFurn"><option value="">—</option><option value="yes" data-i18n="yes">Да</option><option value="no" data-i18n="no">Нет</option></select></div>
         <div class="filter-group"><label data-i18n="parking">Парковка</label><select id="fPark"><option value="">—</option><option>1</option><option>2</option><option>3</option></select></div>
       </div>
       <div class="subbar">
         <div class="results-count" id="resultsCount">…</div>
         <div class="sort-wrap">
           <button id="filtersModalBtn" class="btn-ghost only-mobile">☰ <span data-i18n="filters">Фильтры</span></button>
-          <select id="sortSelect" class="mini-select"><option value="date_desc" data-i18n="s_date">Сначала новые</option><option value="price_asc" data-i18n="s_price_asc">Дешевле</option><option value="price_desc" data-i18n="s_price_desc">Дороже</option><option value="popular" data-i18n="s_pop">Популярные</option></select>
+          <select id="sortSelect" class="mini-select"><option value="date_desc">Сначала новые</option><option value="avail">Сначала доступные</option><option value="price_asc">Дешевле</option><option value="price_desc">Дороже</option><option value="popular">Популярные</option></select>
         </div>
       </div>
     </div>
@@ -156,6 +160,6 @@
 
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=15"></script>
+<script src="js/app.js?v=21"></script>
 </body>
 </html>

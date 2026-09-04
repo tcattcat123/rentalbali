@@ -45,6 +45,10 @@ const AM={villa_house:["Бассейн","Wi-Fi","Кондиционер","Кух
 LISTINGS.forEach((it,i)=>{const a=AM[it.propertyType]||AM.villa_house;it.amenities=a.slice(0,4+(i%3));});
 const TEN={17:"freehold",18:"freehold",19:"leasehold",20:"freehold",12:"leasehold",16:"freehold"};
 LISTINGS.forEach(it=>{if(it.dealType==="sale")it.tenure=TEN[it.id]||"freehold";});
+LISTINGS.forEach(it=>{it.living=(it.propertyType==="land"||it.propertyType==="commercial")?0:(it.bedrooms>=4?2:(it.bedrooms>=2?1:0));});
+const AVAIL={6:"2026-12-04",9:"2026-12-01",13:"2026-11-01",23:"2026-10-15"};
+LISTINGS.forEach(it=>{it.available=AVAIL[it.id]||null;});
+function fmtDate(iso){const[a,b,c]=iso.split("-");return`${c}.${b}.${a}`;}
 let detailId=null,detailIdx=0;
 
 const I18N = {
@@ -122,6 +126,7 @@ function cardHTML(it,i){
   if(it.floors>0&&it.yearBuilt>0)chips.push(`<span class="param-chip">${it.floors} · ${it.yearBuilt}</span>`);
   else if(it.yearBuilt>0)chips.push(`<span class="param-chip">${it.yearBuilt}</span>`);
   const tags=[];
+  if(it.available)tags.push(`<span class="tag">с ${fmtDate(it.available)}</span>`);
   if(it.furnished)tags.push(`<span class="tag">${state.lang==="ru"?"Меблировано":"Furnished"}</span>`);
   if(it.isVerified)tags.push(`<span class="tag blue">✔ ${t("verified")}</span>`);
   const extra=it.type==="request"?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`:"";
@@ -152,7 +157,8 @@ function getFiltered(){
   const lMin=parseFloat(gv("landMin")),lMax=parseFloat(gv("landMax"));
   const aMin=parseFloat(gv("areaMin")),aMax=parseFloat(gv("areaMax"));
   const fT=gv("fType"),fR=gv("fRooms");
-  const fFl=gv("fFloors"),fY=parseFloat(gv("fYear")),fFu=gv("fFurn"),fP=gv("fPark");
+  const fFl=gv("fFloors"),fY=parseFloat(gv("fYear")),fFu=gv("furnQ"),fP=gv("fPark");
+  const fAv=gv("fAvail"),fLv=gv("fLiving");
   if(state.deal==="rent"&&state.rentCat)arr=arr.filter(x=>x.category===state.rentCat);
   if(state.deal==="sale"&&state.tenure)arr=arr.filter(x=>x.tenure===state.tenure);
   if(!isNaN(pMin))arr=arr.filter(x=>x.price>=pMin);
@@ -168,10 +174,13 @@ function getFiltered(){
   if(!isNaN(fY))arr=arr.filter(x=>(x.yearBuilt||0)>=fY);
   if(fFu==="yes")arr=arr.filter(x=>x.furnished);
   if(fFu==="no")arr=arr.filter(x=>!x.furnished);
+  if(fAv)arr=arr.filter(x=>!x.available||x.available.slice(0,7)<=fAv);
+  if(fLv)arr=arr.filter(x=>fLv==="2"?(x.living||0)>=2:(x.living||0)===1);
   if(fP)arr=arr.filter(x=>(x.parking||0)>=+fP);
   if(state.sort==="price_asc")arr.sort((a,b)=>a.price-b.price);
   else if(state.sort==="price_desc")arr.sort((a,b)=>b.price-a.price);
   else if(state.sort==="popular")arr.sort((a,b)=>b.views-a.views);
+  else if(state.sort==="avail")arr.sort((a,b)=>(a.available||"")<(b.available||"")?-1:(a.available||"")>(b.available||"")?1:b.createdAt-a.createdAt);
   else arr.sort((a,b)=>b.createdAt-a.createdAt);
   return arr;
 }
@@ -194,6 +203,7 @@ function render(){
   $("curLabel").textContent=state.currency;
   $("rentCatWrap").style.display=state.deal==="rent"?"":"none";
   if($("tenureWrap"))$("tenureWrap").style.display=state.deal==="sale"?"":"none";
+  if($("availWrap"))$("availWrap").style.display=state.deal==="rent"?"":"none";
   document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat||(b.dataset.tenure&&b.dataset.tenure===state.tenure)));
   renderCrumbs();renderLocDropdown();updateLocLabel();
   const arr=getFiltered();
@@ -274,7 +284,8 @@ function openDetail(id){
     [state.lang==="ru"?"Этажей":"Floors",it.floors||"—"],
     [state.lang==="ru"?"Год":"Year",it.yearBuilt||"—"],
     [state.lang==="ru"?"Мебель":"Furniture",it.furnished?(state.lang==="ru"?"Да":"Yes"):"—"],
-    [state.lang==="ru"?"Залог":"Deposit",dep?moneyIDR(dep):"—"]];
+    [state.lang==="ru"?"Залог":"Deposit",dep?moneyIDR(dep):"—"],
+    [state.lang==="ru"?"Доступно":"Available",it.type==="request"?(it.moveIn||"—"):(it.available?fmtDate(it.available):(state.lang==="ru"?"Сейчас":"Now"))]];
   const agent=it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");
   const sim=LISTINGS.filter(x=>x.dealType===it.dealType&&x.id!==it.id).sort((a,b)=>b.views-a.views).slice(0,4);
   const d=0.02,box=`${(it.lng-d).toFixed(4)},${(it.lat-d*0.7).toFixed(4)},${(it.lng+d).toFixed(4)},${(it.lat+d*0.7).toFixed(4)}`;
@@ -341,8 +352,9 @@ document.addEventListener("click",e=>{
 });
 
 function resetFilters(){
-  ["priceMin","priceMax","landMin","landMax","areaMin","areaMax","fYear"].forEach(id=>{if($(id))$(id).value="";});
-  $("fType").value="";$("fRooms").value="";state.districts.clear();state.tenure="";$("fFloors").value="";$("fFurn").value="";$("fPark").value="";
+  ["priceMin","priceMax","landMin","landMax","areaMin","areaMax","fYear","fAvail","fLiving"].forEach(id=>{if($(id))$(id).value="";});
+  ["fType","fRooms","fFloors","furnQ","fPark"].forEach(id=>{if($(id))$(id).value="";});
+  state.districts.clear();state.tenure="";
   state.page=1;activeQuick="";highlightQuick();
 }
 let activeQuick="";
