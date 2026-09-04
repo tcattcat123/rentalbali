@@ -328,7 +328,7 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .d-card .amenities{margin-bottom:0}
 .d-card iframe{width:100%;height:280px;border:0;border-radius:4px}
 @media(max-width:900px){.d-layout{grid-template-columns:1fr}.d-left .main-photo{height:280px}}
-.logo-palm .nuts{transform-box:fill-box;transform-origin:top center;animation:sway 4.5s ease-in-out infinite}
+.logo-palm .palm-top{transform-box:fill-box;transform-origin:50% 100%;animation:sway 4.5s ease-in-out infinite}
 @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
 /* bottom nav */
 .bottom-nav{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:var(--card);display:none;box-shadow:var(--sh-h);z-index:60;border:1px solid var(--line);border-radius:8px;padding:4px;width:min(440px,calc(100% - 24px))}
