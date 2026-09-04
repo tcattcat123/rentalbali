@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=27">
+<link rel="stylesheet" href="css/style.css?v=28">
 </head>
 <body>
 <div class="topbar"><span data-i18n="topbar">Проверенные объекты Бали · без комиссии для арендатора на части вилл</span></div>
@@ -59,9 +59,9 @@
         <div class="filter-group"><label>Тип недвижимости</label>
           <select id="fType"><option value="">Все</option><option value="villa">Виллы</option><option value="house">Дома</option><option value="apartment">Квартиры</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="commercial">Коммерческая</option><option value="townhouse">Таунхаусы</option><option value="boarding">Sewa Kos</option></select></div>
         <div class="filter-group" id="rentCatWrap"><label>Срок</label>
-          <div class="seg"><button class="seg-btn active" data-cat="monthly" id="catMonthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly">год</button></div></div>
+          <div class="tipe-box"><div class="seg"><button class="seg-btn active" data-cat="monthly" id="catMonthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly">год</button></div><span class="chev">▼</span></div></div>
         <div class="filter-group" id="tenureWrap"><label>Тип владения</label>
-          <div class="seg"><button class="seg-btn" data-tenure="freehold">Freehold</button><button class="seg-btn" data-tenure="leasehold">Leasehold</button></div></div>
+          <div class="tipe-box"><div class="seg"><button class="seg-btn" data-tenure="freehold">Freehold</button><button class="seg-btn" data-tenure="leasehold">Leasehold</button></div><span class="chev">▼</span></div></div>
         <div class="filter-group"><label>Локация</label>
           <div class="filter-location" id="locFilter">
             <button type="button" class="filter-header" id="locHeader" aria-haspopup="true" aria-expanded="false">
@@ -101,7 +101,7 @@
       </div>
       <div class="subbar">
         <div class="results-count" id="resultsCount">…</div>
-        <div class="sort-wrap">
+        <div class="sort-wrap"><span class="sort-ic">⇅</span>
           <button id="filtersModalBtn" class="btn-ghost only-mobile">☰ <span data-i18n="filters">Фильтры</span></button>
           <select id="sortSelect" class="mini-select"><option value="date_desc">Сначала новые</option><option value="avail">Сначала доступные</option><option value="price_asc">Дешевле</option><option value="price_desc">Дороже</option><option value="popular">Популярные</option></select>
         </div>
@@ -178,6 +178,6 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=25"></script>
+<script src="js/app.js?v=28"></script>
 </body>
 </html>

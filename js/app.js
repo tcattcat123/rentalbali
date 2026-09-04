@@ -58,16 +58,41 @@ en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_bu
 };
 
 const state = {deal:"rent",role:"offer",rentCat:"monthly",tenure:"",query:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem("rh_fav")||"[]")),carIdx:{},districts:new Set()};
-const DIST_GROUPS=[
- {g:"ПЛЯЖНАЯ ЗОНА И ЦЕНТР",items:[["Seminyak","Семиньяк"],["Oberoi","Оберой"],["Legian","Легиан"],["Kuta","Кута"]]},
- {g:"ЖИЛАЯ ЗОНА",items:[["Canggu","Чангу"],["Pererenan","Переренан"],["Umalas","Умалас"]]},
- {g:"ЮГ",items:[["Uluwatu","Улувату"],["Jimbaran","Джимбаран"],["Nusa Dua","Нуса-Дуа"]]},
- {g:"ЦЕНТР И ВОСТОК",items:[["Ubud","Убуд"],["Denpasar","Денпасар"],["Sanur","Санур"],["Tabanan","Табанан"]]}];
-function locName(en){for(const gr of DIST_GROUPS)for(const [e,r] of gr.items)if(e===en)return state.lang==="ru"?r:e;return en;}
+const DIST_TREE=[
+ {key:"Canggu",ru:"Чангу",kids:[["Berawa","Берава"],["BatuBolong","Бату Болонг"]]},
+ {key:"Seminyak",ru:"Семиньяк",kids:[["Oberoi","Оберой"],["Legian","Легиан"],["Petitenget","Петитенгет"]]},
+ {key:"Pererenan",ru:"Переренан",kids:[]},
+ {key:"Umalas",ru:"Умалас",kids:[]},
+ {key:"Kerobokan",ru:"Керобокан",kids:[]},
+ {key:"Kuta",ru:"Кута",kids:[]},
+ {key:"Uluwatu",ru:"Улувату",kids:[]},
+ {key:"Jimbaran",ru:"Джимбаран",kids:[]},
+ {key:"NusaDua",ru:"Нуса-Дуа",kids:[]},
+ {key:"Ubud",ru:"Убуд",kids:[]},
+ {key:"Denpasar",ru:"Денпасар",kids:[]},
+ {key:"Sanur",ru:"Санур",kids:[]},
+ {key:"Tabanan",ru:"Табанан",kids:[]}];
+state.locOpen=new Set(["Canggu","Seminyak"]);
+function locName(key){for(const n of DIST_TREE){if(n.key===key)return state.lang==="ru"?n.ru:n.key;for(const [k,r] of (n.kids||[]))if(k===key)return state.lang==="ru"?r:k;}return key;}
 function renderLocDropdown(){
   const dd=$("locDropdown");if(!dd)return;
-  dd.innerHTML=DIST_GROUPS.map(gr=>`<div class="location-group"><div class="group-title">${gr.g}</div>${gr.items.map(([en,ru])=>`<label class="location-item"><input type="checkbox" data-dist="${en}"${state.districts.has(en)?" checked":""}> ${state.lang==="ru"?ru:en}</label>`).join("")}</div>`).join("")+`<div class="loc-foot"><button class="loc-clear" id="locClear">${t("loc_clear")}</button></div>`;
-  dd.querySelectorAll("[data-dist]").forEach(cb=>cb.onchange=()=>{cb.checked?state.districts.add(cb.dataset.dist):state.districts.delete(cb.dataset.dist);state.page=1;updateLocLabel();render();updateMarkersSafe();});
+  dd.innerHTML=DIST_TREE.map(n=>{
+    const kids=n.kids||[];
+    const kidHtml=kids.length?`<div class="loc-kids${state.locOpen.has(n.key)?" open":""}" data-kids="${n.key}">${kids.map(([k,r])=>`<label class="location-item kid"><input type="checkbox" data-dist="${k}"${state.districts.has(k)?" checked":""}> ${state.lang==="ru"?r:k}</label>`).join("")}</div>`:"";
+    return`<div class="loc-node"><div class="loc-row"><button type="button" class="loc-exp${kids.length?"":" novis"}${state.locOpen.has(n.key)?" open":""}" data-exp="${n.key}" tabindex="-1">›</button><label class="location-item"><input type="checkbox" data-dist="${n.key}" data-parent="${n.key}"${state.districts.has(n.key)?" checked":""}> ${state.lang==="ru"?n.ru:n.key}</label></div>${kidHtml}</div>`;
+  }).join("")+`<div class="loc-foot"><button class="loc-clear" id="locClear">${t("loc_clear")}</button></div>`;
+  dd.querySelectorAll("[data-exp]").forEach(b=>b.onclick=e=>{e.stopPropagation();state.locOpen.has(b.dataset.exp)?state.locOpen.delete(b.dataset.exp):state.locOpen.add(b.dataset.exp);renderLocDropdown();});
+  dd.querySelectorAll("[data-dist]").forEach(cb=>cb.onchange=()=>{
+    const node=DIST_TREE.find(n=>n.key===cb.dataset.dist);
+    if(node&&node.kids.length){node.kids.forEach(([k])=>cb.checked?state.districts.add(k):state.districts.delete(k));}
+    cb.checked?state.districts.add(cb.dataset.dist):state.districts.delete(cb.dataset.dist);
+    state.page=1;updateLocLabel();render();updateMarkersSafe();
+  });
+  dd.querySelectorAll("[data-parent]").forEach(p=>{
+    const node=DIST_TREE.find(n=>n.key===p.dataset.parent);
+    const ks=(node.kids||[]).map(([k])=>k);
+    if(ks.length&&ks.some(k=>state.districts.has(k))&&!ks.every(k=>state.districts.has(k)))p.indeterminate=true;
+  });
   $("locClear").onclick=e=>{e.stopPropagation();state.districts.clear();state.page=1;renderLocDropdown();updateLocLabel();render();updateMarkersSafe();};
 }
 function updateLocLabel(){

@@ -33,6 +33,13 @@ h1{font-size:22px;margin:8px 0 4px}
 .lf-item input{accent-color:var(--acc);width:16px;height:16px;margin:0 8px 0 0;cursor:pointer;flex:0 0 auto}
 .lf-foot{display:flex;justify-content:flex-end;padding-top:6px}
 .lf-clear{background:none;border:0;color:var(--acc);font-size:12.5px;font-weight:600;cursor:pointer}
+.lf-row{display:flex;align-items:center;gap:2px}
+.lf-exp{border:0;background:none;cursor:pointer;color:var(--mut);font-size:16px;line-height:1;width:22px;height:26px;flex:0 0 auto;padding:0;transition:transform .22s ease}
+.lf-exp.open{transform:rotate(90deg)}
+.lf-exp.novis{visibility:hidden}
+.lf-row .lf-item{flex:1}
+.lf-kids{max-height:0;overflow:hidden;opacity:0;transition:max-height .28s ease,opacity .2s ease;padding-left:22px}
+.lf-kids.open{max-height:220px;opacity:1}
 /* ===== demo readout ===== */
 .result{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:13.5px}
 .result b{color:var(--acc-dark)}
@@ -49,13 +56,23 @@ code{background:var(--acc-soft);color:var(--acc-dark);padding:1px 6px;border-rad
 </div>
 <script>
 /* ===== Reusable LocationFilter (vanilla, no deps) ===== */
-const DIST_GROUPS=[
- {g:"ПЛЯЖНАЯ ЗОНА И ЦЕНТР",items:[["Seminyak","Семиньяк"],["Oberoi","Оберой"],["Legian","Легиан"],["Kuta","Кута"]]},
- {g:"ЖИЛАЯ ЗОНА",items:[["Canggu","Чангу"],["Pererenan","Переренан"],["Umalas","Умалас"]]},
- {g:"ЮГ",items:[["Uluwatu","Улувату"],["Jimbaran","Джимбаран"],["Nusa Dua","Нуса-Дуа"]]},
- {g:"ЦЕНТР И ВОСТОК",items:[["Ubud","Убуд"],["Denpasar","Денпасар"],["Sanur","Санур"],["Tabanan","Табанан"]]}];
-function createLocationFilter(mount,{groups=DIST_GROUPS,selected=new Set(),lang="ru",anyLabel="Любая локация",onChange}={}){
-  const name=en=>{for(const gr of groups)for(const [e,r] of gr.items)if(e===en)return lang==="ru"?r:e;return en;};
+const DIST_TREE=[
+ {key:"Canggu",ru:"Чангу",kids:[["Berawa","Берава"],["BatuBolong","Бату Болонг"]]},
+ {key:"Seminyak",ru:"Семиньяк",kids:[["Oberoi","Оберой"],["Legian","Легиан"],["Petitenget","Петитенгет"]]},
+ {key:"Pererenan",ru:"Переренан",kids:[]},
+ {key:"Umalas",ru:"Умалас",kids:[]},
+ {key:"Kerobokan",ru:"Керобокан",kids:[]},
+ {key:"Kuta",ru:"Кута",kids:[]},
+ {key:"Uluwatu",ru:"Улувату",kids:[]},
+ {key:"Jimbaran",ru:"Джимбаран",kids:[]},
+ {key:"NusaDua",ru:"Нуса-Дуа",kids:[]},
+ {key:"Ubud",ru:"Убуд",kids:[]},
+ {key:"Denpasar",ru:"Денпасар",kids:[]},
+ {key:"Sanur",ru:"Санур",kids:[]},
+ {key:"Tabanan",ru:"Табанан",kids:[]}];
+function createLocationFilter(mount,{groups=DIST_TREE,selected=new Set(),lang="ru",anyLabel="Любая локация",onChange}={}){
+  const open=new Set(["Canggu","Seminyak"]);
+  const name=key=>{for(const n of groups){if(n.key===key)return lang==="ru"?n.ru:n.key;for(const [k,r] of (n.kids||[]))if(k===key)return lang==="ru"?r:k;}return key;};
   mount.innerHTML=`<div class="lf" id="lfBox">
     <div class="lf-head" id="lfHead" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
       <span class="lf-label">Локация</span>
@@ -65,8 +82,22 @@ function createLocationFilter(mount,{groups=DIST_GROUPS,selected=new Set(),lang=
   const box=mount.querySelector("#lfBox"),val=mount.querySelector("#lfVal"),drop=mount.querySelector("#lfDrop");
   function paintLabel(){const s=[...selected];val.textContent=s.length===0?anyLabel:s.length===1?name(s[0]):`${name(s[0])} +${s.length-1}`;}
   function paintDrop(){
-    drop.innerHTML=groups.map(gr=>`<div class="lf-group"><div class="lf-gtitle">${gr.g}</div>${gr.items.map(([en,ru])=>`<label class="lf-item"><input type="checkbox" data-d="${en}"${selected.has(en)?" checked":""}> ${lang==="ru"?ru:en}</label>`).join("")}</div>`).join("")+`<div class="lf-foot"><button class="lf-clear" id="lfClr">Очистить</button></div>`;
-    drop.querySelectorAll("[data-d]").forEach(cb=>cb.onchange=()=>{cb.checked?selected.add(cb.dataset.d):selected.delete(cb.dataset.d);paintLabel();onChange&&onChange(new Set(selected));});
+    drop.innerHTML=groups.map(n=>{
+      const kids=n.kids||[];
+      const kh=kids.length?`<div class="lf-kids${open.has(n.key)?" open":""}">${kids.map(([k,r])=>`<label class="lf-item"><input type="checkbox" data-d="${k}"${selected.has(k)?" checked":""}> ${lang==="ru"?r:k}</label>`).join("")}</div>`:"";
+      return`<div class="lf-node"><div class="lf-row"><button type="button" class="lf-exp${kids.length?"":" novis"}${open.has(n.key)?" open":""}" data-exp="${n.key}" tabindex="-1">›</button><label class="lf-item"><input type="checkbox" data-d="${n.key}" data-p="${n.key}"${selected.has(n.key)?" checked":""}> ${lang==="ru"?n.ru:n.key}</label></div>${kh}</div>`;
+    }).join("")+`<div class="lf-foot"><button class="lf-clear" id="lfClr">Очистить</button></div>`;
+    drop.querySelectorAll("[data-exp]").forEach(b=>b.onclick=e=>{e.stopPropagation();open.has(b.dataset.exp)?open.delete(b.dataset.exp):open.add(b.dataset.exp);paintDrop();});
+    drop.querySelectorAll("[data-d]").forEach(cb=>cb.onchange=()=>{
+      const node=groups.find(n=>n.key===cb.dataset.d);
+      if(node&&(node.kids||[]).length)node.kids.forEach(([k])=>cb.checked?selected.add(k):selected.delete(k));
+      cb.checked?selected.add(cb.dataset.d):selected.delete(cb.dataset.d);
+      paintLabel();paintDrop();onChange&&onChange(new Set(selected));
+    });
+    drop.querySelectorAll("[data-p]").forEach(p=>{
+      const node=groups.find(n=>n.key===p.dataset.p),ks=(node.kids||[]).map(([k])=>k);
+      if(ks.length&&ks.some(k=>selected.has(k))&&!ks.every(k=>selected.has(k)))p.indeterminate=true;
+    });
     drop.querySelector("#lfClr").onclick=e=>{e.stopPropagation();selected.clear();paintDrop();paintLabel();onChange&&onChange(new Set(selected));};
   }
   function toggle(force){const open=force!==undefined?force:!box.classList.contains("open");box.classList.toggle("open",open);mount.querySelector("#lfHead").setAttribute("aria-expanded",open);}
