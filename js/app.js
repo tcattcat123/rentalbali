@@ -65,7 +65,7 @@ const DIST_TREE=[
  {key:"Kerobokan",ru:"Керобокан",kids:[]},
  {key:"Seseh",ru:"Сесех",kids:[]},
  {key:"Buduk",ru:"Будук",kids:[]},
- {key:"Seminyak",ru:"Семиньяк",kids:[["Oberoi","Оберой"],["Legian","Легиан"],["Petitenget","Петитенгет"]]},
+ {key:"Seminyak",ru:"Семиньяк",kids:[["BeachsideCenter","Beachside & center"],["ResidentialSide","Residential side"],["Oberoi","Oberoi"],["Legian","Legian"],["Petitenget","Petitenget"]]},
  {key:"Kuta",ru:"Кута",kids:[]},
  {key:"TanahLot",ru:"Танах Лот",kids:[["Kedungu","Кедунгу"],["Cemagi","Чемаги"]]},
  {key:"Uluwatu",ru:"Улувату",kids:[["Bingin","Бингин"],["Balangan","Балаган"]]},
@@ -95,7 +95,8 @@ function paintIndeterminate(){
   dd.querySelectorAll("[data-dist]:not([data-parent])").forEach(cb=>{cb.checked=state.districts.has(cb.dataset.dist);});
 }
 state.locOpen=new Set(["Canggu","Seminyak"]);
-function locName(key){for(const n of DIST_TREE){if(n.key===key)return state.lang==="ru"?n.ru:n.key;for(const [k,r] of (n.kids||[]))if(k===key)return state.lang==="ru"?r:k;}return key;}
+const PARENT={};DIST_TREE.forEach(n=>(n.kids||[]).forEach(([k])=>PARENT[k]=n.key));
+function locName(key){for(const n of DIST_TREE){if(n.key===key)return state.lang==="ru"?n.ru:n.key;for(const [k,r] of (n.kids||[]))if(k===key)return r;}return key;}
 function renderLocDropdown(){
   const dd=$("locDropdown");if(!dd)return;
   dd.innerHTML=DIST_TREE.map(n=>{
@@ -248,7 +249,7 @@ function getFiltered(){
   if(!isNaN(pMax))arr=arr.filter(x=>x.price<=pMax);
   if(fT)arr=arr.filter(x=>x.propertyType===fT);
   if(fR)arr=arr.filter(x=>fR==="5"?x.bedrooms>=5:x.bedrooms==+fR);
-  if(state.districts.size)arr=arr.filter(x=>state.districts.has(x.locationEn||x.location)||[...state.districts].some(d=>locName(d)===x.location));
+  if(state.districts.size)arr=arr.filter(x=>{const a=x.locationEn||x.location;return [...state.districts].some(d=>d===a||PARENT[d]===a);});
   if(!isNaN(lMin))arr=arr.filter(x=>(x.landArea||0)>=lMin);
   if(!isNaN(lMax))arr=arr.filter(x=>(x.landArea||0)<=lMax);
   if(!isNaN(aMin))arr=arr.filter(x=>(x.area||0)>=aMin);

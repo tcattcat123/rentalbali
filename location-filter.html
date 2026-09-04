@@ -64,7 +64,7 @@ const DIST_TREE=[
  {key:"Kerobokan",ru:"Керобокан",kids:[]},
  {key:"Seseh",ru:"Сесех",kids:[]},
  {key:"Buduk",ru:"Будук",kids:[]},
- {key:"Seminyak",ru:"Семиньяк",kids:[["Oberoi","Оберой"],["Legian","Легиан"],["Petitenget","Петитенгет"]]},
+ {key:"Seminyak",ru:"Семиньяк",kids:[["BeachsideCenter","Beachside & center"],["ResidentialSide","Residential side"],["Oberoi","Oberoi"],["Legian","Legian"],["Petitenget","Petitenget"]]},
  {key:"Kuta",ru:"Кута",kids:[]},
  {key:"TanahLot",ru:"Танах Лот",kids:[["Kedungu","Кедунгу"],["Cemagi","Чемаги"]]},
  {key:"Uluwatu",ru:"Улувату",kids:[["Bingin","Бингин"],["Balangan","Балаган"]]},
@@ -133,7 +133,8 @@ function update(sel){
   const s=sel||lf.selected,arr=[...s];
   document.getElementById("lfOut").textContent=arr.length?arr.join(", "):"—";
   if(!DATA.length){document.getElementById("lfCount").textContent="";return;}
-  const hit=DATA.filter(x=>!s.size||s.has(x.locationEn)).length;
+  const P={};DIST_TREE.forEach(n=>(n.kids||[]).forEach(([k])=>P[k]=n.key));
+  const hit=DATA.filter(x=>{const a=x.locationEn||x.location;return!s.size||[...s].some(d=>d===a||P[d]===a);}).length;
   document.getElementById("lfCount").textContent=`Совпадений в каталоге: ${hit} из ${DATA.length}`;
 }
 update();
