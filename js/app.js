@@ -510,12 +510,6 @@ document.querySelectorAll(".seg-btn").forEach(b=>b.onclick=()=>{if(b.dataset.cat
 $("favHeaderBtn").onclick=()=>{switchView("fav");syncDealTabs();};
 $("profileBtn").onclick=()=>{switchView("profile");syncDealTabs();};
 $("logoBtn").onclick=e=>{e.preventDefault();closeDetail();window.scrollTo({top:0,behavior:"smooth"});};
-document.querySelectorAll(".logo-palm").forEach(p=>p.addEventListener("click",e=>{
-  e.preventDefault();e.stopPropagation();
-  const logo=p.closest(".logo");if(!logo||logo.querySelector(".fall-nut"))return;
-  const n=document.createElement("span");n.className="fall-nut";logo.appendChild(n);
-  n.addEventListener("animationend",()=>n.remove());
-}));
 ["fType","fRooms","fLiving","furnQ","fFloors","fPark","fAmen","sortSelect","currencySelect"].forEach(id=>{const el=$(id);if(el)enhanceSelect(el);});
 if($("fAvail"))enhanceMonth($("fAvail"));
 document.addEventListener("click",e=>{if(!e.target.closest(".dd"))closeAllDD();});
