@@ -77,6 +77,47 @@ function toggleLoc(force){
   const w=$("locFilter"),open=force!==undefined?force:!w.classList.contains("open");
   w.classList.toggle("open",open);$("locHeader").setAttribute("aria-expanded",open);
 }
+/* custom dropdowns instead of native popups */
+const DDREG=[];
+function closeAllDD(){document.querySelectorAll(".dd.open").forEach(d=>d.classList.remove("open"));}
+function ddShell(el){
+  const wrap=document.createElement("div");wrap.className="dd";
+  el.parentNode.insertBefore(wrap,el);wrap.appendChild(el);el.style.display="none";
+  const btn=document.createElement("button");btn.type="button";btn.className="dd-btn";
+  btn.innerHTML=`<span class="dd-val"></span><span class="chev">▼</span>`;
+  const panel=document.createElement("div");panel.className="dd-panel";
+  wrap.append(btn,panel);
+  btn.onclick=e=>{e.stopPropagation();const was=wrap.classList.contains("open");closeAllDD();wrap.classList.toggle("open",!was);};
+  return{wrap,btn,panel};
+}
+function enhanceSelect(sel){
+  const{btn,panel}=ddShell(sel);
+  function paint(){
+    panel.innerHTML="";
+    [...sel.options].forEach(o=>{
+      const b=document.createElement("button");b.type="button";b.className="dd-opt"+(o.value===sel.value?" on":"");b.textContent=o.textContent;
+      b.onclick=e=>{e.stopPropagation();if(sel.value!==o.value){sel.value=o.value;sel.dispatchEvent(new Event("change"));}paint();closeAllDD();};
+      panel.append(b);
+    });
+    btn.querySelector(".dd-val").textContent=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].textContent:"—";
+  }
+  DDREG.push({sync:paint});paint();
+}
+const MONTHS=["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
+function enhanceMonth(input){
+  const{btn,panel}=ddShell(input);
+  let year=2026;
+  function paint(){
+    if(input.value)year=+input.value.slice(0,4);
+    panel.innerHTML=`<div class="dd-year"><button type="button" data-y="-1">‹</button><span>${year}</span><button type="button" data-y="1">›</button></div><div class="dd-months">${MONTHS.map((m,i)=>{const v=`${year}-${String(i+1).padStart(2,"0")}`;return`<button type="button" data-m="${v}" class="${input.value===v?"on":""}">${m}</button>`;}).join("")}</div><div class="loc-foot"><button type="button" class="loc-clear">Очистить</button></div>`;
+    panel.querySelectorAll("[data-y]").forEach(b=>b.onclick=e=>{e.stopPropagation();year+=+b.dataset.y;paint();});
+    panel.querySelectorAll("[data-m]").forEach(b=>b.onclick=e=>{e.stopPropagation();input.value=b.dataset.m;paint();closeAllDD();});
+    panel.querySelector(".loc-clear").onclick=e=>{e.stopPropagation();input.value="";paint();closeAllDD();};
+    btn.querySelector(".dd-val").textContent=input.value?`${MONTHS[+input.value.slice(5)-1]} ${year}`:"Выберите";
+  }
+  DDREG.push({sync:paint});paint();
+}
+function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[];
 const $ = id=>document.getElementById(id);
 const t = k=>I18N[state.lang][k]||k;
@@ -205,7 +246,7 @@ function render(){
   if($("tenureWrap"))$("tenureWrap").style.display=state.deal==="sale"?"":"none";
   if($("availWrap"))$("availWrap").style.display=state.deal==="rent"?"":"none";
   document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat||(b.dataset.tenure&&b.dataset.tenure===state.tenure)));
-  renderCrumbs();renderLocDropdown();updateLocLabel();
+  renderCrumbs();renderLocDropdown();updateLocLabel();syncDropdowns();
   const arr=getFiltered();
   $("resultsCount").textContent=`${arr.length} ${t("variants")}`;
   if($("statCount"))$("statCount").textContent=LISTINGS.length;
@@ -395,6 +436,9 @@ document.querySelectorAll(".seg-btn").forEach(b=>b.onclick=()=>{if(b.dataset.cat
 $("favHeaderBtn").onclick=()=>{switchView("fav");syncDealTabs();};
 $("profileBtn").onclick=()=>{switchView("profile");syncDealTabs();};
 $("logoBtn").onclick=e=>{e.preventDefault();switchView("list");syncDealTabs();};
+["fType","fRooms","fLiving","furnQ","fFloors","fPark","sortSelect","currencySelect"].forEach(id=>{const el=$(id);if(el)enhanceSelect(el);});
+if($("fAvail"))enhanceMonth($("fAvail"));
+document.addEventListener("click",e=>{if(!e.target.closest(".dd"))closeAllDD();});
 $("locHeader").onclick=e=>{e.stopPropagation();toggleLoc();};
 document.addEventListener("click",e=>{if(!e.target.closest("#locFilter"))toggleLoc(false);});
 $("detailClose").onclick=()=>closeDetail();
