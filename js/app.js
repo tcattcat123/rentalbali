@@ -391,8 +391,8 @@ function openDetail(id){
   const rows=[
     [state.lang==="ru"?"Тип":"Type",pTypeLabel(it.propertyType)],
     [state.lang==="ru"?"Спальни":"Bedrooms",it.bedrooms||"—"],
-    [state.lang==="ru"?"Площадь":"Area",(it.area||0)+" м²"],
-    [state.lang==="ru"?"Участок":"Land",(it.landArea||0)+" м²"],
+    [state.lang==="ru"?"Площадь":"Area",it.area>0?it.area+" м²":"—"],
+    [state.lang==="ru"?"Участок":"Land",it.landArea>0?it.landArea+" м²":"—"],
     [state.lang==="ru"?"Этажей":"Floors",it.floors||"—"],
     [state.lang==="ru"?"Год":"Year",it.yearBuilt||"—"],
     [state.lang==="ru"?"Мебель":"Furniture",it.furnished?(state.lang==="ru"?"Да":"Yes"):"—"],
@@ -423,7 +423,7 @@ function openDetail(id){
     ${it.legal?`<div class="legal">◈ ${t("legal_txt")} · ${agent}</div>`:""}
   </div><div class="d-right">
     <div class="card d-card"><h3>${state.lang==="ru"?"Характеристики":"Features"}</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">${rows.map(r=>`<div class="flex items-center justify-between py-2 border-b border-slate-100 hover:bg-slate-50 rounded px-2 -mx-2 transition-colors"><span class="text-sm text-slate-500">${r[0]}</span><span class="text-sm font-semibold text-slate-800">${r[1]}</span></div>`).join("")}</div></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">${rows.map(r=>`<div class="flex items-baseline justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50 rounded px-2 -mx-2 transition-colors"><span class="text-[13px] text-slate-500">${r[0]}</span><span class="text-[13px] font-semibold text-slate-800 text-right">${r[1]}</span></div>`).join("")}</div></div>
     <div class="card d-card"><h3>${state.lang==="ru"?"Удобства":"Amenities"}</h3>
       <div class="flex flex-wrap gap-2">${(it.amenities||[]).map(a=>`<span class="rounded-full bg-brand-soft text-brand-dark text-[13px] font-semibold px-3.5 py-1">${a}</span>`).join("")}</div></div>
     <div class="card d-card"><h3>${state.lang==="ru"?"На карте":"On map"}</h3>
