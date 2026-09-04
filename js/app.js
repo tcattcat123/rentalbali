@@ -261,44 +261,34 @@ function openDetail(id){
   const term=it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term"));
   const dep=it.dealType==="rent"?(it.category==="yearly"?Math.round(it.price/12):it.price):0;
   const rows=[
-    ["🏷️",state.lang==="ru"?"Тип":"Type",pTypeLabel(it.propertyType)],
-    ["🛏️",state.lang==="ru"?"Спальни":"Bedrooms",it.bedrooms||"—"],
-    ["📐",state.lang==="ru"?"Площадь":"Area",(it.area||0)+" м²"],
-    ["🌿",state.lang==="ru"?"Участок":"Land",(it.landArea||0)+" м²"],
-    ["🏗️",state.lang==="ru"?"Этажей":"Floors",it.floors||"—"],
-    ["🚿",state.lang==="ru"?"Ванные":"Baths",it.bathrooms||"—"],
-    ["📅",state.lang==="ru"?"Год":"Year",it.yearBuilt||"—"],
-    ["💰",state.lang==="ru"?"Залог":"Deposit",dep?moneyIDR(dep):"—"],
-    ["🪑",state.lang==="ru"?"Мебель":"Furniture",it.furnished?(state.lang==="ru"?"Да":"Yes"):"—"],
-    ["🟢",state.lang==="ru"?"Доступно":"Available",it.type==="request"?(it.moveIn||"—"):(state.lang==="ru"?"Сейчас":"Now")]];
+    [state.lang==="ru"?"Тип":"Type",pTypeLabel(it.propertyType)],
+    [state.lang==="ru"?"Спальни":"Bedrooms",it.bedrooms||"—"],
+    [state.lang==="ru"?"Площадь":"Area",(it.area||0)+" м²"],
+    [state.lang==="ru"?"Участок":"Land",(it.landArea||0)+" м²"],
+    [state.lang==="ru"?"Этажей":"Floors",it.floors||"—"],
+    [state.lang==="ru"?"Год":"Year",it.yearBuilt||"—"],
+    [state.lang==="ru"?"Мебель":"Furniture",it.furnished?(state.lang==="ru"?"Да":"Yes"):"—"],
+    [state.lang==="ru"?"Залог":"Deposit",dep?moneyIDR(dep):"—"]];
   const agent=it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");
   const sim=LISTINGS.filter(x=>x.dealType===it.dealType&&x.id!==it.id).sort((a,b)=>b.views-a.views).slice(0,4);
   const d=0.02,box=`${(it.lng-d).toFixed(4)},${(it.lat-d*0.7).toFixed(4)},${(it.lng+d).toFixed(4)},${(it.lat+d*0.7).toFixed(4)}`;
   $("detailContent").innerHTML=`
-  <div class="detail-page">
-    <div class="detail-topbar"><button class="btn-ghost" id="dBack">← ${state.lang==="ru"?"Назад":"Back"}</button>
+  <div class="detail-card">
+    <div class="detail-topbar"><a href="#" class="back-link" id="dBack">← ${state.lang==="ru"?"Назад":"Back"}</a>
     <button class="btn-ghost" id="dShare">${state.lang==="ru"?"Поделиться":"Share"} ⤴</button></div>
-    <div class="detail-grid">
-      <div class="gallery-col">
-        <div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
-          ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
-          <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>
-        <div class="thumbnails">${it.images.map((s,i)=>`<img src="${s}" data-thumb="${i}" class="${i===0?"on":""}" onerror="this.onerror=null;this.src='${it.fb}'" loading="lazy">`).join("")}</div>
-      </div>
-      <div class="info-col">
-        <h1>${it.title||pTypeLabel(it.propertyType)}</h1>
-        <div class="muted">📍 ${locLabel(it)}, Бали, Индонезия · ${timeAgo(it.createdAt)} · 👁 ${it.views} · ★ ${it.rating||"—"} (${it.reviews})</div>
-        <div class="price-block"><span class="price-big">${fmtPrice(it)}</span><span class="term-badge">${term}</span></div>
-        <h3>${state.lang==="ru"?"Характеристики":"Features"}</h3>
-        <div class="chars-grid">${rows.map(r=>`<div class="char-item"><span>${r[0]}</span><span class="muted">${r[1]}:</span><b>${r[2]}</b></div>`).join("")}</div>
-        <h3>${state.lang==="ru"?"Удобства":"Amenities"}</h3>
-        <div class="amenities">${(it.amenities||[]).map(a=>`<span class="amenity-chip">${a}</span>`).join("")}</div>
-        <div class="agent-card"><img src="https://i.pravatar.cc/96?img=${(it.id*7)%70+1}" alt=""><div><b>${agent}</b><div class="muted">★ ${it.rating||"5.0"} · ${it.isVerified?"✔ "+t("verified"):""}</div></div>
-        <button class="btn-ghost" id="dContact" style="margin-left:auto">${state.lang==="ru"?"Связаться":"Contact"}</button></div>
-        ${it.type==="request"?`<p class="muted">${t("move_in")}: ${it.moveIn||"—"}</p><button class="book-btn" data-offer="${it.id}">✉ ${t("offer_btn")}</button>`:`<button class="book-btn" id="dBook">${state.lang==="ru"?"Забронировать":"Book now"}</button>`}
-        ${it.legal?`<div class="legal">◈ ${t("legal_txt")}</div>`:""}
-      </div>
-    </div>
+    <div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
+      ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
+      <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>
+    <div class="thumbnails">${it.images.map((s,i)=>`<img src="${s}" data-thumb="${i}" class="${i===0?"on":""}" onerror="this.onerror=null;this.src='${it.fb}'" loading="lazy">`).join("")}</div>
+    <h1>${it.title||pTypeLabel(it.propertyType)}</h1>
+    <div class="meta"><span>📍 ${locLabel(it)}, Бали, Индонезия</span><span>· ${timeAgo(it.createdAt)}</span><span>· ♠ ${it.views}</span><span>· ★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span></div>
+    <div class="price-block"><span class="price">${fmtPrice(it)}</span><span class="term">${term}</span></div>
+    <div class="chars-grid">${rows.map(r=>`<div><span class="label">${r[0]}:</span> <span class="value">${r[1]}</span></div>`).join("")}</div>
+    <div class="amenities">${(it.amenities||[]).map(a=>`<span class="chip">${a}</span>`).join("")}</div>
+    <div class="agent-card"><img src="https://i.pravatar.cc/96?img=${(it.id*7)%70+1}" alt=""><div><b>${agent}</b><div class="muted">★ ${it.rating||"5.0"} · ${it.isVerified?"✔ "+t("verified"):""}</div></div>
+    <button class="btn-ghost" id="dContact" style="margin-left:auto">${state.lang==="ru"?"Связаться":"Contact"}</button></div>
+    ${it.type==="request"?`<p class="muted">${t("move_in")}: ${it.moveIn||"—"}</p><button class="book-btn" data-offer="${it.id}">✉ ${t("offer_btn")}</button>`:`<button class="book-btn" id="dBook">${state.lang==="ru"?"Забронировать":"Book now"}</button>`}
+    ${it.legal?`<div class="legal">◈ ${t("legal_txt")}</div>`:""}
     <div class="map-section"><h3>📍 ${locLabel(it)}</h3>
       <iframe title="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${it.lat},${it.lng}"></iframe>
       <div class="map-row"><span class="muted">${locLabel(it)}, Бали, Индонезия</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${state.lang==="ru"?"Построить маршрут":"Directions"} →</a></div></div>
@@ -306,7 +296,7 @@ function openDetail(id){
   </div>`;
   document.querySelector(".modal-box").classList.add("wide");
   $("detailModal").classList.remove("hidden");
-  $("dBack").onclick=()=>closeDetail();
+  $("dBack").onclick=e=>{e.preventDefault();closeDetail();};
   $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href.split("#")[0]+"#listing-"+it.id);}catch(e){}alert(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
   $("dContact").onclick=()=>alert(state.lang==="ru"?"Контакт: "+agent+", ответим в течение часа!":"Contact: "+agent);
   const bk=$("dBook");if(bk)bk.onclick=()=>alert(state.lang==="ru"?"Заявка отправлена! Свяжемся с вами.":"Request sent!");
