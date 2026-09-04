@@ -4,7 +4,7 @@ const now = Date.now();
 const H = 3600e3, M = 60e3;
 const LISTINGS = [
 {id:1,type:"offer",dealType:"rent",category:"monthly",title:"Вилла с бассейном в Чангу",price:25000000,currency:"IDR",propertyType:"villa_house",bedrooms:3,bathrooms:2,area:180,landArea:250,floors:2,yearBuilt:2021,furnished:true,parking:1,location:"Чангу",locationEn:"Canggu",lat:-8.6478,lng:115.1385,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali1-${i}/640/360`),createdAt:now-4*M,isVerified:true,isAgent:true,agentName:"Иван",isTop:true,isUrgent:false,legal:true,rating:4.8,reviews:46,views:1240,mine:true},
-{id:2,type:"offer",dealType:"rent",category:"monthly",title:"Квартира 1BR в Семиньяке",price:7500000,currency:"IDR",propertyType:"apartment",bedrooms:1,bathrooms:1,area:35,landArea:0,floors:5,yearBuilt:2022,furnished:true,parking:0,location:"Да Нанг",locationEn:"Seminyak",lat:-8.6905,lng:115.1665,images:[1,2].map(i=>`https://picsum.photos/seed/bali2-${i}/640/360`),createdAt:now-4*M,isVerified:true,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.6,reviews:46,views:860,mine:false},
+{id:2,type:"offer",dealType:"rent",category:"monthly",title:"Квартира 1BR в Семиньяке",price:7500000,currency:"IDR",propertyType:"apartment",bedrooms:1,bathrooms:1,area:35,landArea:0,floors:5,yearBuilt:2022,furnished:true,parking:0,location:"Семиньяк",locationEn:"Seminyak",lat:-8.6905,lng:115.1665,images:[1,2].map(i=>`https://picsum.photos/seed/bali2-${i}/640/360`),createdAt:now-4*M,isVerified:true,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.6,reviews:46,views:860,mine:false},
 {id:3,type:"offer",dealType:"rent",category:"monthly",title:"Дом 2 спальни в Убуде",price:12000000,currency:"IDR",propertyType:"villa_house",bedrooms:2,bathrooms:2,area:95,landArea:150,floors:1,yearBuilt:2019,furnished:true,parking:1,location:"Убуд",locationEn:"Ubud",lat:-8.5069,lng:115.2625,images:[1,2,3,4].map(i=>`https://picsum.photos/seed/bali3-${i}/640/360`),createdAt:now-2*H,isVerified:false,isAgent:true,agentName:"Made",isTop:false,isUrgent:true,legal:true,rating:4.9,reviews:21,views:540,mine:false},
 {id:4,type:"offer",dealType:"rent",category:"monthly",title:"Пансион в Улувату у океана",price:3500000,currency:"IDR",propertyType:"boarding",bedrooms:1,bathrooms:1,area:20,landArea:0,floors:2,yearBuilt:2020,furnished:true,parking:0,location:"Улувату",locationEn:"Uluwatu",lat:-8.8150,lng:115.1725,images:[`https://picsum.photos/seed/bali4-1/640/360`],createdAt:now-26*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.2,reviews:8,views:210,mine:false},
 {id:5,type:"offer",dealType:"rent",category:"yearly",title:"Таунхаус в Сануре (год)",price:180000000,currency:"IDR",propertyType:"townhouse",bedrooms:3,bathrooms:2,area:120,landArea:110,floors:2,yearBuilt:2021,furnished:false,parking:1,location:"Санур",locationEn:"Sanur",lat:-8.6930,lng:115.2628,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali5-${i}/640/360`),createdAt:now-5*H,isVerified:true,isAgent:false,isTop:true,isUrgent:false,legal:true,rating:4.7,reviews:33,views:980,mine:true},
@@ -189,11 +189,23 @@ function syncDealTabs(){
   $("dealBuy").classList.toggle("active",state.deal==="sale"&&state.view!=="map");
   $("dealMap").classList.toggle("active",state.view==="map");
 }
+let leafletReady=null;
+function loadLeaflet(){
+  if(window.L)return Promise.resolve();
+  if(leafletReady)return leafletReady;
+  leafletReady=new Promise((res,rej)=>{
+    const css=document.createElement("link");css.rel="stylesheet";css.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(css);
+    const s=document.createElement("script");s.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";s.onload=res;s.onerror=rej;document.body.appendChild(s);
+  });
+  return leafletReady;
+}
 function initMap(){
-  if(map){updateMarkers();map.invalidateSize();return;}
-  map=L.map("map").setView([-8.65,115.17],10);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(map);
-  updateMarkers();
+  loadLeaflet().then(()=>{
+    if(map){updateMarkers();map.invalidateSize();return;}
+    map=L.map("map").setView([-8.65,115.17],10);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(map);
+    updateMarkers();
+  });
 }
 function updateMarkers(){
   if(!map)return;
