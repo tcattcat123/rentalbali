@@ -190,6 +190,13 @@ function pTypeLabel(v){return t("t_"+v)||v;}
 function locLabel(it){return state.lang==="ru"?it.location:it.locationEn||it.location;}
 const SVG_PIN='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
 const SVG_EYE='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+const SVG_BED='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 20v-9a2 2 0 012-2h16a2 2 0 012 2v9"/><path d="M2 17h20"/><circle cx="6" cy="11" r="1.6"/></svg>';
+const SVG_BATH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13h16v2a5 5 0 01-5 5H9a5 5 0 01-5-5v-2z"/><path d="M6 13V6a2 2 0 014 0"/><path d="M8 20l-1 2M16 20l1 2"/></svg>';
+const SVG_AREA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>';
+const SVG_POOL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="17" cy="6" r="2.5"/><path d="M2 15c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><path d="M2 19h20"/></svg>';
+const SVG_SHIELD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>';
+const SVG_CUP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H4a3 3 0 003 5M17 5h3a3 3 0 01-3 5M12 14v4M8 21h8"/></svg>';
+function plural(n,f){n=Math.abs(n)%100;const d=n%10;if(n>10&&n<20)return f[2];if(d>1&&d<5)return f[1];if(d===1)return f[0];return f[2];}
 
 function cardHTML(it,i){
   i=i||0;
@@ -198,34 +205,33 @@ function cardHTML(it,i){
   const heart=fav?"♥":"♡";
   let badges="";
   if(it.dealType==="sale"&&it.tenure)badges+=`<span class="badge tenure">${it.tenure==="freehold"?"Hak Milik":"Hak Sewa"}</span>`;
+  if(it.isVerified)badges+=`<span class="badge verified">${SVG_SHIELD} ${t("verified")}</span>`;
+  if(it.isTop)badges+=`<span class="badge top">${SVG_CUP} ${t("top")}</span>`;
   if(isNew(it))badges+=`<span class="badge new">★ ${t("new")}</span>`;
-  if(it.isVerified)badges+=`<span class="badge verified">✓ ${t("verified")}</span>`;
-  if(it.isTop)badges+=`<span class="badge top">${t("top")}</span>`;
   if(it.isAgent)badges+=`<span class="badge agent">${t("agent")}${it.agentName?" · "+it.agentName:""}</span>`;
   if(it.isUrgent)badges+=`<span class="badge urgent">${t("urgent")}</span>`;
-  const chips=[`<button class="param-chip" data-chip="type" data-v="${it.propertyType}">${pTypeLabel(it.propertyType)}</button>`];
-  if(it.bedrooms>0)chips.push(`<button class="param-chip" data-chip="bed" data-v="${it.bedrooms}">${it.bedrooms}</button>`);
   const areaV=it.area>0?it.area:it.landArea;
-  if(areaV>0)chips.push(`<span class="param-chip">${areaV} м²</span>`);
-  if(it.floors>0&&it.yearBuilt>0)chips.push(`<span class="param-chip">${it.floors} · ${it.yearBuilt}</span>`);
-  else if(it.yearBuilt>0)chips.push(`<span class="param-chip">${it.yearBuilt}</span>`);
-  const tags=[];
-  if(it.available)tags.push(`<span class="tag">с ${fmtDate(it.available)}</span>`);
-  if(it.furnished)tags.push(`<span class="tag">${state.lang==="ru"?"Меблировано":"Furnished"}</span>`);
-  if(it.isVerified)tags.push(`<span class="tag blue">✔ ${t("verified")}</span>`);
+  const sub=it.propertyType==="land"?`Участок ${it.landArea} м²`:(it.amenities||[]).slice(0,3).join(" · ");
+  const am=(it.amenities||[]).concat(["—","—"]);
+  const agent=it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");
+  const specs=`<div class="specs">
+    <div class="spec">${SVG_BED}<b>${it.bedrooms||"—"}</b><span>${plural(it.bedrooms||0,["спальня","спальни","спален"])}</span></div>
+    <div class="spec">${SVG_BATH}<b>${it.bathrooms||"—"}</b><span>${plural(it.bathrooms||0,["ванная","ванные","ванных"])}</span></div>
+    <div class="spec">${SVG_AREA}<b>${areaV||"—"}${areaV?" м²":""}</b><span>площадь</span></div>
+    <div class="spec">${SVG_POOL}<b>${am[0]}</b><span>${am[1]}</span></div></div>`;
+  const agentRow=it.type==="request"?"":`<div class="agent-row"><div class="who"><b>${it.isAgent?"Агент "+agent:agent}</b><small>На связи · 10:00–20:00</small></div><button class="btn-ghost sm" data-contact="${it.id}">Связаться</button></div>`;
   const extra=it.type==="request"?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`:"";
   return `<div class="property-card" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
     <div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="Фото объекта">
       ${it.images.length>1?`<button class="car-btn prev" data-car="prev" data-id="${it.id}" aria-label="prev">‹</button><button class="car-btn next" data-car="next" data-id="${it.id}" aria-label="next">›</button>`:""}
       <span class="photo-counter">${(idx%it.images.length)+1}/${it.images.length}</span>
       <div class="badges">${badges}</div>
-      <button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav">${heart}</button></div>
-    <div class="card-body"><div class="title">${it.title||pTypeLabel(it.propertyType)}</div>
-      <div class="price">${fmtPrice(it)}</div>
-      <div class="params">${chips.join("")}</div>
-      <div class="location-meta"><span>${SVG_PIN} ${locLabel(it)}</span><span>· ${timeAgo(it.createdAt)}</span><span>· ${SVG_EYE} ${it.views}</span><span>· ★ ${it.rating?it.rating.toFixed(1):"—"}${it.reviews?` (${it.reviews})`:""}</span></div>
-      ${tags.length?`<div class="tags">${tags.join("")}</div>`:""}
-      <div class="actions"><button class="save-link${fav?" on":""}" data-fav="${it.id}">${heart} ${state.lang==="ru"?"Сохранённое":"Saved"}</button></div>
+      <button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav">${heart}</button>
+      <div class="photo-titles"><div class="pt-title">${it.title||pTypeLabel(it.propertyType)}</div>${sub?`<div class="pt-sub">${sub}</div>`:""}</div></div>
+    <div class="card-body"><div class="price">${fmtPrice(it)}</div>
+      <div class="location-sm">${locLabel(it)}, Бали</div>
+      ${specs}
+      ${agentRow}
       ${extra}</div></div>`;
 }
 
@@ -438,6 +444,8 @@ document.addEventListener("click",e=>{
   if(c){e.stopPropagation();const id=+c.dataset.id;const it=LISTINGS.find(x=>x.id===id);let i=state.carIdx[id]||0;i=(i+(c.dataset.car==="next"?1:-1)+it.images.length)%it.images.length;state.carIdx[id]=i;render();return;}
   const o=e.target.closest("[data-offer]");
   if(o){e.stopPropagation();alert(state.lang==="ru"?"Заявка отправлена владельцу запроса!":"Proposal sent!");return;}
+  const ct=e.target.closest("[data-contact]");
+  if(ct){e.stopPropagation();const it=LISTINGS.find(x=>x.id===+ct.dataset.contact);const nm=it&&it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");alert(state.lang==="ru"?"Свяжемся с "+nm+" в течение часа!":"We will contact "+nm);return;}
   const p=e.target.closest("[data-page]");
   if(p){state.page=+p.dataset.page;render();window.scrollTo({top:0,behavior:"smooth"});return;}
   const cr=e.target.closest("[data-crumb]");
