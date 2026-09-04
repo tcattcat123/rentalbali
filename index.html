@@ -47,6 +47,8 @@
       <div class="filters" id="filtersBar">
         <div class="filter-group"><label>Тип недвижимости</label>
           <select id="fType"><option value="">Все</option><option value="villa_house">Виллы и дома</option><option value="apartment">Квартиры</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="commercial">Коммерческая</option><option value="townhouse">Таунхаусы</option><option value="boarding">Sewa Kos</option></select></div>
+        <div class="filter-group" id="rentCatWrap"><label>Срок</label>
+          <div class="seg"><button class="seg-btn active" data-cat="monthly" id="catMonthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly">год</button></div></div>
         <div class="filter-group" id="tenureWrap"><label>Тип владения</label>
           <div class="seg"><button class="seg-btn" data-tenure="freehold">Freehold</button><button class="seg-btn" data-tenure="leasehold">Leasehold</button></div></div>
         <div class="filter-group"><label>Локация</label>
@@ -62,8 +64,6 @@
           <div class="price-inputs"><input type="number" id="priceMin" placeholder="от" min="0"><span>–</span><input type="number" id="priceMax" placeholder="до" min="0"></div></div>
         <div class="filter-group"><label>Спальни</label>
           <select id="fRooms"><option value="">Все</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
-        <div class="filter-group" id="rentCatWrap"><label>Срок</label>
-          <div class="seg"><button class="seg-btn active" data-cat="monthly" id="catMonthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly">год</button></div></div>
         <div class="filter-group" id="availWrap"><label>Доступно с</label><input type="month" id="fAvail" min="2026-09" max="2028-12"></div>
         <div class="filter-group"><label>Гостиная</label>
           <select id="fLiving"><option value="">Любая</option><option value="1">1</option><option value="2">2+</option></select></div>
