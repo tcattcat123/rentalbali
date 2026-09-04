@@ -242,7 +242,7 @@ function getFiltered(){
   const aMin=parseFloat(gv("areaMin")),aMax=parseFloat(gv("areaMax"));
   const fT=gv("fType"),fR=gv("fRooms");
   const fFl=gv("fFloors"),fY=parseFloat(gv("fYear")),fFu=gv("furnQ"),fP=gv("fPark");
-  const fAv=gv("fAvail"),fLv=gv("fLiving");
+  const fAv=gv("fAvail"),fLv=gv("fLiving"),fAm=gv("fAmen");
   if(state.deal==="rent"&&state.rentCat)arr=arr.filter(x=>x.category===state.rentCat);
   if(state.deal==="sale"&&state.tenure)arr=arr.filter(x=>x.tenure===state.tenure);
   if(!isNaN(pMin))arr=arr.filter(x=>x.price>=pMin);
@@ -260,6 +260,7 @@ function getFiltered(){
   if(fFu==="no")arr=arr.filter(x=>!x.furnished);
   if(fAv)arr=arr.filter(x=>!x.available||x.available.slice(0,7)<=fAv);
   if(fLv)arr=arr.filter(x=>fLv==="2"?(x.living||0)>=2:(x.living||0)===1);
+  if(fAm)arr=arr.filter(x=>(x.amenities||[]).includes(fAm));
   const q=(state.query||"").trim().toLowerCase();
   if(q){
     if(/^\d+$/.test(q)){const n=+q;const lim=n<100000?n*1000000:n;arr=arr.filter(x=>x.price<=lim);}
@@ -327,9 +328,10 @@ function setDeal(d){
   state.deal=d;state.page=1;switchView("list");syncDealTabs();render();updateMarkersSafe();
 }
 function syncDealTabs(){
-  $("dealRent").classList.toggle("active",state.deal==="rent"&&state.view!=="map");
-  $("dealBuy").classList.toggle("active",state.deal==="sale"&&state.view!=="map");
-  $("dealMap").classList.toggle("active",state.view==="map");
+  document.querySelectorAll("[data-deal]").forEach(b=>{
+    const d=b.dataset.deal;
+    b.classList.toggle("active",d==="map"?state.view==="map":(state.deal===d&&state.view!=="map"));
+  });
 }
 let leafletReady=null;
 function loadLeaflet(){
@@ -363,7 +365,7 @@ function countActiveFilters(){
   if($("fType").value)n++;if(state.districts.size)n++;
   if($("priceMin").value||$("priceMax").value)n++;
   if($("fRooms").value)n++;if(state.rentCat)n++;if(state.tenure)n++;
-  if($("fAvail").value)n++;if($("fLiving").value)n++;if($("furnQ").value)n++;
+  if($("fAvail").value)n++;if($("fLiving").value)n++;if($("furnQ").value)n++;if($("fAmen").value)n++;
   if($("landMin").value||$("landMax").value||$("areaMin").value||$("areaMax").value)n++;
   if($("fFloors").value||$("fYear").value||$("fPark").value)n++;
   if(state.query)n++;
@@ -405,7 +407,7 @@ function openDetail(id){
     <div class="price-block"><span class="price">${fmtPrice(it)}</span><span class="term">${term}</span></div>
     <div class="chars-grid">${rows.map(r=>`<div><span class="label">${r[0]}:</span> <span class="value">${r[1]}</span></div>`).join("")}</div>
     <div class="amenities">${(it.amenities||[]).map(a=>`<span class="chip">${a}</span>`).join("")}</div>
-    <div class="agent-card"><img src="https://i.pravatar.cc/96?img=${(it.id*7)%70+1}" alt=""><div><b>${agent}</b><div class="muted">★ ${it.rating||"5.0"} · ${it.isVerified?"✔ "+t("verified"):""}</div></div>
+        <div class="agent-card"><div><b>${agent}</b><div class="muted">★ ${it.rating||"5.0"} · ${it.isVerified?"✔ "+t("verified"):""}</div></div>
     <button class="btn-ghost" id="dContact" style="margin-left:auto">${state.lang==="ru"?"Связаться":"Contact"}</button></div>
     ${it.type==="request"?`<p class="muted">${t("move_in")}: ${it.moveIn||"—"}</p><button class="book-btn" data-offer="${it.id}">✉ ${t("offer_btn")}</button>`:`<button class="book-btn" id="dBook">${state.lang==="ru"?"Забронировать":"Book now"}</button>`}
     ${it.legal?`<div class="legal">◈ ${t("legal_txt")}</div>`:""}
@@ -456,8 +458,8 @@ document.addEventListener("click",e=>{
 
 function resetFilters(){
   ["priceMin","priceMax","landMin","landMax","areaMin","areaMax","fYear","fAvail","fLiving"].forEach(id=>{if($(id))$(id).value="";});
-  ["fType","fRooms","fFloors","furnQ","fPark"].forEach(id=>{if($(id))$(id).value="";});
-  state.districts.clear();state.tenure="";state.query="";if($("mquery"))$("mquery").value="";
+  ["fType","fRooms","fFloors","furnQ","fPark","fAmen"].forEach(id=>{if($(id))$(id).value="";});
+  state.districts.clear();state.tenure="";state.query="";if($("mquery"))$("mquery").value="";if($("dquery"))$("dquery").value="";
   state.page=1;activeQuick="";highlightQuick();
 }
 let activeQuick="";
@@ -489,22 +491,21 @@ $("applyBtn").onclick=()=>{state.page=1;render();if(state.view!=="list")switchVi
 $("resetBtn").onclick=()=>{resetFilters();state.rentCat="";closeSheet();render();};
 $("advBtn").onclick=()=>$("advPanel").classList.toggle("hidden");
 $("sortSelect").onchange=e=>{state.sort=e.target.value;state.page=1;render();};
-$("dealRent").onclick=()=>setDeal("rent");
-$("dealBuy").onclick=()=>setDeal("sale");
-$("dealMap").onclick=()=>setDeal("map");
+document.querySelectorAll("[data-deal]").forEach(b=>b.onclick=()=>setDeal(b.dataset.deal));
 $("tabOffer").onclick=()=>{state.role="offer";state.page=1;$("tabOffer").classList.add("active");$("tabRequest").classList.remove("active");render();updateMarkersSafe();};
 $("tabRequest").onclick=()=>{state.role="request";state.page=1;$("tabRequest").classList.add("active");$("tabOffer").classList.remove("active");render();updateMarkersSafe();};
 document.querySelectorAll(".seg-btn").forEach(b=>b.onclick=()=>{if(b.dataset.cat){state.rentCat=state.rentCat===b.dataset.cat?"":b.dataset.cat;}if(b.dataset.tenure){state.tenure=state.tenure===b.dataset.tenure?"":b.dataset.tenure;}state.page=1;render();});
 $("favHeaderBtn").onclick=()=>{switchView("fav");syncDealTabs();};
 $("profileBtn").onclick=()=>{switchView("profile");syncDealTabs();};
 $("logoBtn").onclick=e=>{e.preventDefault();switchView("list");syncDealTabs();};
-["fType","fRooms","fLiving","furnQ","fFloors","fPark","sortSelect","currencySelect"].forEach(id=>{const el=$(id);if(el)enhanceSelect(el);});
+["fType","fRooms","fLiving","furnQ","fFloors","fPark","fAmen","sortSelect","currencySelect"].forEach(id=>{const el=$(id);if(el)enhanceSelect(el);});
 if($("fAvail"))enhanceMonth($("fAvail"));
 document.addEventListener("click",e=>{if(!e.target.closest(".dd"))closeAllDD();});
 let qTimer=null;
 document.querySelectorAll("[data-mdeal]").forEach(b=>b.onclick=()=>{state.deal=b.dataset.mdeal;state.role="offer";state.page=1;syncRoleTabs();switchView("list");syncDealTabs();render();updateMarkersSafe();});
 document.querySelectorAll("[data-mtype]").forEach(b=>b.onclick=()=>{const cur=$("fType").value===b.dataset.mtype;$("fType").value=cur?"":b.dataset.mtype;state.page=1;render();});
 if($("mquery"))$("mquery").addEventListener("input",e=>{clearTimeout(qTimer);qTimer=setTimeout(()=>{state.query=e.target.value;state.page=1;render();},250);});
+if($("dquery"))$("dquery").addEventListener("input",e=>{clearTimeout(qTimer);qTimer=setTimeout(()=>{state.query=e.target.value;state.page=1;render();},250);});
 if($("mshow"))$("mshow").onclick=()=>{state.page=1;render();document.getElementById("cardsGrid").scrollIntoView({behavior:"smooth"});};
 if($("mfilterBtn"))$("mfilterBtn").onclick=()=>openSheet();
 if($("mreset"))$("mreset").onclick=()=>{resetFilters();state.rentCat="";render();};
@@ -517,7 +518,7 @@ $("locHeader").onclick=e=>{e.stopPropagation();toggleLoc();};
 document.addEventListener("click",e=>{if(!e.target.closest("#locFilter"))toggleLoc(false);});
 $("detailClose").onclick=()=>closeDetail();
 $("detailModal").addEventListener("click",e=>{if(e.target.id==="detailModal")closeDetail();});
-$("filtersModalBtn").onclick=()=>{openSheet();};
+if($("advIconBtn"))$("advIconBtn").onclick=()=>$("advBtn").click();
 $("filtersClose").onclick=()=>$("filtersModal").classList.add("hidden");
 $("filtersModalApply").onclick=()=>{$("filtersModal").classList.add("hidden");$("applyBtn").click();};
 $("currencySelect").onchange=e=>{state.currency=e.target.value;render();};

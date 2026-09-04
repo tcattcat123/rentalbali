@@ -29,6 +29,11 @@ button{font-family:inherit}
 .logo{font-weight:700;font-size:17px;text-decoration:none;color:var(--acc);display:flex;align-items:center;gap:7px}
 .logo em{font-style:normal;font-weight:400;color:var(--acc-dark)}
 .logo.small{font-size:15px}
+.hnav{display:flex;gap:20px;margin:0 auto}
+.hnav button{border:0;background:none;padding:6px 2px;font-size:14px;font-weight:600;color:var(--mut);cursor:pointer;position:relative}
+.hnav button:hover{color:var(--acc)}
+.hnav button.active{color:var(--acc)}
+.hnav button.active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:var(--acc);border-radius:2px}
 .header-actions{margin-left:auto;display:flex;gap:6px;align-items:center}
 .header-actions .dd{min-width:0}
 .header-actions .dd-btn{width:auto;padding:3px 6px;font-size:12px}
@@ -50,14 +55,24 @@ button{font-family:inherit}
 .trust{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-top:6px}
 .trust span{display:flex;gap:4px;align-items:center}
 .msearch{display:none}
-.sec-head{display:none}
+.filter-icongroup .btn-ghost{height:40px;width:40px;padding:0;font-size:15px}
+.bottom-row{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line-soft)}
+.bottom-row .results-count{flex:1;text-align:center}
+.sort-label{font-size:12.5px;color:var(--mut)}
+.sec-head{display:flex;justify-content:space-between;align-items:center;margin:2px 2px 10px}
 #sheetBg{position:fixed;inset:0;background:rgba(6,10,18,.45);z-index:70;animation:fade .2s ease}
 .hero-stats{display:flex;gap:16px}
 .hero-stats div{display:flex;flex-direction:column}
 .hero-stats b{font-size:15px}.hero-stats span{font-size:11px;color:var(--mut)}
 /* toolbar card */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
-.toolbar{padding:12px 14px;margin-bottom:10px}
+.toolbar{padding:14px 16px;margin-bottom:12px}
+/* search row */
+.search-row{display:flex;gap:10px;margin-bottom:12px}
+.search-input{display:flex;align-items:center;gap:8px;flex:1;border:1px solid var(--line);border-radius:8px;padding:0 12px;height:40px;color:var(--mut);background:var(--card);min-width:0}
+.search-input input{border:0;outline:0;flex:1;font-size:14px;background:transparent;color:var(--ink);font-family:inherit;min-width:0}
+.search-row .btn-ghost,.search-row .btn-primary{height:40px;font-size:14px;white-space:nowrap}
+.search-row .btn-primary{padding:4px 22px}
 /* deal tabs underline */
 .deal-tabs{display:flex;gap:20px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:10px}
 .dtab{border:0;background:none;padding:0 2px 8px;margin-bottom:-9px;font-size:13.5px;font-weight:600;color:var(--mut);cursor:pointer;text-transform:uppercase;letter-spacing:.03em}
@@ -119,7 +134,7 @@ body:not([data-settled]) .property-card{animation:rise .5s both}
 .property-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.1)}
 .property-card:hover .card-image img{transform:scale(1.04)}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.card-image{position:relative;height:160px;overflow:hidden;background:#E7EEF7}
+.card-image{position:relative;height:230px;overflow:hidden;background:#E7EEF7}
 .card-image img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease}
 .car-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.9);border:0;border-radius:50%;width:28px;height:28px;cursor:pointer;display:none;font-size:14px;z-index:2}
 .property-card:hover .car-btn{display:block}
@@ -335,6 +350,10 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
   [data-theme="dark"] #profileBtn{background:#2D3748;color:var(--ink)}
   .mini-select{border-radius:8px}
   .deal-tabs{display:none}
+  .hnav{display:none}
+  .search-row{display:none}
+  .bottom-row{flex-wrap:wrap}
+  .sec-head{display:flex}
   .msearch{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);padding:12px;margin-bottom:12px}
   .mseg{display:flex;background:var(--line-soft);border-radius:8px;padding:3px;margin-bottom:10px}
   .mseg button{flex:1;border:0;background:transparent;border-radius:6px;padding:9px;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer}

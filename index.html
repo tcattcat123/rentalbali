@@ -10,13 +10,18 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=30">
+<link rel="stylesheet" href="css/style.css?v=31">
 </head>
 <body>
 <div class="topbar"><span data-i18n="topbar">Проверенные объекты Бали · без комиссии для арендатора на части вилл</span></div>
 <header class="header">
   <div class="header-inner">
     <a class="logo" href="#" id="logoBtn">RentHome <em>Bali</em></a>
+    <nav class="hnav" aria-label="Deal type">
+      <button data-deal="rent" class="active">Аренда</button>
+      <button data-deal="sale">Купить</button>
+      <button data-deal="map">Карта</button>
+    </nav>
     <div class="header-actions">
       <select id="currencySelect" class="mini-select" title="Валюта"><option value="IDR">IDR</option><option value="USD">USD</option></select>
       <button id="themeBtn" class="icon-btn" title="Тема">○</button>
@@ -55,6 +60,11 @@
         <button class="dtab active" id="dealRent" data-deal="rent">Арендовать</button>
         <button class="dtab" id="dealMap" data-deal="map">Поиск по карте</button>
       </div>
+      <div class="search-row">
+        <div class="search-input"><span>⌕</span><input id="dquery" placeholder="Район, объект или бюджет" autocomplete="off"></div>
+        <button id="advBtn" class="btn-ghost">Расширенный поиск</button>
+        <button id="applyBtn" class="btn-primary">⌕ Показать</button>
+      </div>
       <div class="filters" id="filtersBar">
         <div class="filter-group"><label>Тип недвижимости</label>
           <select id="fType"><option value="">Все</option><option value="villa">Виллы</option><option value="house">Дома</option><option value="apartment">Квартиры</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="commercial">Коммерческая</option><option value="townhouse">Таунхаусы</option><option value="boarding">Sewa Kos</option></select></div>
@@ -75,12 +85,16 @@
           <div class="price-inputs"><input type="number" id="priceMin" placeholder="от" min="0"><span>–</span><input type="number" id="priceMax" placeholder="до" min="0"></div></div>
         <div class="filter-group"><label>Спальни</label>
           <select id="fRooms"><option value="">Все</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
+        <div class="filter-group"><label>Удобства</label>
+          <select id="fAmen"><option value="">Выберите</option><option>Бассейн</option><option>Wi-Fi</option><option>Кондиционер</option><option>Кухня</option><option>Парковка</option><option>Сад</option><option>Холодильник</option><option>Телевизор</option></select></div>
+        <div class="filter-group filter-icongroup"><label>&nbsp;</label>
+          <button id="advIconBtn" class="btn-ghost" title="Расширенный поиск">☰</button></div>
+        <div id="advPanel" class="adv-panel hidden">
         <div class="filter-group" id="availWrap"><label>Доступно с</label><input type="month" id="fAvail" min="2026-09" max="2028-12"></div>
         <div class="filter-group"><label>Гостиная</label>
           <select id="fLiving"><option value="">Любая</option><option value="1">1</option><option value="2">2+</option></select></div>
         <div class="filter-group"><label>Мебель</label>
           <select id="furnQ"><option value="">Любая</option><option value="yes">Да</option><option value="no">Нет</option></select></div>
-        <div id="advPanel" class="adv-panel hidden">
         <div class="filter-group"><label data-i18n="land_area">Участок, м²</label><div class="price-inputs"><input type="number" id="landMin" placeholder="от"><span>–</span><input type="number" id="landMax" placeholder="до"></div></div>
         <div class="filter-group"><label data-i18n="build_area">Строение, м²</label><div class="price-inputs"><input type="number" id="areaMin" placeholder="от"><span>–</span><input type="number" id="areaMax" placeholder="до"></div></div>
         <div class="filter-group"><label data-i18n="floors">Этажей</label><select id="fFloors"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
@@ -93,16 +107,10 @@
           <button id="sheetApply" class="btn-primary">Показать</button>
         </div>
       </div>
-      <div class="actions-row">
-        <button id="resetBtn" class="btn-text">Сбросить всё</button>
-        <span style="flex:1"></span>
-        <button id="advBtn" class="btn-ghost">Расширенный +</button>
-        <button id="applyBtn" class="btn-primary">Показать</button>
-      </div>
-      <div class="subbar">
+      <div class="bottom-row">
+        <button id="resetBtn" class="btn-text">↻ Сбросить все</button>
         <div class="results-count" id="resultsCount">…</div>
-        <div class="sort-wrap"><span class="sort-ic">⇅</span>
-          <button id="filtersModalBtn" class="btn-ghost only-mobile">☰ <span data-i18n="filters">Фильтры</span></button>
+        <div class="sort-wrap"><span class="sort-ic">⇅</span><span class="sort-label">Сортировка:</span>
           <select id="sortSelect" class="mini-select"><option value="date_desc">Сначала новые</option><option value="avail">Сначала доступные</option><option value="price_asc">Дешевле</option><option value="price_desc">Дороже</option><option value="popular">Популярные</option></select>
         </div>
       </div>
@@ -178,6 +186,6 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=30"></script>
+<script src="js/app.js?v=31"></script>
 </body>
 </html>
