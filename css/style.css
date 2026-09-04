@@ -2,7 +2,7 @@
 :root{
   --ink:#2D3748; --ink2:#4A5568; --mut:#718096; --faint:#A0AEC0;
   --line:#E2E8F0; --line-soft:#EDF2F7; --bg:#F7FAFC; --card:#FFFFFF;
-  --acc:#4A90E2; --acc-dark:#2E6DC4; --acc-soft:#E8F4FD;
+  --acc:#0066FF; --acc-dark:#0052CC; --acc-soft:#E6F0FF;
   --ok:#27AE60; --warn:#D69E2E; --bad:#EB5757;
   --r:8px; --r-s:4px;
   --sh:0 1px 3px rgba(0,0,0,.06);
@@ -209,7 +209,7 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .similar-scroll{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 8px}
 .similar-scroll .property-card{flex:0 0 240px}
 /* footer */
-.footer{background:#24457E;color:#fff;margin-top:20px}
+.footer{background:linear-gradient(180deg,#0052CC,#003D99);color:#fff;margin-top:20px}
 .footer-inner{max-width:1200px;margin:0 auto;padding:20px 16px 90px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:14px;font-size:13px}
 .footer .muted{color:#9AA7BF}
 .footer a{color:#C6D0E2;text-decoration:none;display:block;margin-top:6px}
