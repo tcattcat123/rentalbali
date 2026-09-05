@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Bloom — цветы приходят сами</title>
+<meta name="description" content="Bloom — забота о близких без хлопот. Настройте один раз: сезонный букет, доставка вовремя, важные даты помним за вас.">
+<meta name="theme-color" content="#F7F5F0">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{pine:'#22B45E',moss:'#15914A',lime:'#5EEA8D'},keyframes:{floaty:{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-8px)'}},shimmer:{'0%':{backgroundPosition:'-200% 0'},'100%':{backgroundPosition:'200% 0'}},pop:{'0%':{transform:'scale(.9)',opacity:'0'},'100%':{transform:'scale(1)',opacity:'1'}}},animation:{floaty:'floaty 4s ease-in-out infinite',pop:'pop .3s ease'}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/flowers.css?v=4">
+</head>
+<body>
+<div class="petals" id="petals" aria-hidden="true"></div>
+<canvas id="confetti" class="confetti"></canvas>
+<div class="app" id="app">
+
+  <header class="hdr">
+    <div class="hdr-left">
+      <div class="logo-dot">✿</div>
+      <div>
+        <div class="logo-name">bloom</div>
+        <div class="logo-sub" id="tgUser">забота сама собой</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <button class="icon-pill" id="pauseBtn" title="Пауза">❚❚</button>
+      <button class="icon-pill has-dot" id="cartBtn" title="Корзина">◍ <span id="cartCount">0</span></button>
+    </div>
+  </header>
+
+  <main class="views">
+  <!-- ============ HOME ============ -->
+  <section class="view active" id="view-home">
+    <!-- HERO: 3-4 сильные формулировки + 1 CTA -->
+    <div class="hero">
+      <div class="hero-badge">● помним даты за вас</div>
+      <h1>Цветы приходят сами —<br><span>вы просто любите</span></h1>
+      <p class="hero-p">Один раз настраиваете дату и адрес. Дальше мы выбираем сезонный букет, привозим вовремя и напоминаем, что вы позаботились.</p>
+      <button class="btn-dark big transition duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-95" data-go="builder">Начать заботиться</button>
+      <button class="link under-cta hover:opacity-70 transition" data-go="builder" data-mode="once">быстро отправить букет →</button>
+
+      <div class="hero-img tilt slider" id="heroImg">
+        <img class="slide active" src="img/hero/slide1.jpg" alt="Букет для близкого человека" loading="eager">
+        <img class="slide" src="img/hero/slide2.jpg" alt="Свежие цветы по подписке" loading="lazy">
+        <img class="slide hidden" src="img/flowers/hero.jpg" alt="Авторский букет" loading="lazy" onerror="this.remove()">
+        <div class="float-card fc1"><i>♡</i><div><b>Мама получила букет</b><span>«меня помнят» — 2 мин назад</span></div></div>
+        <div class="float-card fc2"><div class="pulse"></div><div><b>Следующая забота</b><span>чет, 10:00 · без вашего участия</span></div></div>
+        <div class="dots" id="heroDots"></div>
+      </div>
+      <div class="hero-meta">
+        <div><b>4.9</b><span>2 400+ отзывов</span></div>
+        <div><b>48 ч</b><span>от среза до двери</span></div>
+        <div><b>0 ₽</b><span>наценка в праздники</span></div>
+      </div>
+    </div>
+
+    <!-- УТП: 4 карточки -->
+    <div class="sec-head"><h2>Почему это работает</h2><span class="sec-num">эмоция, а не покупка</span></div>
+    <div class="utp">
+      <div class="utp-card"><i>◍</i><b>Никогда не забудете о близких</b><p>Дни рождения мамы, годовщины, важные дни — мы помним и привозим сами.</p></div>
+      <div class="utp-card"><i>○</i><b>Без очередей и подорожаний</b><p>В праздники — та же цена, без толп и пустых полок. Всё решено заранее.</p></div>
+      <div class="utp-card"><i>✦</i><b>Красиво и вовремя</b><p>Каждый месяц — или когда захотите. Подписка, разовый жест или к дате.</p></div>
+      <div class="utp-card"><i>♡</i><b>Чувство, а не товар</b><p>Человек получает не цветы, а ощущение: «обо мне заботятся».</p></div>
+    </div>
+
+    <!-- СЦЕНАРИИ -->
+    <div class="sec-head"><h2>Кого порадуем?</h2><span class="sec-num">один инструмент</span></div>
+    <div class="scenarios" id="scenarioRow">
+      <button class="sc sel" data-sc="Маме">🤍<b>Маме</b><span>регулярная забота</span></button>
+      <button class="sc" data-sc="Партнёру">🧡<b>Партнёру</b><span>просто так</span></button>
+      <button class="sc" data-sc="Бабушке">🌿<b>Бабушке</b><span>тепло каждый месяц</span></button>
+      <button class="sc" data-sc="К дате">✦<b>К дате</b><span>не забудем</span></button>
+    </div>
+
+    <!-- РЕЖИМЫ -->
+    <div class="modes">
+      <button class="mode sel" data-mode="sub"><b>Подписка</b><span>авто-забота каждый месяц</span><em>от 1 490 ₽</em></button>
+      <button class="mode" data-mode="once"><b>Разовый жест</b><span>здесь и сейчас за 2 минуты</span><em>от 1 990 ₽</em></button>
+      <button class="mode" data-mode="date"><b>К важной дате</b><span>настроили — мы не забудем</span><em>бесплатно</em></button>
+    </div>
+
+    <div class="marquee festive"><div class="marquee-track">
+      <span>меня помнят ✨</span><i>✿</i><span>обо мне заботятся 💚</span><i>✿</i><span>я важен</span><i>✿</i><span>просто так 🎁</span><i>✿</i><span>вовремя ⏰</span><i>✿</i><span>без повода 🌷</span><i>✿</i>
+      <span>меня помнят ✨</span><i>✿</i><span>обо мне заботятся 💚</span><i>✿</i><span>я важен</span><i>✿</i><span>просто так 🎁</span><i>✿</i><span>вовремя ⏰</span><i>✿</i><span>без повода 🌷</span><i>✿</i>
+    </div></div>
+
+    <div class="sec-head" id="plans"><h2>Тарифы</h2><button class="link" data-go="builder">конструктор →</button></div>
+    <div class="plans" id="plansList"></div>
+
+    <div class="banner">
+      <div><span class="banner-tag">−15% на первый месяц · BLOOM15</span><h3>Первая забота — со скидкой</h3><p>Настройте сегодня — дальше всё происходит автоматически.</p></div>
+      <button class="btn-white" data-go="builder">Настроить первую доставку</button>
+    </div>
+
+    <div class="sec-head"><h2>Даты, которые мы помним</h2><span class="sec-num">ваша память — мы</span></div>
+    <div class="card dates-card">
+      <div id="datesList"><div class="date-row"><div><b>Мама · день рождения</b><span class="muted">12 мая · Classic · открытка «Люблю»</span></div><span class="date-badge">помню ✓</span></div></div>
+      <div class="date-add"><input id="dateInput" placeholder="Добавить дату: 8 марта — бабушка"><button id="dateAdd">+</button></div>
+    </div>
+
+    <div class="sec-head"><h2>Как это происходит</h2><span class="sec-num">01 — 03</span></div>
+    <div class="steps">
+      <div class="step"><div class="step-n">01</div><b>Настраиваете один раз</b><p>Кому, куда и когда. Можно подписку, разово или к дате.</p></div>
+      <div class="step"><div class="step-n">02</div><b>Мы всё делаем сами</b><p>Выбираем сезонный букет, собираем утром, присылаем фото.</p></div>
+      <div class="step"><div class="step-n">03</div><b>Близкие чувствуют заботу</b><p>Доставка к двери вовремя. Вы получаете тёплое «спасибо».</p></div>
+    </div>
+
+    <div class="sec-head"><h2>Отзывы</h2><span class="sec-num">★ 4.9</span></div>
+    <div class="reviews" id="reviewsList"></div>
+
+    <div class="sec-head"><h2>Вопросы</h2></div>
+    <div class="faq" id="faqList"></div>
+    <div style="height:18px"></div>
+  </section>
+
+  <!-- ============ BUILDER ============ -->
+  <section class="view" id="view-builder">
+    <div class="sec-head top"><h2 id="builderTitle">Конструктор заботы</h2><span class="sec-num" id="builderStepLabel">шаг 1/4</span></div>
+    <div class="chips mode-switch" id="modeSwitch">
+      <button class="chip sel" data-mode="sub">Подписка</button>
+      <button class="chip" data-mode="once">Разовый</button>
+      <button class="chip" data-mode="date">К дате</button>
+    </div>
+    <div class="progress"><div id="progressBar"></div></div>
+
+    <div class="bstep active" data-step="1">
+      <h3>Кому дарим заботу?</h3>
+      <p class="muted">Выберите — текст открытки подставим сами</p>
+      <div class="chips wrap" id="whoChips">
+        <button class="chip sel" data-who="Маме">Маме 🤍</button>
+        <button class="chip" data-who="Партнёру">Партнёру 🧡</button>
+        <button class="chip" data-who="Бабушке">Бабушке 🌿</button>
+        <button class="chip" data-who="Другу">Другу ✦</button>
+        <button class="chip" data-who="Себе">Себе 🌷</button>
+      </div>
+      <h3 style="margin-top:18px">Размер букета</h3>
+      <div class="opts" id="sizeOpts">
+        <button class="opt" data-size="mini" data-price="1490"><img src="img/flowers/mini.jpg" alt=""><div><b>Mini</b><span>9–11 стеблей · нежно</span><em>1 490 ₽</em></div><span class="check">✓</span></button>
+        <button class="opt sel" data-size="classic" data-price="2490"><img src="img/flowers/classic.jpg" alt=""><div><b>Classic</b><span>15–19 стеблей · хит</span><em>2 490 ₽</em></div><span class="check">✓</span></button>
+        <button class="opt" data-size="grande" data-price="3490"><img src="img/flowers/grande.jpg" alt=""><div><b>Grande</b><span>25+ стеблей · вау</span><em>3 490 ₽</em></div><span class="check">✓</span></button>
+      </div>
+    </div>
+
+    <div class="bstep" data-step="2">
+      <h3 id="freqTitle">Как часто заботиться?</h3>
+      <p class="muted">Можно поставить на паузу в любой момент</p>
+      <div class="opts col" id="freqOpts">
+        <button class="opt sel" data-freq="weekly" data-mult="0.9"><div><b>Каждую неделю</b><span>−10% на каждый букет</span></div><em>×4 / мес</em><span class="check">✓</span></button>
+        <button class="opt" data-freq="biweekly" data-mult="0.95"><div><b>Раз в 2 недели</b><span>−5% на каждый букет</span></div><em>×2 / мес</em><span class="check">✓</span></button>
+        <button class="opt" data-freq="monthly" data-mult="1"><div><b>Раз в месяц</b><span>базовая цена</span></div><em>×1 / мес</em><span class="check">✓</span></button>
+      </div>
+      <div class="card date-once hidden" id="onceBox">
+        <label>Дата доставки<input type="date" id="onceDate"></label>
+        <label>К какой дате?<input id="occasionInput" placeholder="День рождения, годовщина, просто так"></label>
+      </div>
+    </div>
+
+    <div class="bstep" data-step="3">
+      <h3>Настроение букета</h3>
+      <p class="muted">Палитру держим, состав — красивый сюрприз</p>
+      <div class="chips wrap" id="styleChips">
+        <button class="chip sel" data-style="Нежный">🤍 Нежный</button>
+        <button class="chip" data-style="Яркий">🧡 Яркий</button>
+        <button class="chip" data-style="Минимализм">🌿 Минимализм</button>
+        <button class="chip" data-style="Авторский">✦ Авторский</button>
+        <button class="chip" data-style="Моно">🌷 Моно</button>
+      </div>
+      <h3 style="margin-top:18px">День и время</h3>
+      <div class="chips" id="dayChips">
+        <button class="chip sel" data-day="Четверг">Чт</button>
+        <button class="chip" data-day="Пятница">Пт</button>
+        <button class="chip" data-day="Суббота">Сб</button>
+        <button class="chip" data-day="Воскресенье">Вс</button>
+      </div>
+      <div class="chips" id="timeChips" style="margin-top:8px">
+        <button class="chip sel" data-time="9:00 – 13:00">9–13</button>
+        <button class="chip" data-time="13:00 – 18:00">13–18</button>
+        <button class="chip" data-time="18:00 – 22:00">18–22</button>
+      </div>
+      <h3 style="margin-top:18px">Открытка</h3>
+      <div class="card form"><label>Текст открытки (бесплатно)<input id="cardInput" value="Мам, ты — моё тепло. Люблю ♡"></label></div>
+    </div>
+
+    <div class="bstep" data-step="4">
+      <h3>Куда везём заботу?</h3>
+      <p class="muted">Доставка по городу — бесплатно на подписке</p>
+      <div class="card form">
+        <label>Адрес<input id="fAddress" placeholder="ул. Цветочная, 12, кв. 34" autocomplete="off"></label>
+        <label>Получатель<input id="fName" placeholder="Имя близкого"></label>
+        <label>Телефон<input id="fPhone" placeholder="+7 ___ ___-__-__" inputmode="tel"></label>
+        <label>Комментарий<input id="fComment" placeholder="Код домофона, пожелания…"></label>
+      </div>
+      <div class="summary card" id="summaryCard"></div>
+    </div>
+
+    <div class="builder-nav">
+      <button class="btn-light" id="backBtn">← Назад</button>
+      <button class="btn-dark flex1" id="nextBtn">Далее →</button>
+    </div>
+    <div style="height:18px"></div>
+  </section>
+
+  <!-- ============ DELIVERY ============ -->
+  <section class="view" id="view-delivery">
+    <div class="sec-head top"><h2>Ваша забота</h2><span class="pill-live">● всё под контролем</span></div>
+    <div class="sub-card card">
+      <div class="sub-top"><div><span class="muted">Текущий план</span><b id="myPlan">Classic · каждую неделю</b></div><span class="sub-price" id="myPrice">2 241 ₽ / букет</span></div>
+      <div class="sub-bar"><div style="width:62%"></div></div>
+      <div class="sub-row"><button class="btn-light sm" id="skipBtn">Пропустить четверг</button><button class="btn-light sm" id="pauseBtn2">Пауза ⏸</button></div>
+    </div>
+    <div class="timeline" id="timelineList"></div>
+  </section>
+
+  <!-- ============ PROFILE ============ -->
+  <section class="view" id="view-profile">
+    <div class="profile card">
+      <div class="ava" id="avaLetter">Г</div>
+      <div><b id="profileName">Гость</b><p class="muted" id="profileSub">ваши близкие под защитой от забывчивости ♡</p></div>
+    </div>
+    <div class="menu">
+      <button class="menu-item" data-go="builder">✿ Моя забота <span>→</span></button>
+      <button class="menu-item" id="addrBtn">⌂ Адреса близких <span>→</span></button>
+      <button class="menu-item" id="payBtn">○ Оплата <span>→</span></button>
+      <button class="menu-item" id="giftBtn">☆ Подарить заботу <span>→</span></button>
+      <button class="menu-item" id="helpBtn">? Поддержка <span>→</span></button>
+    </div>
+    <div class="card perks"><b>Гарантия спокойствия</b><ul><li>Фото букета перед выездом</li><li>Замена цветов в течение 24 ч</li><li>Никаких наценок в праздники</li></ul></div>
+  </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-view="home"><i>✿</i><span>Главная</span></button>
+    <button class="tab" data-view="builder"><i>◍</i><span>Забота</span></button>
+    <button class="tab" data-view="delivery"><i>▭</i><span>Доставки</span></button>
+    <button class="tab" data-view="profile"><i>○</i><span>Профиль</span></button>
+  </nav>
+
+  <div class="sticky-cta" id="stickyCta">
+    <div><b id="ctaPrice">2 241 ₽ / букет</b><span id="ctaDesc">Classic · каждую неделю</span></div>
+    <button class="btn-dark" id="ctaBtn">Начать заботиться</button>
+  </div>
+
+  <div class="sheet-bg" id="sheetBg"></div>
+  <div class="sheet" id="cartSheet">
+    <div class="grab"></div>
+    <h3>Ваша забота</h3>
+    <div id="cartBody"></div>
+    <div class="promo-row"><input id="promoInput" placeholder="Промокод (попробуйте BLOOM15)"><button id="promoBtn">ОК</button></div>
+    <div class="total-row"><span>Итого за месяц</span><b id="cartTotal">—</b></div>
+    <button class="btn-dark full" id="checkoutBtn">Оформить заботу</button>
+    <button class="link center" id="closeSheet">продолжить выбирать</button>
+  </div>
+
+  <div class="success hidden" id="successView">
+    <div class="success-card"><div class="big">♡</div><h2>Вы позаботились!</h2><p id="successText">Первый букет приедет в четверг, 9:00 – 13:00. Мы напомним и пришлём фото.</p><button class="btn-dark full" id="successOk">Смотреть доставки</button></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+<script src="js/flowers.js?v=4"></script>
+</body>
+</html>
