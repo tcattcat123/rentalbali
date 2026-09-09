@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=39">
+<link rel="stylesheet" href="css/style.css?v=40">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -150,8 +150,16 @@
   </section>
 
   <section id="view-profile" class="hidden">
-    <div class="profile-card card"><img src="https://i.pravatar.cc/120?img=12" alt="avatar" class="avatar"><div><h2>Alexander K.</h2><p class="muted">alex.k@example.com · +62 812 3456 7890</p><p><span class="badge verified">✔ <span data-i18n="verified">Проверено</span></span> <span class="badge agent">● <span data-i18n="owner">Собственник</span></span></p></div></div>
-    <h3 data-i18n="my_listings">Мои объявления</h3>
+    <h2>Личный кабинет</h2>
+    <div class="profile-card card">
+      <img src="https://i.pravatar.cc/120?img=12" alt="avatar" class="avatar" id="pfAvatar">
+      <div style="flex:1;display:grid;gap:8px">
+        <div class="filter-group"><label>Имя</label><input id="pfName" placeholder="Как к вам обращаться"></div>
+        <div class="filter-group"><label>Телефон</label><input id="pfPhone" placeholder="+62 ..."></div>
+        <button id="pfSave" class="btn-primary" style="justify-self:start">Сохранить</button>
+      </div>
+    </div>
+    <div class="my-head"><h3>Мои объявления</h3><button id="addBtn" class="btn-primary">＋ Добавить</button></div>
     <div id="myGrid" class="grid"></div>
   </section>
 
@@ -185,8 +193,30 @@
 <div id="filtersModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="filtersClose">✕</button><h3 data-i18n="filters">Фильтры</h3><p class="muted" data-i18n="filters_hint">Задайте значения и нажмите Показать.</p><button id="filtersModalApply" class="btn-primary block" data-i18n="apply">Показать</button></div></div>
 
 <div id="sheetBg" class="hidden"></div>
+<div id="addModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="addClose">✕</button>
+<h3>Новое объявление</h3>
+<div class="calc-grid">
+<div class="filter-group"><label>Сделка</label><select id="nlDeal"><option value="rent">Аренда</option><option value="sale">Покупка</option></select></div>
+<div class="filter-group"><label>Тип заявки</label><select id="nlRole"><option value="offer">Предлагаю</option><option value="request">Ищу</option></select></div>
+<div class="filter-group"><label>Тип недвижимости</label><select id="nlType"><option value="villa">Вилла</option><option value="house">Дом</option><option value="apartment">Квартира</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="townhouse">Таунхаус</option><option value="boarding">Sewa Kos</option><option value="commercial">Коммерческая</option></select></div>
+<div class="filter-group"><label>Район</label><select id="nlDistrict"></select></div>
+<div class="filter-group full"><label>Заголовок</label><input id="nlTitle" placeholder="Например: Вилла с бассейном в Чангу"></div>
+<div class="filter-group"><label>Цена (IDR)</label><input type="number" id="nlPrice" placeholder="10000000" min="0"></div>
+<div class="filter-group"><label>Срок аренды</label><select id="nlCat"><option value="monthly">Помесячно</option><option value="yearly">На год</option></select></div>
+<div class="filter-group"><label>Спальни</label><input type="number" id="nlBed" value="1" min="0" max="20"></div>
+<div class="filter-group"><label>Ванные</label><input type="number" id="nlBath" value="1" min="0" max="20"></div>
+<div class="filter-group"><label>Площадь, м²</label><input type="number" id="nlArea" placeholder="50" min="0"></div>
+<div class="filter-group"><label>Участок, м²</label><input type="number" id="nlLand" placeholder="0" min="0"></div>
+<div class="filter-group"><label>Этажей</label><input type="number" id="nlFloors" placeholder="1" min="0" max="10"></div>
+<div class="filter-group"><label>Год постройки</label><input type="number" id="nlYear" placeholder="2022" min="1980" max="2026"></div>
+<div class="filter-group"><label>Телефон для связи</label><input id="nlPhone" placeholder="+62 ..."></div>
+<div class="filter-group"><label>Меблировано</label><select id="nlFurn"><option value="yes">Да</option><option value="no">Нет</option></select></div>
+<div class="filter-group full"><label>Фото (до 6)</label><input type="file" id="nlPhotos" accept="image/*" multiple><div id="nlPreview" class="nl-preview"></div></div>
+</div>
+<button id="nlSave" class="btn-primary block">Опубликовать</button>
+</div></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=39"></script>
+<script src="js/app.js?v=40"></script>
 </body>
 </html>

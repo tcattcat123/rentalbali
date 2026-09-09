@@ -41,9 +41,12 @@ boarding:[U("photo-1595526114035-0d45ed16cfbf"),U("photo-1554995207-c18c203602cb
 townhouse:[U("photo-1570129477492-45c003edd2be"),U("photo-1580587771525-78b9dba3b914"),U("photo-1600047509807-ba8f99d2cdde")],
 land:[U("photo-1500382017468-9049fed747ef"),U("photo-1472214103451-9374bd1c798e")],
 commercial:[U("photo-1486406146926-c627a92ad1ab"),U("photo-1564013799919-ab600027ffc6d")]};
-LISTINGS.forEach((it,i)=>{const p=POOL[it.propertyType]||POOL.villa;const n=it.type==="request"?1:(it.propertyType==="land"?2:3);it.images=Array.from({length:n},(_,k)=>p[(i+k)%p.length]);it.fb=`https://picsum.photos/seed/bali${it.id}/640/360`;});
+LISTINGS.forEach((it,i)=>{if(it.user)return;const p=POOL[it.propertyType]||POOL.villa;const n=it.type==="request"?1:(it.propertyType==="land"?2:3);it.images=Array.from({length:n},(_,k)=>p[(i+k)%p.length]);it.fb=`https://picsum.photos/seed/bali${it.id}/640/360`;});
 const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],house:["Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад","Телевизор"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
-LISTINGS.forEach((it,i)=>{const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
+LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
+try{(JSON.parse(localStorage.getItem("rh_my")||"[]")||[]).forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true},o));});}catch(e){}
+function persistMy(){try{localStorage.setItem("rh_my",JSON.stringify(LISTINGS.filter(x=>x.user)));}catch(e){alert("Хранилище переполнено: уберите часть фото");}}
+function getProfile(){try{return JSON.parse(localStorage.getItem("rh_profile")||"{}");}catch(e){return{};}}
 const TEN={17:"freehold",18:"freehold",19:"leasehold",20:"freehold",12:"leasehold",16:"freehold"};
 LISTINGS.forEach(it=>{if(it.dealType==="sale")it.tenure=TEN[it.id]||"freehold";});
 LISTINGS.forEach(it=>{it.living=(it.propertyType==="land"||it.propertyType==="commercial")?0:(it.bedrooms>=4?2:(it.bedrooms>=2?1:0));});
@@ -320,7 +323,7 @@ function render(){
   const favs=LISTINGS.filter(x=>state.fav.has(x.id));
   $("favGrid").innerHTML=favs.map(cardHTML).join("");
   $("favEmpty").style.display=favs.length?"none":"block";
-  $("myGrid").innerHTML=LISTINGS.filter(x=>x.mine).map(cardHTML).join("");
+  $("myGrid").innerHTML=LISTINGS.filter(x=>x.mine).map(it=>`<div>${cardHTML(it)}${it.user?`<button class="del-btn" data-del="${it.id}">✕ Удалить</button>`:""}</div>`).join("");
   $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini" data-card="${x.id}"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>${locLabel(x)}</div>`).join("");
 }
 
@@ -380,7 +383,22 @@ function countActiveFilters(){
 }
 function openSheet(){$("filtersBar").classList.add("open");$("sheetBg").classList.remove("hidden");}
 function closeSheet(){$("filtersBar").classList.remove("open");$("sheetBg").classList.add("hidden");}
+function fileToPhoto(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const s=Math.min(1,800/Math.max(img.width,img.height));const w=Math.max(1,Math.round(img.width*s)),h=Math.max(1,Math.round(img.height*s));const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",0.7));};img.src=r.result;};r.readAsDataURL(file);});}
+let nlPhotos=[];
+async function readPhotos(input){
+  nlPhotos=[];
+  const files=[...input.files].slice(0,6);
+  for(const f of files){try{nlPhotos.push(await fileToPhoto(f));}catch(e){}}
+  $("nlPreview").innerHTML=nlPhotos.map(s=>`<img src="${s}">`).join("");
+}
 function updateMarkersSafe(){if(map)updateMarkers();}
+function fillDistricts(){
+  const ds=$("nlDistrict");if(!ds||ds.options.length)return;
+  DIST_TREE.forEach(n=>{
+    const o=document.createElement("option");o.value=n.key;o.textContent=n.ru;ds.appendChild(o);
+    (n.kids||[]).forEach(([k,r])=>{const c=document.createElement("option");c.value=k;c.textContent="— "+r;ds.appendChild(c);});
+  });
+}
 
 function moneyIDR(v){return state.currency==="USD"?"$ "+Math.round(v/RATE).toLocaleString("en-US"):Math.round(v).toLocaleString("ru-RU")+" IDR";}
 function openDetail(id){
@@ -444,6 +462,8 @@ function refreshDetail(){
 document.addEventListener("click",e=>{
   const f=e.target.closest("[data-fav]");
   if(f){e.stopPropagation();const id=+f.dataset.fav;state.fav.has(id)?state.fav.delete(id):state.fav.add(id);localStorage.setItem("rh_fav",JSON.stringify([...state.fav]));render();return;}
+  const del=e.target.closest("[data-del]");
+  if(del){e.stopPropagation();const id=+del.dataset.del;const ix=LISTINGS.findIndex(x=>x.id===id);if(ix>=0)LISTINGS.splice(ix,1);persistMy();render();return;}
   const c=e.target.closest("[data-car]");
   if(c){e.stopPropagation();const id=+c.dataset.id;const it=LISTINGS.find(x=>x.id===id);let i=state.carIdx[id]||0;i=(i+(c.dataset.car==="next"?1:-1)+it.images.length)%it.images.length;state.carIdx[id]=i;render();return;}
   const o=e.target.closest("[data-offer]");
@@ -536,6 +556,40 @@ $("filtersModalApply").onclick=()=>{$("filtersModal").classList.add("hidden");$(
 $("currencySelect").onchange=e=>{state.currency=e.target.value;render();};
 $("themeBtn").onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme==="dark";r.dataset.theme=dark?"":"dark";$("themeBtn").textContent=dark?"○":"●";};
 $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
+(function initCabinetBoot(){
+  fillDistricts();
+  const p=getProfile();
+  if($("pfName"))$("pfName").value=p.name||"";
+  if($("pfPhone"))$("pfPhone").value=p.phone||"";
+  if($("pfSave"))$("pfSave").onclick=()=>{try{localStorage.setItem("rh_profile",JSON.stringify({name:$("pfName").value.trim(),phone:$("pfPhone").value.trim()}));}catch(e){}alert("Профиль сохранён");};
+  if($("addBtn"))$("addBtn").onclick=()=>{if($("nlPhone")&&!$("nlPhone").value)$("nlPhone").value=getProfile().phone||"";$("addModal").classList.remove("hidden");};
+  if($("addClose"))$("addClose").onclick=()=>$("addModal").classList.add("hidden");
+  $("addModal").addEventListener("click",e=>{if(e.target.id==="addModal")$("addModal").classList.add("hidden");});
+  if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
+  if($("nlSave"))$("nlSave").onclick=()=>{
+    const title=$("nlTitle").value.trim(),price=parseFloat($("nlPrice").value);
+    if(!title){alert("Укажите заголовок");return;}
+    if(!(price>0)){alert("Укажите цену");return;}
+    const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
+    const dk=$("nlDistrict").value||"Canggu";
+    const rl=locName(dk);
+    const pool=POOL[pt]||POOL.villa;
+    const it={id:Date.now(),type:role,dealType:deal,category:$("nlCat").value,title,price,currency:"IDR",
+      propertyType:pt,bedrooms:+$("nlBed").value||0,bathrooms:+$("nlBath").value||0,
+      area:+$("nlArea").value||0,landArea:+$("nlLand").value||0,floors:+$("nlFloors").value||0,
+      yearBuilt:+$("nlYear").value||0,furnished:$("nlFurn").value==="yes",parking:0,
+      location:rl,locationEn:dk,lat:-8.65+(Math.random()-.5)*.06,lng:115.17+(Math.random()-.5)*.06,
+      images:nlPhotos.length?nlPhotos.slice():[pool[0]],fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
+      createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
+      legal:false,rating:0,reviews:0,views:1,mine:true,user:true,
+      amenities:(AM[pt]||AM.villa).slice(0,4),moveIn:null};
+    LISTINGS.unshift(it);persistMy();
+    $("addModal").classList.add("hidden");
+    ["nlTitle","nlPrice","nlArea","nlLand","nlFloors","nlYear"].forEach(k=>$(k).value="");
+    $("nlPhotos").value="";nlPhotos=[];$("nlPreview").innerHTML="";
+    render();alert("Опубликовано! Объявление уже в ленте.");
+  };
+})();
 $("creditModal").addEventListener("click",e=>{if(e.target.id==="creditModal")$("creditModal").classList.add("hidden");});
 $("simCalc").onclick=calcCredit;
 ["simPrice","simDP","simRate","simYears"].forEach(id=>$(id).addEventListener("input",calcCredit));

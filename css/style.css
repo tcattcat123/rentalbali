@@ -206,6 +206,12 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .empty{text-align:center;color:var(--mut);padding:28px;border:1px dashed var(--line);border-radius:var(--r);background:var(--card);font-size:14px}
 .empty b{font-size:24px}
 .profile-card{padding:14px;display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.my-head{display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px}
+.my-head h3{font-size:15px}
+.del-btn{width:100%;border:1px solid var(--bad);color:var(--bad);background:transparent;border-radius:4px;padding:6px;font-size:12.5px;font-weight:600;cursor:pointer;margin-top:6px}
+.del-btn:hover{background:var(--bad);color:#fff}
+.nl-preview{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.nl-preview img{width:72px;height:54px;object-fit:cover;border-radius:4px;border:1px solid var(--line)}
 .avatar{border-radius:4px;width:64px;height:64px;object-fit:cover}
 /* location multi-select */
 .filter-location{position:relative;min-width:170px}
