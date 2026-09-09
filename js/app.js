@@ -170,7 +170,7 @@ function enhanceMonth(input){
   DDREG.push({sync:paint});paint();
 }
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
-let map=null, markers=[];
+let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
 const t = k=>I18N[state.lang][k]||k;
 const isNew = it=>(Date.now()-it.createdAt)<24*H;
@@ -364,6 +364,7 @@ function initMap(){
 function updateMarkers(){
   if(!map)return;
   markers.forEach(m=>m.remove());markers=[];
+  if(!showMarkers)return;
   getFiltered().forEach(it=>{
     const m=L.marker([it.lat,it.lng]).addTo(map);
     m.bindPopup(`<b>${fmtPrice(it)}</b><br>${pTypeLabel(it.propertyType)}<br>${locLabel(it)}`);
@@ -642,6 +643,7 @@ if($("mfilterBtn"))$("mfilterBtn").onclick=()=>openSheet();
 if($("mreset"))$("mreset").onclick=()=>{resetFilters();state.rentCat="";render();};
 if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render();window.scrollTo({top:0,behavior:"smooth"});};
 if($("sheetBg"))$("sheetBg").onclick=()=>closeSheet();
+if($("markersBtn"))$("markersBtn").onclick=()=>{showMarkers=!showMarkers;$("markersBtn").textContent=showMarkers?"Скрыть метки":"Показать метки";updateMarkersSafe();};
 if($("sheetApply"))$("sheetApply").onclick=()=>$("applyBtn").click();
 if($("sheetReset"))$("sheetReset").onclick=()=>$("resetBtn").click();
 if($("sheetAdv"))$("sheetAdv").onclick=()=>$("advBtn").click();
