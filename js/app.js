@@ -384,14 +384,67 @@ function countActiveFilters(){
 function openSheet(){$("filtersBar").classList.add("open");$("sheetBg").classList.remove("hidden");}
 function closeSheet(){$("filtersBar").classList.remove("open");$("sheetBg").classList.add("hidden");}
 function fileToPhoto(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const s=Math.min(1,800/Math.max(img.width,img.height));const w=Math.max(1,Math.round(img.width*s)),h=Math.max(1,Math.round(img.height*s));const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",0.7));};img.src=r.result;};r.readAsDataURL(file);});}
-let nlPhotos=[];
+let nlPhotos=[],nlRemote=[];
+function paintNlPreview(){$("nlPreview").innerHTML=[...nlRemote,...nlPhotos].map(s=>`<img src="${s}" loading="lazy">`).join("");}
 async function readPhotos(input){
   nlPhotos=[];
   const files=[...input.files].slice(0,6);
   for(const f of files){try{nlPhotos.push(await fileToPhoto(f));}catch(e){}}
-  $("nlPreview").innerHTML=nlPhotos.map(s=>`<img src="${s}">`).join("");
+  paintNlPreview();
 }
 function updateMarkersSafe(){if(map)updateMarkers();}
+/* ===== auto-import from Drive-style Deskripsi ===== */
+const ROYAL_PHOTOS=["1VwkuAYKxXgJlhlM18aoXGD0t9S5-MVdq","1WK8Z_wTKfkJTJqbUY2oACkdUdSOCSecH","1WGjym2USpv4PaMBr3ZxyRUzQ_VqGmVLc","1W5digmIAPKLE1y-7mpM1yaVJtk3KhViT","1VwPuRcAI0MWMREsa3AbLB_9R6gtxi0TY","1WNAVSoBft5KQDP8jBwg8lPBXjKFQFBlf","1WQEhpnbn0Zu-uFkpcjyCOQ6KZ3fIuf__","1WRJxQjDRp0hqwl3QebKV3rsy98Rj4f0o","1WSnI-T3f9LHHU93YmSu78gFUSK6gmXKK","1VvBtRGDAA9rJDnQZn9VkIv_xCoKKkY1W","1WXOrnr9CjX0GYhLcmJM_MyRaMbOKojsM","1WXhCn5QfNYmEFHWQdt5coUm85dI2mTN5","1WsCgw1DT-njTO-5sme_0fGdJ2RF9P8v0","1WzWN5Alu1MQQjTLxgihnQjO3Auyjycyg","1X8AGCyWEd491XzmQ1Ye3jwCHHfP9SHmk","1Wn7wwJnH02eeyErFsVhpuNwrYTlEBiXQ","1WfzYRnUSmXnH-w9RDJzyNpJMWXPouv8W","1XJrz8jI4yhbi99h1a1oiRzkDtGADrM76","1X1GDWUJIc3BOSmiJAiEQXqZlw7r_Xw5r","1WizO6aWWELMWT9v0TopUQTwxo_5WDMAd","1VtwCUE4Q4o8vE1BKhJJ_gPfAjRJoW4k3"];
+const driveThumb=id=>`https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+function driveIdFromUrl(s){
+  s=(s||"").trim();if(!s)return"";
+  let m=s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/)||s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+  if(m)return m[1];
+  if(/^[a-zA-Z0-9_-]{10,}$/.test(s))return s;
+  return"";
+}
+const RU_LOC=[["УБУД","Ubud","Убуд"],["ЧАНГУ","Canggu","Чангу"],["СЕМИНЬЯК","Seminyak","Семиньяк"],["УЛУВАТУ","Uluwatu","Улувату"],["САНУР","Sanur","Санур"],["ДЕНПАСАР","Denpasar","Денпасар"],["ДЖИМБАРАН","Jimbaran","Джимбаран"],["НУСА","NusaDua","Нуса-Дуа"],["КУТА","Kuta","Кута"],["ПЕРЕРЕНАН","Pererenan","Переренан"],["УМАЛАС","Umalas","Умалас"],["ЛОВИНА","Lovina","Ловина"],["АМЕД","Amed","Амед"],["ТАБАНАН","Tabanan","Табанан"]];
+function parseDeskripsi(text){
+  const out={};
+  const ruM=text.match(/Описани[ея]([\s\S]*?)(Location|Foto|Локация|$)/i);
+  const t=(ruM?ruM[1]:text).slice(0,4000);
+  const num=s=>parseInt(s.replace(/\D/g,""),10)||0;
+  out.deal=/ПРОДАМ|SALE|DIJUAL/i.test(t)?"sale":"rent";
+  out.role=/СНИМУ|ИЩУ|WANTED|DICARI/i.test(t)&&!/ПРОДАМ/i.test(t)?"request":"offer";
+  const prices=[...t.matchAll(/IDR\s*([\d\.\,]+)/gi)].map(m=>num(m[1]));
+  if(prices.length)out.price=Math.max(...prices);
+  const nm=t.match(/«(.+?)»/);if(nm)out.name=nm[1].trim();
+  for(const [a,en,ru] of RU_LOC){if(new RegExp(a,"i").test(t)){out.district=en;out.districtRu=ru;break;}}
+  const m=t.match(/площад[ьи]?\s+дома?\s+(\d+)/i)||t.match(/(\d+)\s*м(²|2)/i);
+  if(m)out.area=num(m[1]);
+  const lm=t.match(/[Уу]часток\D{0,25}?(\d+)\s*(соток|сотки|are|м)/i);
+  if(lm){out.land=+lm[1]*((/соток|сотки|are/i.test(lm[2]))?100:1);}
+  const bm=(t.match(/(\d+)\s*спальни/i)||[])[1];
+  out.bedrooms=(+bm||0)+(/одна спальня/i.test(t)?1:0);
+  const fl=t.match(/(\d+)\s*этаж/i);if(fl)out.floors=+fl[1];
+  out.bathrooms=out.bedrooms+(/гостевой санузел/i.test(t)?1:0);
+  out.furnished=/мебел|furnish/i.test(t);
+  const ph=t.match(/\+\d[\d\s\-()]{7,}/);if(ph)out.phone=ph[0].trim();
+  const yr=t.match(/20\d\d/);if(yr)out.year=+yr[0];
+  return out;
+}
+function fillFormFromParsed(o){
+  if(!o||!Object.keys(o).length){alert("Не смог распознать — заполните вручную");return;}
+  if(o.deal)$("nlDeal").value=o.deal;
+  if(o.role)$("nlRole").value=o.role;
+  if(o.price)$("nlPrice").value=o.price;
+  if(o.area)$("nlArea").value=o.area;
+  if(o.land)$("nlLand").value=o.land;
+  if(o.bedrooms)$("nlBed").value=o.bedrooms;
+  if(o.bathrooms)$("nlBath").value=o.bathrooms;
+  if(o.floors)$("nlFloors").value=o.floors;
+  if(o.year)$("nlYear").value=o.year;
+  if(o.district)$("nlDistrict").value=o.district;
+  if(o.phone){$("nlPhone").value=o.phone;}
+  if(typeof o.furnished==="boolean")$("nlFurn").value=o.furnished?"yes":"no";
+  if(o.name){const nm=o.name.toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());$("nlTitle").value=`Вилла ${nm} — ${o.districtRu||"Бали"}`;}
+  alert("Поля заполнены — проверьте и жмите Опубликовать");
+}
 function fillDistricts(){
   const ds=$("nlDistrict");if(!ds||ds.options.length)return;
   DIST_TREE.forEach(n=>{
@@ -566,6 +619,21 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("addClose"))$("addClose").onclick=()=>$("addModal").classList.add("hidden");
   $("addModal").addEventListener("click",e=>{if(e.target.id==="addModal")$("addModal").classList.add("hidden");});
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
+  if($("impParse"))$("impParse").onclick=()=>fillFormFromParsed(parseDeskripsi($("impText").value||""));
+  if($("impPhotos"))$("impPhotos").onclick=()=>{
+    const lines=($("impUrls").value||"").split("\n").map(driveIdFromUrl).filter(Boolean);
+    if(!lines.length){alert("Не нашёл ссылок — вставьте URL файлов Drive или ID");return;}
+    lines.forEach(id=>{const u=driveThumb(id);if(!nlRemote.includes(u))nlRemote.push(u);});
+    paintNlPreview();alert(`Добавлено фото: ${lines.length}`);
+  };
+  if($("impRoyal"))$("impRoyal").onclick=()=>{
+    $("nlDeal").value="sale";$("nlRole").value="offer";$("nlType").value="villa";$("nlDistrict").value="Ubud";
+    $("nlTitle").value="Вилла Royal Lotus — Убуд";$("nlPrice").value=8400000000;$("nlCat").value="monthly";
+    $("nlBed").value=3;$("nlBath").value=4;$("nlArea").value=200;$("nlLand").value=600;
+    $("nlFloors").value=2;$("nlYear").value="";$("nlFurn").value="yes";$("nlPhone").value="+6289518671550";
+    nlRemote=ROYAL_PHOTOS.map(driveThumb);paintNlPreview();
+    alert("Royal Lotus заполнен: 21 фото + поля. Проверьте и жмите Опубликовать");
+  };
   if($("nlSave"))$("nlSave").onclick=()=>{
     const title=$("nlTitle").value.trim(),price=parseFloat($("nlPrice").value);
     if(!title){alert("Укажите заголовок");return;}
@@ -574,19 +642,20 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     const dk=$("nlDistrict").value||"Canggu";
     const rl=locName(dk);
     const pool=POOL[pt]||POOL.villa;
+    const allPhotos=[...nlRemote,...nlPhotos];
     const it={id:Date.now(),type:role,dealType:deal,category:$("nlCat").value,title,price,currency:"IDR",
       propertyType:pt,bedrooms:+$("nlBed").value||0,bathrooms:+$("nlBath").value||0,
       area:+$("nlArea").value||0,landArea:+$("nlLand").value||0,floors:+$("nlFloors").value||0,
       yearBuilt:+$("nlYear").value||0,furnished:$("nlFurn").value==="yes",parking:0,
       location:rl,locationEn:dk,lat:-8.65+(Math.random()-.5)*.06,lng:115.17+(Math.random()-.5)*.06,
-      images:nlPhotos.length?nlPhotos.slice():[pool[0]],fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
+      images:allPhotos.length?allPhotos:[pool[0]],fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,
       amenities:(AM[pt]||AM.villa).slice(0,4),moveIn:null};
     LISTINGS.unshift(it);persistMy();
     $("addModal").classList.add("hidden");
-    ["nlTitle","nlPrice","nlArea","nlLand","nlFloors","nlYear"].forEach(k=>$(k).value="");
-    $("nlPhotos").value="";nlPhotos=[];$("nlPreview").innerHTML="";
+    ["nlTitle","nlPrice","nlArea","nlLand","nlFloors","nlYear","impText","impUrls"].forEach(k=>$(k).value="");
+    $("nlPhotos").value="";nlPhotos=[];nlRemote=[];$("nlPreview").innerHTML="";
     render();alert("Опубликовано! Объявление уже в ленте.");
   };
 })();
