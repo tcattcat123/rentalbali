@@ -624,11 +624,10 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("pfName"))$("pfName").value=p.name||"";
   if($("pfPhone"))$("pfPhone").value=p.phone||"";
   if($("pfSave"))$("pfSave").onclick=()=>{try{localStorage.setItem("rh_profile",JSON.stringify({name:$("pfName").value.trim(),phone:$("pfPhone").value.trim()}));}catch(e){}alert("Профиль сохранён");};
-  if($("addBtn"))$("addBtn").onclick=()=>{if($("nlPhone")&&!$("nlPhone").value)$("nlPhone").value=getProfile().phone||"";paintNlAmen((AM[$("nlType").value]||[]).slice(0,4));syncNlDeal();$("addModal").classList.remove("hidden");};
+  paintNlAmen((AM[$("nlType").value]||[]).slice(0,4));syncNlDeal();
+  if($("nlPhone")&&!$("nlPhone").value)$("nlPhone").value=getProfile().phone||"";
   if($("nlType"))$("nlType").addEventListener("change",()=>paintNlAmen((AM[$("nlType").value]||[]).slice(0,4)));
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
-  if($("addClose"))$("addClose").onclick=()=>$("addModal").classList.add("hidden");
-  $("addModal").addEventListener("click",e=>{if(e.target.id==="addModal")$("addModal").classList.add("hidden");});
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
   if($("impParse"))$("impParse").onclick=()=>fillFormFromParsed(parseDeskripsi($("impText").value||""));
   if($("impPhotos"))$("impPhotos").onclick=()=>{
@@ -667,7 +666,6 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
       available:$("nlAvail").value?$("nlAvail").value+"-01":null,
       amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:null};
     LISTINGS.unshift(it);persistMy();
-    $("addModal").classList.add("hidden");
     ["nlTitle","nlPrice","nlArea","nlLand","nlFloors","nlYear","impText","impUrls"].forEach(k=>$(k).value="");
     $("nlPhotos").value="";nlPhotos=[];nlRemote=[];$("nlPreview").innerHTML="";
     render();alert("Опубликовано! Объявление уже в ленте.");
