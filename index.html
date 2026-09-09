@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=41">
+<link rel="stylesheet" href="css/style.css?v=42">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -209,6 +209,7 @@
 <div class="filter-group full"><label>Заголовок</label><input id="nlTitle" placeholder="Например: Вилла с бассейном в Чангу"></div>
 <div class="filter-group"><label>Цена (IDR)</label><input type="number" id="nlPrice" placeholder="10000000" min="0"></div>
 <div class="filter-group"><label>Срок аренды</label><select id="nlCat"><option value="monthly">Помесячно</option><option value="yearly">На год</option></select></div>
+<div class="filter-group" id="nlTenureWrap"><label>Владение (покупка)</label><select id="nlTenure"><option value="freehold">Freehold</option><option value="leasehold">Leasehold</option></select></div>
 <div class="filter-group"><label>Спальни</label><input type="number" id="nlBed" value="1" min="0" max="20"></div>
 <div class="filter-group"><label>Ванные</label><input type="number" id="nlBath" value="1" min="0" max="20"></div>
 <div class="filter-group"><label>Площадь, м²</label><input type="number" id="nlArea" placeholder="50" min="0"></div>
@@ -217,12 +218,16 @@
 <div class="filter-group"><label>Год постройки</label><input type="number" id="nlYear" placeholder="2022" min="1980" max="2026"></div>
 <div class="filter-group"><label>Телефон для связи</label><input id="nlPhone" placeholder="+62 ..."></div>
 <div class="filter-group"><label>Меблировано</label><select id="nlFurn"><option value="yes">Да</option><option value="no">Нет</option></select></div>
+<div class="filter-group"><label>Гостиная (комнат)</label><input type="number" id="nlLiving" value="1" min="0" max="10"></div>
+<div class="filter-group"><label>Парковка (мест)</label><input type="number" id="nlPark" value="0" min="0" max="10"></div>
+<div class="filter-group"><label>Доступно с</label><input type="month" id="nlAvail" min="2026-09" max="2028-12"></div>
+<div class="filter-group full"><label>Удобства</label><div id="nlAmen" class="amen-boxes"></div></div>
 <div class="filter-group full"><label>Фото (до 6)</label><input type="file" id="nlPhotos" accept="image/*" multiple><div id="nlPreview" class="nl-preview"></div></div>
 </div>
 <button id="nlSave" class="btn-primary block">Опубликовать</button>
 </div></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=41"></script>
+<script src="js/app.js?v=42"></script>
 </body>
 </html>

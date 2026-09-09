@@ -385,6 +385,17 @@ function openSheet(){$("filtersBar").classList.add("open");$("sheetBg").classLis
 function closeSheet(){$("filtersBar").classList.remove("open");$("sheetBg").classList.add("hidden");}
 function fileToPhoto(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const s=Math.min(1,800/Math.max(img.width,img.height));const w=Math.max(1,Math.round(img.width*s)),h=Math.max(1,Math.round(img.height*s));const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",0.7));};img.src=r.result;};r.readAsDataURL(file);});}
 let nlPhotos=[],nlRemote=[];
+const AMEN_ALL=["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Сад","Холодильник","Телевизор","Стиральная машина","Плита","Завтраки","Общая кухня","Электричество","Вода"];
+function paintNlAmen(def){
+  const box=$("nlAmen");if(!box)return;
+  const cur=new Set(def||[...box.querySelectorAll("input:checked")].map(c=>c.value));
+  box.innerHTML=AMEN_ALL.map(a=>`<label><input type="checkbox" value="${a}"${cur.has(a)?" checked":""}> ${a}</label>`).join("");
+}
+function syncNlDeal(){
+  const sale=$("nlDeal").value==="sale";
+  if($("nlTenureWrap"))$("nlTenureWrap").style.display=sale?"":"none";
+  if($("nlCat"))$("nlCat").closest(".filter-group").style.display=sale?"none":"";
+}
 function paintNlPreview(){$("nlPreview").innerHTML=[...nlRemote,...nlPhotos].map(s=>`<img src="${s}" loading="lazy">`).join("");}
 async function readPhotos(input){
   nlPhotos=[];
@@ -601,8 +612,6 @@ if($("sheetReset"))$("sheetReset").onclick=()=>$("resetBtn").click();
 if($("sheetAdv"))$("sheetAdv").onclick=()=>$("advBtn").click();
 $("locHeader").onclick=e=>{e.stopPropagation();toggleLoc();};
 document.addEventListener("click",e=>{if(!e.target.closest("#locFilter"))toggleLoc(false);});
-$("detailClose").onclick=()=>closeDetail();
-$("detailModal").addEventListener("click",e=>{if(e.target.id==="detailModal")closeDetail();});
 if($("advIconBtn"))$("advIconBtn").onclick=()=>$("advBtn").click();
 $("filtersClose").onclick=()=>$("filtersModal").classList.add("hidden");
 $("filtersModalApply").onclick=()=>{$("filtersModal").classList.add("hidden");$("applyBtn").click();};
@@ -615,7 +624,9 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("pfName"))$("pfName").value=p.name||"";
   if($("pfPhone"))$("pfPhone").value=p.phone||"";
   if($("pfSave"))$("pfSave").onclick=()=>{try{localStorage.setItem("rh_profile",JSON.stringify({name:$("pfName").value.trim(),phone:$("pfPhone").value.trim()}));}catch(e){}alert("Профиль сохранён");};
-  if($("addBtn"))$("addBtn").onclick=()=>{if($("nlPhone")&&!$("nlPhone").value)$("nlPhone").value=getProfile().phone||"";$("addModal").classList.remove("hidden");};
+  if($("addBtn"))$("addBtn").onclick=()=>{if($("nlPhone")&&!$("nlPhone").value)$("nlPhone").value=getProfile().phone||"";paintNlAmen((AM[$("nlType").value]||[]).slice(0,4));syncNlDeal();$("addModal").classList.remove("hidden");};
+  if($("nlType"))$("nlType").addEventListener("change",()=>paintNlAmen((AM[$("nlType").value]||[]).slice(0,4)));
+  if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
   if($("addClose"))$("addClose").onclick=()=>$("addModal").classList.add("hidden");
   $("addModal").addEventListener("click",e=>{if(e.target.id==="addModal")$("addModal").classList.add("hidden");});
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
@@ -643,6 +654,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     const rl=locName(dk);
     const pool=POOL[pt]||POOL.villa;
     const allPhotos=[...nlRemote,...nlPhotos];
+    const amen=[...document.querySelectorAll("#nlAmen input:checked")].map(c=>c.value);
     const it={id:Date.now(),type:role,dealType:deal,category:$("nlCat").value,title,price,currency:"IDR",
       propertyType:pt,bedrooms:+$("nlBed").value||0,bathrooms:+$("nlBath").value||0,
       area:+$("nlArea").value||0,landArea:+$("nlLand").value||0,floors:+$("nlFloors").value||0,
@@ -650,8 +662,10 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
       location:rl,locationEn:dk,lat:-8.65+(Math.random()-.5)*.06,lng:115.17+(Math.random()-.5)*.06,
       images:allPhotos.length?allPhotos:[pool[0]],fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
-      legal:false,rating:0,reviews:0,views:1,mine:true,user:true,
-      amenities:(AM[pt]||AM.villa).slice(0,4),moveIn:null};
+      legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
+      living:+$("nlLiving").value||0,parking:+$("nlPark").value||0,
+      available:$("nlAvail").value?$("nlAvail").value+"-01":null,
+      amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:null};
     LISTINGS.unshift(it);persistMy();
     $("addModal").classList.add("hidden");
     ["nlTitle","nlPrice","nlArea","nlLand","nlFloors","nlYear","impText","impUrls"].forEach(k=>$(k).value="");

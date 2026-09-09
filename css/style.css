@@ -212,6 +212,10 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .del-btn:hover{background:var(--bad);color:#fff}
 .nl-preview{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .nl-preview img{width:72px;height:54px;object-fit:cover;border-radius:4px;border:1px solid var(--line)}
+.amen-boxes{display:flex;flex-wrap:wrap;gap:6px}
+.amen-boxes label{display:flex;align-items:center;gap:6px;font-size:12.5px;border:1px solid var(--line);border-radius:16px;padding:4px 10px;cursor:pointer;color:var(--ink2)}
+.amen-boxes label:has(input:checked){border-color:var(--acc);background:var(--acc-soft);color:var(--acc-dark)}
+.amen-boxes input{accent-color:var(--acc);margin:0}
 .imp-block{border:1px dashed var(--acc);border-radius:8px;padding:12px;margin-bottom:12px;display:grid;gap:10px;background:var(--acc-soft)}
 [data-theme="dark"] .imp-block{background:#16294D}
 .imp-block textarea{border:1px solid var(--line);border-radius:4px;padding:8px;font-size:13px;font-family:inherit;background:var(--card);color:var(--ink);width:100%;resize:vertical}
