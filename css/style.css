@@ -224,6 +224,15 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .imp-block{border:1px dashed var(--acc);border-radius:8px;padding:12px;margin-bottom:12px;display:grid;gap:10px;background:var(--acc-soft)}
 [data-theme="dark"] .imp-block{background:#16294D}
 .imp-block textarea{border:1px solid var(--line);border-radius:4px;padding:8px;font-size:13px;font-family:inherit;background:var(--card);color:var(--ink);width:100%;resize:vertical}
+.calc-grid textarea{border:1px solid var(--line);border-radius:4px;padding:8px;font-size:13px;font-family:inherit;background:var(--card);color:var(--ink);width:100%;resize:vertical}
+.desc-block{margin-top:16px}
+.desc-toggle{border:1px solid var(--line);background:var(--card);border-radius:8px;width:100%;padding:10px 14px;font-size:14px;font-weight:700;color:var(--acc-dark);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.desc-toggle .chev{transition:transform .25s}
+.desc-block.open .desc-toggle .chev{transform:rotate(180deg)}
+.desc-body{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .3s ease,opacity .25s ease}
+.desc-block.open .desc-body{grid-template-rows:1fr;opacity:1}
+.desc-in{overflow:hidden;min-height:0}
+.desc-text{white-space:pre-wrap;font-size:14px;line-height:1.65;color:var(--ink2);padding:12px 2px 0}
 .avatar{border-radius:4px;width:64px;height:64px;object-fit:cover}
 /* location multi-select */
 .filter-location{position:relative;min-width:170px}

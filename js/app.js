@@ -409,7 +409,7 @@ function updateMarkersSafe(){if(map)updateMarkers();}
 let editingId=null;
 function resetNlForm(){
   editingId=null;
-  ["nlTitle","nlPrice","nlArea","nlLand","nlFloors","nlYear","impText","impUrls"].forEach(k=>{if($(k))$(k).value="";});
+  ["nlTitle","nlPrice","nlArea","nlLand","nlFloors","nlYear","impText","impUrls","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
   ["nlBed","nlLiving"].forEach(k=>{if($(k))$(k).value=1;});
   if($("nlBath"))$("nlBath").value=1;
   if($("nlPark"))$("nlPark").value=0;
@@ -425,6 +425,7 @@ function fillEditForm(id){
   $("nlDeal").value=it.dealType;$("nlRole").value=it.type;$("nlType").value=it.propertyType;
   $("nlDistrict").value=it.locationEn;$("nlTitle").value=it.title;$("nlPrice").value=it.price;
   $("nlCat").value=it.category||"monthly";if($("nlTenure"))$("nlTenure").value=it.tenure||"freehold";
+  if($("nlDesc"))$("nlDesc").value=it.desc||"";
   $("nlBed").value=it.bedrooms||0;$("nlBath").value=it.bathrooms||0;
   $("nlArea").value=it.area||"";$("nlLand").value=it.landArea||"";
   $("nlFloors").value=it.floors||"";$("nlYear").value=it.yearBuilt||"";
@@ -441,7 +442,7 @@ function fillEditForm(id){
 }
 /* ===== auto-import from Drive-style Deskripsi ===== */
 const ROYAL_PHOTOS=["1VwkuAYKxXgJlhlM18aoXGD0t9S5-MVdq","1WK8Z_wTKfkJTJqbUY2oACkdUdSOCSecH","1WGjym2USpv4PaMBr3ZxyRUzQ_VqGmVLc","1W5digmIAPKLE1y-7mpM1yaVJtk3KhViT","1VwPuRcAI0MWMREsa3AbLB_9R6gtxi0TY","1WNAVSoBft5KQDP8jBwg8lPBXjKFQFBlf","1WQEhpnbn0Zu-uFkpcjyCOQ6KZ3fIuf__","1WRJxQjDRp0hqwl3QebKV3rsy98Rj4f0o","1WSnI-T3f9LHHU93YmSu78gFUSK6gmXKK","1VvBtRGDAA9rJDnQZn9VkIv_xCoKKkY1W","1WXOrnr9CjX0GYhLcmJM_MyRaMbOKojsM","1WXhCn5QfNYmEFHWQdt5coUm85dI2mTN5","1WsCgw1DT-njTO-5sme_0fGdJ2RF9P8v0","1WzWN5Alu1MQQjTLxgihnQjO3Auyjycyg","1X8AGCyWEd491XzmQ1Ye3jwCHHfP9SHmk","1Wn7wwJnH02eeyErFsVhpuNwrYTlEBiXQ","1WfzYRnUSmXnH-w9RDJzyNpJMWXPouv8W","1XJrz8jI4yhbi99h1a1oiRzkDtGADrM76","1X1GDWUJIc3BOSmiJAiEQXqZlw7r_Xw5r","1WizO6aWWELMWT9v0TopUQTwxo_5WDMAd","1VtwCUE4Q4o8vE1BKhJJ_gPfAjRJoW4k3"];
-const driveThumb=id=>`https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+const driveThumb=id=>`https://lh3.googleusercontent.com/d/${id}=w1000`;
 function driveIdFromUrl(s){
   s=(s||"").trim();if(!s)return"";
   let m=s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/)||s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
@@ -474,6 +475,17 @@ function parseDeskripsi(text){
   const yr=t.match(/20\d\d/);if(yr)out.year=+yr[0];
   return out;
 }
+function parseOG(html){
+  const out={};
+  const re=/<meta\s+([^>]*?)>/gi;let m;
+  while((m=re.exec(html))){
+    const pm=m[1].match(/property=["']og:(title|description|image)["']/i);
+    const cm=m[1].match(/content=["']([^"']+)["']/i);
+    if(pm&&cm&&!out[pm[1]])out[pm[1]]=cm[1];
+  }
+  return out;
+}
+const unesc=s=>(s||"").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&");
 function fillFormFromParsed(o){
   if(!o||!Object.keys(o).length){alert("Не смог распознать — заполните вручную");return;}
   if(o.deal)$("nlDeal").value=o.deal;
@@ -542,12 +554,15 @@ function openDetail(id){
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">${rows.map(r=>`<div class="flex items-baseline justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50 rounded px-2 -mx-2 transition-colors"><span class="text-[13px] text-slate-500">${r[0]}</span><span class="text-[13px] font-semibold text-slate-800 text-right">${r[1]}</span></div>`).join("")}</div></div>
     <div class="card d-card"><h3>${state.lang==="ru"?"Удобства":"Amenities"}</h3>
       <div class="flex flex-wrap gap-2">${(it.amenities||[]).map(a=>`<span class="rounded-full bg-brand-soft text-brand-dark text-[13px] font-semibold px-3.5 py-1">${a}</span>`).join("")}</div></div>
+    ${it.desc?`<div class="desc-block"><button class="desc-toggle" id="descToggle">Подробнее <span class="chev">▼</span></button><div class="desc-body"><div class="desc-in"><div class="desc-text"></div></div></div></div>`:""}
     <div class="card d-card"><h3>${state.lang==="ru"?"На карте":"On map"}</h3>
       <iframe title="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${it.lat},${it.lng}"></iframe>
       <div class="map-row"><span class="muted">${locLabel(it)}, Бали, Индонезия</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${state.lang==="ru"?"Построить маршрут":"Directions"} →</a></div></div>
   </div></div>`;
   switchView("detail");window.scrollTo({top:0});
   try{location.hash="listing-"+it.id;}catch(e){}
+  const dt=document.querySelector(".desc-text");if(dt)dt.textContent=it.desc||"";
+  const dTog=$("descToggle");if(dTog)dTog.onclick=()=>dTog.closest(".desc-block").classList.toggle("open");
   $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href);}catch(e){}alert(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
   $("dFav").onclick=()=>{const on=!state.fav.has(it.id);on?state.fav.add(it.id):state.fav.delete(it.id);localStorage.setItem("rh_fav",JSON.stringify([...state.fav]));const b=$("dFav");b.textContent=on?"♥":"♡";b.classList.toggle("on",on);render();};
 }
@@ -668,7 +683,26 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
   if($("impParse"))$("impParse").onclick=()=>fillFormFromParsed(parseDeskripsi($("impText").value||""));
-  if($("impPhotos"))$("impPhotos").onclick=()=>{
+  if($("impLinkBtn"))$("impLinkBtn").onclick=async()=>{
+    const url=($("impLink").value||"").trim();
+    if(!/^https?:\/\//i.test(url)){alert("Вставьте ссылку https://...");return;}
+    const btn=$("impLinkBtn");btn.textContent="Загружаю...";btn.disabled=true;
+    try{
+      const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(url));
+      if(!r.ok)throw 0;
+      const og=parseOG(await r.text());
+      const desc=unesc(og.description||"").trim();
+      let title=unesc(og.title||"").trim();
+      if(!title||/telegram/i.test(title))title=(desc.split("\n")[0]||"").slice(0,80);
+      if(!desc&&!title)throw 0;
+      if(title)$("nlTitle").value=title;
+      if(desc)$("nlDesc").value=desc;
+      if(og.image&&/^https?:\/\//i.test(og.image)){if(!nlRemote.includes(og.image))nlRemote.push(og.image);paintNlPreview();}
+      const pf=parseDeskripsi(desc);if(pf.price)$("nlPrice").value=pf.price;
+      alert("Готово: текст и фото подтянуты. Проверьте поля и жмите Опубликовать");
+    }catch(e){alert("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
+    btn.textContent="Создать из ссылки";btn.disabled=false;
+  };
     const lines=($("impUrls").value||"").split("\n").map(driveIdFromUrl).filter(Boolean);
     if(!lines.length){alert("Не нашёл ссылок — вставьте URL файлов Drive или ID");return;}
     lines.forEach(id=>{const u=driveThumb(id);if(!nlRemote.includes(u))nlRemote.push(u);});
@@ -702,7 +736,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
       living:+$("nlLiving").value||0,parking:+$("nlPark").value||0,
       available:$("nlAvail").value?$("nlAvail").value+"-01":null,
-      amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:null};
+      amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:null,desc:$("nlDesc").value.trim()};
     if(editingId){
       const ix=LISTINGS.findIndex(x=>x.id===editingId);
       if(ix>=0){const old=LISTINGS[ix];it.id=old.id;it.createdAt=old.createdAt;it.views=old.views;it.rating=old.rating;it.reviews=old.reviews;LISTINGS[ix]=it;}
