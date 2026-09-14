@@ -172,6 +172,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
+const APP_V="2.1";
 const t = k=>I18N[state.lang][k]||k;
 const isNew = it=>(Date.now()-it.createdAt)<24*H;
 
@@ -715,4 +716,5 @@ $("creditModal").addEventListener("click",e=>{if(e.target.id==="creditModal")$("
 $("simCalc").onclick=calcCredit;
 ["simPrice","simDP","simRate","simYears"].forEach(id=>$(id).addEventListener("input",calcCredit));
 render();syncDealTabs();highlightQuick();document.body.dataset.settled="1";
+if($("appVer"))$("appVer").textContent="v"+APP_V;
 try{const m=location.hash.match(/#listing-(\d+)/);if(m)openDetail(+m[1]);}catch(e){}
