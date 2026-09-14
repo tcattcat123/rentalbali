@@ -703,6 +703,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     }catch(e){alert("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
     btn.textContent="Создать из ссылки";btn.disabled=false;
   };
+  if($("impPhotos"))$("impPhotos").onclick=()=>{
     const lines=($("impUrls").value||"").split("\n").map(driveIdFromUrl).filter(Boolean);
     if(!lines.length){alert("Не нашёл ссылок — вставьте URL файлов Drive или ID");return;}
     lines.forEach(id=>{const u=driveThumb(id);if(!nlRemote.includes(u))nlRemote.push(u);});
