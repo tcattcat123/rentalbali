@@ -549,6 +549,24 @@ function tgPhotos(html){
   while((m=re.exec(html))){if(!out.includes(m[0]))out.push(m[0]);}
   return out.slice(0,8);
 }
+async function fetchText(url,ms){
+  const c=new AbortController();const t=setTimeout(()=>c.abort(),ms||20000);
+  try{const r=await fetch(url,{signal:c.signal});clearTimeout(t);if(!r.ok)throw new Error("http"+r.status);return await r.text();}
+  catch(e){clearTimeout(t);throw e;}
+}
+const PROXIES=[
+  u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),
+  u=>"https://corsproxy.io/?url="+encodeURIComponent(u),
+  u=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(u)
+];
+async function fetchViaProxies(url,ms,label,btn){
+  let err=null;
+  for(let i=0;i<PROXIES.length;i++){
+    try{if(btn)btn.textContent=(label||"Загрузка")+" "+(i+1)+"/"+PROXIES.length+"...";return await fetchText(PROXIES[i](url),ms);}
+    catch(e){err=e;}
+  }
+  throw err||new Error("noproxy");
+}
 function fillFormFromParsed(o){
   if(!o||!Object.keys(o).length){alert("Не смог распознать — заполните вручную");return;}
   if(o.deal)$("nlDeal").value=o.deal;
@@ -751,25 +769,37 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("impLinkBtn"))$("impLinkBtn").onclick=async()=>{
     const url=($("impLink").value||"").trim();
     if(!/^https?:\/\//i.test(url)){alert("Вставьте ссылку https://...");return;}
-    const btn=$("impLinkBtn");btn.textContent="Загружаю...";btn.disabled=true;
+    const btn=$("impLinkBtn");const done=()=>{btn.textContent="Создать из ссылки";btn.disabled=false;};
+    btn.disabled=true;
     try{
       const tg=tgUrls(url);
-      const [emb,can]=await Promise.all([
-        tg?fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(tg.embed)).then(r=>{if(!r.ok)throw 0;return r.text();}).catch(()=>""):"",
-        fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(tg?tg.canonical:url)).then(r=>{if(!r.ok)throw 0;return r.text();}).catch(()=>"")
-      ]);
       let desc="",photos=[];
-      if(tg&&emb){
-        desc=tgText(emb);photos=tgPhotos(emb);
-        if(!desc){const og=parseOG(can);desc=unesc(og.description||"").trim();if(og.image)photos.unshift(og.image);}
+      if(tg){
+        let emb="";
+        try{emb=await fetchViaProxies(tg.embed,15000,"Качаю пост",btn);}catch(e){emb="";}
+        if(emb){desc=tgText(emb);photos=tgPhotos(emb);}
+        if(!desc||!photos.length){
+          let can="";
+          try{can=await fetchViaProxies(tg.canonical,15000,"Качаю фото",btn);}catch(e){can="";}
+          if(can){
+            if(!desc)desc=unesc((parseOG(can).description)||"").trim();
+            const og=parseOG(can);
+            if(og.image&&!photos.includes(og.image))photos.unshift(og.image);
+          }
+        }
+        if(!emb&&!photos.length&&!desc){alert("Нет связи: Telegram не отдал пост (такое бывает — попробуйте ещё раз или вставьте текст вручную)");done();return;}
       } else {
+        let can="";
+        try{can=await fetchViaProxies(url,15000,"Качаю страницу",btn);}catch(e){can="";}
+        if(!can){alert("Нет связи: страницу скачать не удалось. Проверьте интернет или вставьте текст вручную");done();return;}
         const og=parseOG(can);desc=unesc(og.description||"").trim();
         if(og.image)photos.push(og.image);
       }
       photos=[...new Set(photos)].slice(0,8);
       let title="";
       if(desc){title=(desc.split("\n").map(s=>s.trim()).find(s=>s)||"").replace(/#\w+/g,"").trim().slice(0,90);}
-      if(!desc&&!photos.length)throw 0;
+      if(!title&&photos.length){const tm=url.match(/t\.me\/([A-Za-z0-9_]+)\/(\d+)/);title=tm?`Пост @${tm[1]} #${tm[2]}`:"Импорт по ссылке";}
+      if(!desc&&!photos.length){alert("На странице нет ни текста, ни фото. Вставьте текст вручную");done();return;}
       if(title)$("nlTitle").value=title;
       if(desc)$("nlDesc").value=desc;
       photos.forEach(u=>{if(!nlRemote.includes(u))nlRemote.push(u);});
@@ -786,9 +816,9 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
       if(pf.category){state.rentCat=pf.category;document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));}
       if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
       syncNlDeal();
-      alert(`Готово: текст + фото (${photos.length}). Проверьте поля и жмите Опубликовать`);
+      alert(`Готово: текст${photos.length?` + фото (${photos.length})`:" (без фото)"}. Проверьте поля и жмите Опубликовать`);
     }catch(e){alert("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
-    btn.textContent="Создать из ссылки";btn.disabled=false;
+    done();
   };
   if($("impPhotos"))$("impPhotos").onclick=()=>{
     const lines=($("impUrls").value||"").split("\n").map(driveIdFromUrl).filter(Boolean);
