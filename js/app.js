@@ -45,7 +45,26 @@ LISTINGS.forEach((it,i)=>{if(it.user)return;const p=POOL[it.propertyType]||POOL.
 const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],house:["Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад","Телевизор"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
 LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
 try{(JSON.parse(localStorage.getItem("rh_my")||"[]")||[]).forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true},o));});}catch(e){}
-function persistMy(){try{localStorage.setItem("rh_my",JSON.stringify(LISTINGS.filter(x=>x.user)));}catch(e){alert("Хранилище переполнено: уберите часть фото");}}
+let API=false;
+fetch("api/ping",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
+  if(!(j&&j.ok))return;
+  API=true;
+  const m=$("storeMode");if(m)m.textContent="Файлы (JSON)";
+  fetch("api/listings",{cache:"no-store"}).then(r=>r.json()).then(d=>{
+    if(!d||!d.ok||!Array.isArray(d.items))return;
+    for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
+    d.items.forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true},o));});
+    render();
+  }).catch(()=>{});
+}).catch(()=>{});
+function persistMy(){
+  const items=LISTINGS.filter(x=>x.user);
+  try{localStorage.setItem("rh_my",JSON.stringify(items));}
+  catch(e){alert("Хранилище переполнено: уберите часть фото");return;}
+  if(!API)return;
+  fetch("api/listings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items})})
+    .then(r=>r.json()).then(j=>{if(!j.ok)alert("Не сохранено в JSON");}).catch(()=>alert("Нет связи с admin-server — сохранено только в браузере"));
+}
 function getProfile(){try{return JSON.parse(localStorage.getItem("rh_profile")||"{}");}catch(e){return{};}}
 const TEN={17:"freehold",18:"freehold",19:"leasehold",20:"freehold",12:"leasehold",16:"freehold"};
 LISTINGS.forEach(it=>{if(it.dealType==="sale")it.tenure=TEN[it.id]||"freehold";});
@@ -172,7 +191,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.1";
+const APP_V="2.2";
 const t = k=>I18N[state.lang][k]||k;
 const isNew = it=>(Date.now()-it.createdAt)<24*H;
 
@@ -400,8 +419,17 @@ function syncNlDeal(){
 }
 function paintNlPreview(){$("nlPreview").innerHTML=[...nlRemote,...nlPhotos].map(s=>`<img src="${s}" loading="lazy">`).join("");}
 async function readPhotos(input){
-  nlPhotos=[];
   const files=[...input.files].slice(0,6);
+  if(API&&files.length){
+    const fd=new FormData();
+    for(const f of files){try{fd.append("photos",new Blob([await f.arrayBuffer()],{type:f.type||"image/jpeg"}),f.name||"photo.jpg");}catch(e){}}
+    try{
+      const r=await fetch("api/upload",{method:"POST",body:fd});
+      const j=await r.json();
+      if(j&&j.ok&&j.paths&&j.paths.length){j.paths.forEach(p=>{if(!nlRemote.includes(p))nlRemote.push(p);});paintNlPreview();return;}
+    }catch(e){}
+  }
+  nlPhotos=[];
   for(const f of files){try{nlPhotos.push(await fileToPhoto(f));}catch(e){}}
   paintNlPreview();
 }
@@ -450,7 +478,16 @@ function driveIdFromUrl(s){
   if(/^[a-zA-Z0-9_-]{10,}$/.test(s))return s;
   return"";
 }
-const RU_LOC=[["УБУД","Ubud","Убуд"],["ЧАНГУ","Canggu","Чангу"],["СЕМИНЬЯК","Seminyak","Семиньяк"],["УЛУВАТУ","Uluwatu","Улувату"],["САНУР","Sanur","Санур"],["ДЕНПАСАР","Denpasar","Денпасар"],["ДЖИМБАРАН","Jimbaran","Джимбаран"],["НУСА","NusaDua","Нуса-Дуа"],["КУТА","Kuta","Кута"],["ПЕРЕРЕНАН","Pererenan","Переренан"],["УМАЛАС","Umalas","Умалас"],["ЛОВИНА","Lovina","Ловина"],["АМЕД","Amed","Амед"],["ТАБАНАН","Tabanan","Табанан"]];
+const RU_LOC=[["УБУД","Ubud","Убуд"],["ЧАНГУ","Canggu","Чангу"],["СЕМИНЬЯК","Seminyak","Семиньяк"],["УЛУВАТУ","Uluwatu","Улувату"],["САНУР","Sanur","Санур"],["ДЕНПАСАР","Denpasar","Денпасар"],["ДЖИМБАРАН","Jimbaran","Джимбаран"],["НУСА","NusaDua","Нуса-Дуа"],["КУТА","Kuta","Кута"],["ПЕРЕРЕНАН","Pererenan","Переренан"],["УМАЛАС","Umalas","Умалас"],["КЕРОБОКАН","Kerobokan","Керобокан"],["СЕСЕХ","Seseh","Сесех"],["БУДУК","Buduk","Будук"],["ЛЕГИАН","Legian","Легиан"],["ПЕТИТЕНГЕТ","Petitenget","Петитенгет"],["ОБЕРОЙ","Oberoi","Оберой"],["БЕРАВА","Berawa","Берава"],["БАТУ[-\s]?БОЛОНГ","BatuBolong","Бату Болонг"],["ТУМБАК","TumbakBayuh","Тумбак Баюх"],["КЕДУНГУ","Kedungu","Кедунгу"],["ЧЕМАГИ","Cemagi","Чемаги"],["БИНГИН","Bingin","Бингин"],["БАЛАГАН","Balangan","Балаган"],["УНГАСАН","Ungasan","Унгасан"],["ПЕЧАТУ","Pecatu","Печату"],["ТАНАХ|ТАНА","TanahLot","Танах Лот"],["МАС(?![а-яё])","Mas","Мас"],["ПАЯНГАН","Payangan","Паянган"],["ГИАНЬЯР","Gianyar","Гианьяр"],["СУКАВАТИ","Sukawati","Сукавати"],["МЕНГВИ","Mengwi","Менгви"],["ЛОВИНА","Lovina","Ловина"],["СИНГАРАДЖА","Singaraja","Сингараджа"],["ПЕМУТЕРАН","Pemuteran","Пемутеран"],["АМЕД","Amed","Амед"],["КАНДИДАСА","Candidasa","Кандидаса"],["СИДЕМЕН","Sidemen","Сидемен"],["ПЕНИДА","NusaPenida","Нуса-Пенида"],["ЛЕМБОНГАН","NusaLembongan","Нуса-Лембонган"],["ТАБАНАН","Tabanan","Табанан"]];
+function smartNum(s){
+  s=String(s||"").replace(/\s/g,"");if(!s)return 0;
+  const hasC=s.includes(","),hasD=s.includes(".");
+  if(/^\d{1,3}([.,]\d{3})+$/.test(s))return parseInt(s.replace(/[.,]/g,""),10);
+  if(hasC&&hasD)return s.lastIndexOf(",")>s.lastIndexOf(".")?parseFloat(s.replace(/\./g,"").replace(",",".")):parseFloat(s.replace(/,/g,""));
+  if(hasC){const p=s.split(",");return(p.length>2||p[p.length-1].length===3)?parseInt(p.join(""),10):parseFloat(s.replace(",","."));}
+  return parseFloat(s)||0;
+}
+const AMEN_SCAN=[["бассейн","Бассейн"],["беседка","Беседка"],["гриль|\\bBBQ\\b","Гриль"],["стиральная","Стиральная машина"],["кухня|кухню|кухни","Кухня"],["(?:^|[^а-яёa-z])тв(?:[^а-яёa-z]|$)|телевизор","Телевизор"],["кондиционер","Кондиционер"],["парковка|паркинг","Парковка"],["сад|садом","Сад"],["холодильник","Холодильник"],["микроволнов|свч","Микроволновка"],["wi-?fi|вай-?фай","Wi-Fi"],["охрана","Охрана"],["прачечная|стирка","Прачечная"]];
 function parseDeskripsi(text){
   const out={};
   const ruM=text.match(/Описани[ея]([\s\S]*?)(Location|Foto|Локация|$)/i);
@@ -458,19 +495,30 @@ function parseDeskripsi(text){
   const num=s=>parseInt(s.replace(/\D/g,""),10)||0;
   out.deal=/ПРОДАМ|SALE|DIJUAL/i.test(t)?"sale":"rent";
   out.role=/СНИМУ|ИЩУ|WANTED|DICARI/i.test(t)&&!/ПРОДАМ/i.test(t)?"request":"offer";
-  const prices=[...t.matchAll(/IDR\s*([\d\.\,]+)/gi)].map(m=>num(m[1]));
+  if(/аренд|akam|\/мес|\/год|\brent\b/i.test(t)&&!/ПРОДАМ|\bSALE\b/i.test(t))out.deal="rent";
+  const prices=[...t.matchAll(/IDR\s*([\d\.\,]+)/gi)].map(m=>smartNum(m[1]));
   if(prices.length)out.price=Math.max(...prices);
+  const mm=t.match(/([\d\s.,]+)\s*млн\s*\/\s*мес/i),ym=t.match(/([\d\s.,]+)\s*млн\s*\/\s*год/i);
+  if(mm){out.price=Math.round(smartNum(mm[1])*1e6);out.deal="rent";out.category="monthly";}
+  else if(ym){out.price=Math.round(smartNum(ym[1])*1e6);out.deal="rent";out.category="yearly";}
+  if(/#monthly/i.test(t)&&!/#yearly/i.test(t))out.category="monthly";
+  if(/#yearly/i.test(t)&&!/#monthly/i.test(t))out.category="yearly";
   const nm=t.match(/«(.+?)»/);if(nm)out.name=nm[1].trim();
-  for(const [a,en,ru] of RU_LOC){if(new RegExp(a,"i").test(t)){out.district=en;out.districtRu=ru;break;}}
-  const m=t.match(/площад[ьи]?\s+дома?\s+(\d+)/i)||t.match(/(\d+)\s*м(²|2)/i);
-  if(m)out.area=num(m[1]);
-  const lm=t.match(/[Уу]часток\D{0,25}?(\d+)\s*(соток|сотки|are|м)/i);
-  if(lm){out.land=+lm[1]*((/соток|сотки|are/i.test(lm[2]))?100:1);}
+  let best=null;
+  for(const [a,en,ru] of RU_LOC){const m=t.match(new RegExp(a,"i"));if(m&&(best===null||m.index<best.index))best={en,ru,index:m.index};}
+  if(best){out.district=best.en;out.districtRu=best.ru;}
+  const m=t.match(/площад[ьи]?\s+(?:виллы|дома)?\s*(\d+)/i)||t.match(/(\d+)\s*м(²|2)/i);
+  if(m)out.area=Math.round(smartNum(m[1]));
+  const lm=t.match(/[Уу]часток\D{0,25}?(\d+)\s*(соток|сотки|are|м)/i)||t.match(/Территори[яи]\s+(\d+)/i);
+  if(lm){const u=lm[2]||"м";out.land=Math.round(+lm[1]*((/соток|сотки|are/i.test(u))?100:1));}
+  const bd=t.match(/(\d+)\s*(?:BD|BR)\b/i),hb=t.match(/#(\d+)bdr/i);
   const bm=(t.match(/(\d+)\s*спальни/i)||[])[1];
-  out.bedrooms=(+bm||0)+(/одна спальня/i.test(t)?1:0);
+  out.bedrooms=Math.max(+((bd||[])[1]||0),+((hb||[])[1]||0),(+bm||0)+(/одна спальня/i.test(t)?1:0));
   const fl=t.match(/(\d+)\s*этаж/i);if(fl)out.floors=+fl[1];
-  out.bathrooms=out.bedrooms+(/гостевой санузел/i.test(t)?1:0);
+  else if(/одноэтажн/i.test(t))out.floors=1;
+  out.bathrooms=out.bedrooms+((/гостевой санузел/i.test(t)||/санузл/i.test(t)&&out.bedrooms<3)?1:0);
   out.furnished=/мебел|furnish/i.test(t);
+  out.amenities=[...new Set(AMEN_SCAN.filter(([re])=>new RegExp(re,"i").test(t)).map(([,n])=>n))];
   const ph=t.match(/\+\d[\d\s\-()]{7,}/);if(ph)out.phone=ph[0].trim();
   const yr=t.match(/20\d\d/);if(yr)out.year=+yr[0];
   return out;
@@ -486,6 +534,21 @@ function parseOG(html){
   return out;
 }
 const unesc=s=>(s||"").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&");
+function tgUrls(url){
+  const m=(url||"").match(/t\.me\/([A-Za-z0-9_]+)\/(\d+)/);
+  if(!m)return null;
+  return{embed:`https://t.me/${m[1]}/${m[2]}?embed=1`,canonical:`https://t.me/${m[1]}/${m[2]}`};
+}
+function tgText(html){
+  const m=html.match(/js-message_text"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/i)||html.match(/js-message_text"[^>]*>([\s\S]*?)<\/div>/i);
+  if(!m)return"";
+  return unesc(m[1].replace(/<br\s*\/?>/gi,"\n").replace(/<\/(p|div)>/gi,"\n").replace(/<[^>]+>/g,"")).replace(/\n{3,}/g,"\n\n").trim();
+}
+function tgPhotos(html){
+  const out=[],re=/https:\/\/cdn\d?\.telesco\.pe\/file\/[^'"()\s]+/gi;let m;
+  while((m=re.exec(html))){if(!out.includes(m[0]))out.push(m[0]);}
+  return out.slice(0,8);
+}
 function fillFormFromParsed(o){
   if(!o||!Object.keys(o).length){alert("Не смог распознать — заполните вручную");return;}
   if(o.deal)$("nlDeal").value=o.deal;
@@ -497,6 +560,8 @@ function fillFormFromParsed(o){
   if(o.bathrooms)$("nlBath").value=o.bathrooms;
   if(o.floors)$("nlFloors").value=o.floors;
   if(o.year)$("nlYear").value=o.year;
+  if(o.category){state.rentCat=o.category;document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));}
+  if(o.amenities&&o.amenities.length)paintNlAmen(o.amenities);
   if(o.district)$("nlDistrict").value=o.district;
   if(o.phone){$("nlPhone").value=o.phone;}
   if(typeof o.furnished==="boolean")$("nlFurn").value=o.furnished?"yes":"no";
@@ -688,18 +753,40 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     if(!/^https?:\/\//i.test(url)){alert("Вставьте ссылку https://...");return;}
     const btn=$("impLinkBtn");btn.textContent="Загружаю...";btn.disabled=true;
     try{
-      const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(url));
-      if(!r.ok)throw 0;
-      const og=parseOG(await r.text());
-      const desc=unesc(og.description||"").trim();
-      let title=unesc(og.title||"").trim();
-      if(!title||/telegram/i.test(title))title=(desc.split("\n")[0]||"").slice(0,80);
-      if(!desc&&!title)throw 0;
+      const tg=tgUrls(url);
+      const [emb,can]=await Promise.all([
+        tg?fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(tg.embed)).then(r=>{if(!r.ok)throw 0;return r.text();}).catch(()=>""):"",
+        fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(tg?tg.canonical:url)).then(r=>{if(!r.ok)throw 0;return r.text();}).catch(()=>"")
+      ]);
+      let desc="",photos=[];
+      if(tg&&emb){
+        desc=tgText(emb);photos=tgPhotos(emb);
+        if(!desc){const og=parseOG(can);desc=unesc(og.description||"").trim();if(og.image)photos.unshift(og.image);}
+      } else {
+        const og=parseOG(can);desc=unesc(og.description||"").trim();
+        if(og.image)photos.push(og.image);
+      }
+      photos=[...new Set(photos)].slice(0,8);
+      let title="";
+      if(desc){title=(desc.split("\n").map(s=>s.trim()).find(s=>s)||"").replace(/#\w+/g,"").trim().slice(0,90);}
+      if(!desc&&!photos.length)throw 0;
       if(title)$("nlTitle").value=title;
       if(desc)$("nlDesc").value=desc;
-      if(og.image&&/^https?:\/\//i.test(og.image)){if(!nlRemote.includes(og.image))nlRemote.push(og.image);paintNlPreview();}
-      const pf=parseDeskripsi(desc);if(pf.price)$("nlPrice").value=pf.price;
-      alert("Готово: текст и фото подтянуты. Проверьте поля и жмите Опубликовать");
+      photos.forEach(u=>{if(!nlRemote.includes(u))nlRemote.push(u);});
+      if(photos.length)paintNlPreview();
+      const pf=parseDeskripsi(desc);
+      if(pf.deal)$("nlDeal").value=pf.deal;
+      if(pf.price)$("nlPrice").value=pf.price;
+      if(pf.area)$("nlArea").value=pf.area;
+      if(pf.land)$("nlLand").value=pf.land;
+      if(pf.bedrooms)$("nlBed").value=pf.bedrooms;
+      if(pf.bathrooms)$("nlBath").value=pf.bathrooms;
+      if(pf.floors)$("nlFloors").value=pf.floors;
+      if(pf.district)$("nlDistrict").value=pf.district;
+      if(pf.category){state.rentCat=pf.category;document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));}
+      if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
+      syncNlDeal();
+      alert(`Готово: текст + фото (${photos.length}). Проверьте поля и жмите Опубликовать`);
     }catch(e){alert("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
     btn.textContent="Создать из ссылки";btn.disabled=false;
   };

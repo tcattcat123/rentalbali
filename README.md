@@ -8,6 +8,12 @@ python -m http.server 8000
 # http://localhost:8000
 ```
 
+## Админка (без базы: JSON + папка)
+```bash
+python admin-server.py   # http://localhost:8000
+```
+Вкладка «Профиль» → публикуйте объекты: данные падают в `data/user-listings.json`, фото — в `img/listings/`. Без сервера всё то же хранится в браузере. После публикации: `git add data/user-listings.json img/listings && git commit && git push` — Vercel подхватит.
+
 ## Деплой на Vercel
 Корень репозитория — чистая статика, деплоится без настроек: Framework Preset **Other**, Build Command пусто. `vercel.json` уже настроен. Root Directory должен быть пустым (`./`).
 
