@@ -191,7 +191,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.10";const APP_BUILD="55";
+const APP_V="2.11";const APP_BUILD="56";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -870,11 +870,15 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
   if($("nlTenure"))$("nlTenure").addEventListener("change",syncNlDeal);
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
-  if($("impUrls2"))$("impUrls2").addEventListener("change",e=>{
-    const lines=(e.target.value||"").split(/[\n,;]+/).map(driveIdFromUrl).filter(Boolean);
+  function addUrlsPhotos(){
+    const el=$("impUrls2");if(!el)return;
+    const lines=(el.value||"").split(/[\n,;]+/).map(driveIdFromUrl).filter(Boolean);
+    if(!lines.length){alert("Вставьте ссылку Drive или ID файла");return;}
     lines.forEach(id=>{const u=driveThumb(id);if(!nlRemote.includes(u))nlRemote.push(u);});
-    if(lines.length){paintNlPreview();e.target.value="";}
-  });
+    paintNlPreview();el.value="";alert(`Загружено фото: ${lines.length}`);
+  }
+  if($("impUrls2"))$("impUrls2").addEventListener("change",addUrlsPhotos);
+  if($("impPhotos2"))$("impPhotos2").onclick=addUrlsPhotos;
 function docIdFromUrl(url){
   let m=(url||"").match(/\/document\/(?:u\/\d+\/)?d\/([a-zA-Z0-9_-]+)/);
   if(m)return{exp:`https://docs.google.com/document/d/${m[1]}/export?format=txt`};
