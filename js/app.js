@@ -191,7 +191,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.8";const APP_BUILD="53";
+const APP_V="2.9";const APP_BUILD="54";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1017,5 +1017,6 @@ $("creditModal").addEventListener("click",e=>{if(e.target.id==="creditModal")$("
 $("simCalc").onclick=calcCredit;
 ["simPrice","simDP","simRate","simYears"].forEach(id=>$(id).addEventListener("input",calcCredit));
 render();syncDealTabs();highlightQuick();document.body.dataset.settled="1";
-if($("appVer"))$("appVer").textContent="v"+APP_V;
+  if($("appVer"))$("appVer").textContent="v"+APP_V;
+  const fh=$("folderHint");if(fh)fh.style.display=API?"none":"";
 try{const m=location.hash.match(/#listing-(\d+)/);if(m)openDetail(+m[1]);}catch(e){}
