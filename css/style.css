@@ -25,6 +25,8 @@ h1,h2,h3{margin:0;font-weight:600}
 button{font-family:inherit}
 /* topbar */
 .topbar{background:var(--acc-soft);color:var(--acc-dark);font-size:12px;text-align:center;padding:6px 12px;font-weight:600}
+.upd-banner{background:#FFF7DB;color:#7A5B00;text-align:center;padding:8px 12px;font-size:13px;font-weight:600;display:flex;gap:10px;align-items:center;justify-content:center;position:sticky;top:0;z-index:200}
+.upd-banner button{border:1px solid #7A5B00;background:transparent;border-radius:4px;padding:4px 12px;font-weight:700;cursor:pointer;color:#7A5B00}
 /* header */
 .header{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--line)}
 .header-inner{max-width:1200px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}

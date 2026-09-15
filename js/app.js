@@ -191,7 +191,15 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.5";
+const APP_V="2.6";const APP_BUILD="51";
+try{
+  const mb=document.querySelector('meta[name="app-build"]');
+  if(mb&&mb.content!==APP_BUILD){
+    const b=document.createElement("div");b.className="upd-banner";
+    b.innerHTML=`<span>Доступна новая версия — обновите страницу</span><button onclick="location.reload()">Обновить</button>`;
+    document.body.prepend(b);
+  }
+}catch(e){}
 const t = k=>I18N[state.lang][k]||k;
 const isNew = it=>(Date.now()-it.createdAt)<24*H;
 
