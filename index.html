@@ -200,23 +200,21 @@
     <div class="filter-group"><label>Тип недвижимости</label><select id="nlType"><option value="villa">Вилла</option><option value="house">Дом</option><option value="apartment">Квартира</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="townhouse">Таунхаус</option><option value="boarding">Sewa Kos</option><option value="commercial">Коммерческая</option></select></div>
     <div class="filter-group"><label>Район</label><select id="nlDistrict"></select></div>
     <div class="filter-group full"><label>Заголовок</label><input id="nlTitle" placeholder="Например: Вилла с бассейном в Чангу"></div>
-    <div class="filter-group"><label>Цена (IDR)</label><input type="number" id="nlPrice" placeholder="10000000" min="0"></div>
+    <div class="filter-group"><label>Цена</label><div class="imp-row"><input type="number" id="nlPrice" placeholder="10000000" min="0"><select id="nlCur" style="max-width:90px"><option value="IDR">IDR</option><option value="USD">USD</option></select></div></div>
     <div class="filter-group"><label>Срок аренды</label><select id="nlCat"><option value="monthly">Помесячно</option><option value="yearly">На год</option></select></div>
     <div class="filter-group" id="nlTenureWrap"><label>Владение (покупка)</label><select id="nlTenure"><option value="freehold">Freehold</option><option value="leasehold">Leasehold</option></select></div>
+    <div class="filter-group" id="nlLeaseWrap" style="display:none"><label>Срок аренды, лет</label><input type="number" id="nlLease" placeholder="25" min="1" max="100"></div>
     <div class="filter-group"><label>Спальни</label><input type="number" id="nlBed" value="1" min="0" max="20"></div>
     <div class="filter-group"><label>Ванные</label><input type="number" id="nlBath" value="1" min="0" max="20"></div>
     <div class="filter-group"><label>Площадь, м²</label><input type="number" id="nlArea" placeholder="50" min="0"></div>
     <div class="filter-group"><label>Участок, м²</label><input type="number" id="nlLand" placeholder="0" min="0"></div>
-    <div class="filter-group"><label>Этажей</label><input type="number" id="nlFloors" placeholder="1" min="0" max="10"></div>
-    <div class="filter-group"><label>Год постройки</label><input type="number" id="nlYear" placeholder="2022" min="1980" max="2026"></div>
-    <div class="filter-group"><label>Телефон для связи</label><input id="nlPhone" placeholder="+62 ..."></div>
-    <div class="filter-group"><label>Меблировано</label><select id="nlFurn"><option value="yes">Да</option><option value="no">Нет</option></select></div>
     <div class="filter-group"><label>Гостиная (комнат)</label><input type="number" id="nlLiving" value="1" min="0" max="10"></div>
     <div class="filter-group"><label>Парковка (мест)</label><input type="number" id="nlPark" value="0" min="0" max="10"></div>
     <div class="filter-group"><label>Доступно с</label><input type="month" id="nlAvail" min="2026-09" max="2028-12"></div>
     <div class="filter-group full"><label>Удобства</label><div id="nlAmen" class="amen-boxes"></div></div>
     <div class="filter-group full"><label>Описание (покажется в «Подробнее» на странице объекта)</label><textarea id="nlDesc" rows="3" placeholder="Панорамный вид, бассейн 12х4, до центра 7 минут..."></textarea></div>
     <div class="filter-group full"><label>Фото (до 6)</label><input type="file" id="nlPhotos" accept="image/*" multiple><div id="nlPreview" class="nl-preview"></div></div>
+    <div class="filter-group full"><label>Фото по ссылкам — вставьте сюда</label><div class="imp-row"><input id="impUrls2" placeholder="Ссылка Drive или ID, через запятую"></div></div>
     </div>
     <button id="nlSave" class="btn-primary block">Опубликовать</button>
     </div>
