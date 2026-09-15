@@ -163,11 +163,12 @@
     <div class="my-head"><h3>Мои объявления</h3></div>
     <div class="card cab-form">
     <h3>Новое объявление</h3>
+    <div class="filter-group"><label>Ссылка на пост Telegram</label><input id="impLink" placeholder="https://t.me/..."><div style="margin-top:8px"><button id="impLinkBtn" class="btn-primary block">Парсинг</button></div></div>
+    <details id="manualBox"><summary>Заполнить вручную</summary>
     <div class="imp-block">
     <div class="filter-group"><label>Автоимпорт из Google Drive</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="impRoyal" class="btn-ghost">Импорт Royal Lotus (Убуд)</button></div></div>
     <div class="filter-group"><label>Текст Deskripsi — вставьте, поля заполнятся сами</label><textarea id="impText" rows="3" placeholder="Вставьте описание объекта..."></textarea><div><button id="impParse" class="btn-ghost">Распознать текст</button></div></div>
-    <div class="filter-group"><label>Импорт по ссылке (Telegram-пост, статья) — текст и фото подтянутся сами</label><input id="impLink" placeholder="https://t.me/..."><div><button id="impLinkBtn" class="btn-ghost">Создать из ссылки</button></div></div>
     <div class="filter-group"><label>Фото: ссылки Drive или ID файлов (по одной на строке)</label><textarea id="impUrls" rows="3" placeholder="https://drive.google.com/file/d/..."></textarea><div><button id="impPhotos" class="btn-ghost">Добавить фото по ссылкам</button></div></div>
     </div>
     <div class="calc-grid">
@@ -195,6 +196,7 @@
     <div class="filter-group full"><label>Фото (до 6)</label><input type="file" id="nlPhotos" accept="image/*" multiple><div id="nlPreview" class="nl-preview"></div></div>
     </div>
     <button id="nlSave" class="btn-primary block">Опубликовать</button>
+    </details>
     </div>
     <div id="myGrid" class="grid"></div>
   </section>
@@ -232,6 +234,6 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=46"></script>
+<script src="js/app.js?v=47"></script>
 </body>
 </html>

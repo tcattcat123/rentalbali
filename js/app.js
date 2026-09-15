@@ -199,6 +199,7 @@ function convertPrice(v){return state.currency==="USD"?Math.round(v/RATE):v;}
 function fmtNum(v){return state.currency==="USD"?convertPrice(v).toLocaleString("en-US"):v.toLocaleString("ru-RU");}
 function curSuffix(){return state.currency;}
 function fmtPrice(it){
+  if(!(it.price>0))return "Цена по запросу";
   const prefix = it.type==="request"?(state.lang==="ru"?"до ":"up to "):"";
   if(it.dealType==="sale")return `${prefix}${state.currency==="USD"?"$ ":""}${fmtNum(it.price)} ${curSuffix()}${state.lang==="ru"?" "+t("total"):" "+t("total")}`;
   const per = it.category==="yearly"?t("year_per"):t("month");
@@ -462,6 +463,7 @@ function fillEditForm(id){
   $("nlLiving").value=it.living||0;$("nlPark").value=it.parking||0;
   $("nlAvail").value=it.available?it.available.slice(0,7):"";
   paintNlAmen(it.amenities||[]);syncNlDeal();
+  const mb=$("manualBox");if(mb)mb.open=true;
   nlPhotos=[];nlRemote=[...(it.images||[])];paintNlPreview();
   $("nlSave").textContent="Сохранить изменения";
   if(!$("nlCancel")){const b=document.createElement("button");b.id="nlCancel";b.className="btn-text";b.textContent="Отмена";b.style.marginTop="8px";b.onclick=()=>{resetNlForm();};$("nlSave").after(b);}
@@ -816,7 +818,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
       if(pf.category){state.rentCat=pf.category;document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));}
       if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
       syncNlDeal();
-      alert(`Готово: текст${photos.length?` + фото (${photos.length})`:" (без фото)"}. Проверьте поля и жмите Опубликовать`);
+      if(!submitForm(true)){$("manualBox").open=true;alert("Почти готово: допишите заголовок и цену вручную");}
     }catch(e){alert("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
     done();
   };
@@ -834,10 +836,10 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     nlRemote=ROYAL_PHOTOS.map(driveThumb);paintNlPreview();
     alert("Royal Lotus заполнен: 21 фото + поля. Проверьте и жмите Опубликовать");
   };
-  if($("nlSave"))$("nlSave").onclick=()=>{
-    const title=$("nlTitle").value.trim(),price=parseFloat($("nlPrice").value);
-    if(!title){alert("Укажите заголовок");return;}
-    if(!(price>0)){alert("Укажите цену");return;}
+  function submitForm(auto){
+    const title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
+    if(!title){if(!auto)alert("Укажите заголовок");return false;}
+    if(!(price>0)){if(auto){price=0;}else{alert("Укажите цену");return false;}}
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
     const dk=$("nlDistrict").value||"Canggu";
     const rl=locName(dk);
@@ -860,9 +862,11 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
       if(ix>=0){const old=LISTINGS[ix];it.id=old.id;it.createdAt=old.createdAt;it.views=old.views;it.rating=old.rating;it.reviews=old.reviews;LISTINGS[ix]=it;}
       persistMy();resetNlForm();render();alert("Изменения сохранены");
     } else {
-      LISTINGS.unshift(it);persistMy();resetNlForm();render();alert("Опубликовано! Объявление уже в ленте.");
+      LISTINGS.unshift(it);persistMy();resetNlForm();render();alert(auto?"Готово: карточка создана и уже в ленте":"Опубликовано! Объявление уже в ленте.");
     }
-  };
+    return true;
+  }
+  if($("nlSave"))$("nlSave").onclick=()=>submitForm(false);
 })();
 $("creditModal").addEventListener("click",e=>{if(e.target.id==="creditModal")$("creditModal").classList.add("hidden");});
 $("simCalc").onclick=calcCredit;
