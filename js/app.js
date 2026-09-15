@@ -744,7 +744,8 @@ if($("mshow"))$("mshow").onclick=()=>{state.page=1;render();document.getElementB
 if($("mfilterBtn"))$("mfilterBtn").onclick=()=>openSheet();
 if($("mreset"))$("mreset").onclick=()=>{resetFilters();state.rentCat="";render();};
 if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render();window.scrollTo({top:0,behavior:"smooth"});};
-if($("sheetBg"))$("sheetBg").onclick=()=>closeSheet();
+  if($("sheetBg"))$("sheetBg").onclick=()=>closeSheet();
+  if($("manualBtn"))$("manualBtn").onclick=()=>{const mb=$("manualBox");if(mb){mb.open=true;mb.scrollIntoView({behavior:"smooth"});}};
 if($("markersBtn"))$("markersBtn").onclick=()=>{showMarkers=!showMarkers;$("markersBtn").textContent=showMarkers?"Скрыть метки":"Показать метки";updateMarkersSafe();};
 if($("sheetApply"))$("sheetApply").onclick=()=>$("applyBtn").click();
 if($("sheetReset"))$("sheetReset").onclick=()=>$("resetBtn").click();
