@@ -17,6 +17,7 @@ import re
 import sys
 import time
 import urllib.parse
+import urllib.request
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
@@ -26,6 +27,37 @@ IMG_DIR = os.path.join(ROOT, "img", "listings")
 ALLOWED_EXT = {".jpg": "image/jpeg", ".jpeg": "image/jpeg",
                ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif"}
 MAX_IMG_BYTES = 8 * 1024 * 1024
+
+
+def tg_embed_url(url):
+    m = re.match(r"https?://t\.me/([A-Za-z0-9_]+)/(\d+)", url or "")
+    if not m:
+        return None
+    return "https://t.me/%s/%s?embed=1" % (m.group(1), m.group(2))
+
+
+def tg_clean_text(html):
+    m = (re.search(r'js-message_text"[^>]*>([\s\S]*?)</div>\s*</div>', html)
+         or re.search(r'js-message_text"[^>]*>([\s\S]*?)</div>', html))
+    if not m:
+        return ""
+    t = m.group(1)
+    t = re.sub(r"<br\s*/?>", "\n", t, flags=re.I)
+    t = re.sub(r"</(p|div)>", "\n", t, flags=re.I)
+    t = re.sub(r"<[^>]+>", "", t)
+    t = re.sub(r"\n{3,}", "\n\n", t)
+    for a, b in (("&quot;", '"'), ("&#39;", "'"), ("&lt;", "<"),
+                 ("&gt;", ">"), ("&amp;", "&")):
+        t = t.replace(a, b)
+    return t.strip()
+
+
+def tg_photos(html):
+    out = []
+    for u in re.findall(r"https://cdn\d?\.telesco\.pe/file/[^\"'()\s]+", html):
+        if u not in out:
+            out.append(u)
+    return out[:8]
 
 
 def read_user_items():
@@ -101,6 +133,24 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send_json({"ok": True, "mode": "file"})
         if path == "/api/listings":
             return self._send_json({"ok": True, "items": read_user_items()})
+        if path == "/api/tg":
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            url = (qs.get("url") or [""])[0]
+            emb = tg_embed_url(url)
+            if not emb:
+                return self._send_json(
+                    {"ok": False, "error": "need t.me/channel/id link"}, 400)
+            try:
+                req = urllib.request.Request(
+                    emb, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=25) as resp:
+                    html = resp.read(2 * 1024 * 1024).decode("utf-8",
+                                                             errors="replace")
+            except Exception as e:
+                return self._send_json(
+                    {"ok": False, "error": "fetch failed: %s" % e}, 502)
+            return self._send_json({"ok": True, "text": tg_clean_text(html),
+                                    "photos": tg_photos(html)})
         return super().do_GET()
 
     def do_POST(self):

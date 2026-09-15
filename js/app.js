@@ -191,7 +191,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.4";
+const APP_V="2.5";
 const t = k=>I18N[state.lang][k]||k;
 const isNew = it=>(Date.now()-it.createdAt)<24*H;
 
@@ -799,7 +799,16 @@ function docIdFromUrl(url){
     btn.disabled=true;
     try{
       const tg=tgUrls(url);
-      let desc="",photos=[];
+      let desc="",photos=[],viaLocal=false;
+      if(tg){
+        try{
+          btn.textContent="Читаю пост...";
+          const lr=await fetch("api/tg?url="+encodeURIComponent(url),{cache:"no-store"});
+          const lj=await lr.json();
+          if(lj&&lj.ok){desc=(lj.text||"").trim();photos=[...(lj.photos||[])].slice(0,8);viaLocal=!!(desc||photos.length);}
+        }catch(e){}
+      }
+      if(!viaLocal){
       if(tg){
         let emb="";
         try{emb=await fetchViaProxies(tg.embed,15000,"Качаю пост",btn);}catch(e){emb="";}
@@ -820,6 +829,7 @@ function docIdFromUrl(url){
         if(!can){alert("Нет связи: страницу скачать не удалось. Проверьте интернет или вставьте текст вручную");done();return;}
         const og=parseOG(can);desc=unesc(og.description||"").trim();
         if(og.image)photos.push(og.image);
+      }
       }
       photos=[...new Set(photos)].slice(0,8);
       let title="";
