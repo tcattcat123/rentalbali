@@ -191,7 +191,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.2";
+const APP_V="2.3";
 const t = k=>I18N[state.lang][k]||k;
 const isNew = it=>(Date.now()-it.createdAt)<24*H;
 
