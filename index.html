@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="51">
+<meta name="app-build" content="53">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=52">
+<link rel="stylesheet" href="css/style.css?v=53">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -167,6 +167,7 @@
     <div class="imp-tabs" role="tablist">
       <button data-imptab="tg" class="active">Telegram-пост</button>
       <button data-imptab="doc">Google Docs</button>
+      <button data-imptab="folder">Папка Drive</button>
       <button data-imptab="manual">Вручную</button>
     </div>
     <div class="imp-panel" data-imppanel="tg">
@@ -182,6 +183,11 @@
       <div class="imp-row"><input id="impDoc" placeholder="https://docs.google.com/document/d/..."><button id="impDocBtn" class="btn-primary">Создать</button></div></div>
       <div class="filter-group"><label>Фото по ссылкам Drive — добавятся к любому варианту</label>
       <div class="imp-row"><input id="impUrls" placeholder="Ссылка или ID файла"><button id="impPhotos" class="btn-ghost">+ Фото</button></div></div>
+    </div>
+    <div class="imp-panel hidden" data-imppanel="folder">
+      <div class="filter-group"><label>Ссылка на папку объекта (док + фото подтянутся сами)</label>
+      <div class="imp-row"><input id="impFolder" placeholder="https://drive.google.com/drive/folders/..."><button id="impFolderBtn" class="btn-primary">Создать из папки</button></div>
+      <p class="hint">Папка вида «Название виллы»: внутри Dokumen/Foto и файл-описание</p></div>
     </div>
     <div class="imp-panel hidden" data-imppanel="manual">
     <div class="imp-block">
@@ -251,6 +257,6 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=52"></script>
+<script src="js/app.js?v=53"></script>
 </body>
 </html>

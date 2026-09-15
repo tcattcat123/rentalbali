@@ -60,6 +60,58 @@ def tg_photos(html):
     return out[:8]
 
 
+def drive_folder_id(url):
+    m = re.search(r"/drive/folders/([A-Za-z0-9_-]+)", url or "")
+    return m.group(1) if m else None
+
+
+ENTRY_RE = re.compile(
+    r'<a href="([^"]+)"[^>]*>.*?flip-entry-title">([^<]+)</div>', re.S)
+
+
+def drive_fetch(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        return resp.read(3 * 1024 * 1024).decode("utf-8", errors="replace")
+
+
+def drive_list(folder_id):
+    html = drive_fetch(
+        "https://drive.google.com/embeddedfolderview?id=" + folder_id)
+    title_m = re.search(r"<title>([^<]+)</title>", html)
+    entries = []
+    for href, name in ENTRY_RE.findall(html):
+        name = name.strip()
+        if "/drive/folders/" in href:
+            mm = re.search(r"/drive/folders/([A-Za-z0-9_-]+)", href)
+            if mm:
+                entries.append({"kind": "folder", "id": mm.group(1),
+                                "title": name})
+        elif "/file/d/" in href:
+            mm = re.search(r"/file/d/([A-Za-z0-9_-]+)", href)
+            if mm:
+                entries.append({"kind": "file", "id": mm.group(1),
+                                "title": name})
+        elif "docs.google.com/document/d/" in href:
+            mm = re.search(r"/document/d/([A-Za-z0-9_-]+)", href)
+            if mm:
+                entries.append({"kind": "doc", "id": mm.group(1),
+                                "title": name})
+    return (title_m.group(1).strip() if title_m else ""), entries
+
+
+def drive_doc_text(doc_id):
+    try:
+        return drive_fetch(
+            "https://docs.google.com/document/d/%s/export?format=txt"
+            % doc_id)
+    except Exception:
+        return ""
+
+
+IMG_RE = re.compile(r"\.(jpe?g|png|webp|gif)$", re.I)
+
+
 def read_user_items():
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as f:
@@ -151,6 +203,45 @@ class Handler(SimpleHTTPRequestHandler):
                     {"ok": False, "error": "fetch failed: %s" % e}, 502)
             return self._send_json({"ok": True, "text": tg_clean_text(html),
                                     "photos": tg_photos(html)})
+        if path == "/api/drive":
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            url = (qs.get("url") or [""])[0]
+            fid = drive_folder_id(url)
+            if not fid:
+                return self._send_json(
+                    {"ok": False,
+                     "error": "need drive folders link"}, 400)
+            try:
+                title, entries = drive_list(fid)
+            except Exception as e:
+                return self._send_json(
+                    {"ok": False,
+                     "error": "folder fetch failed: %s" % e}, 502)
+            doc = next((e for e in entries
+                        if e["kind"] == "doc" and re.search(
+                            r"descript|deskripsi|описание", e["title"], re.I)),
+                       next((e for e in entries if e["kind"] == "doc"), None))
+            foto = next((e for e in entries
+                         if e["kind"] == "folder" and re.search(
+                             r"foto|photo|image", e["title"], re.I)), None)
+            photo_ids = [e["id"] for e in entries
+                         if e["kind"] == "file" and IMG_RE.search(e["title"])]
+            if foto:
+                try:
+                    _, sub = drive_list(foto["id"])
+                    photo_ids += [e["id"] for e in sub
+                                  if e["kind"] == "file"
+                                  and IMG_RE.search(e["title"])]
+                except Exception:
+                    pass
+            seen = list(dict.fromkeys(photo_ids))[:12]
+            text = drive_doc_text(doc["id"]) if doc else ""
+            return self._send_json({
+                "ok": True, "folderTitle": title, "text": text,
+                "docTitle": doc["title"] if doc else "",
+                "photoIds": seen,
+                "files": [e["title"] for e in entries],
+            })
         return super().do_GET()
 
     def do_POST(self):
