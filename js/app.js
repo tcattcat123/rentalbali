@@ -870,13 +870,62 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
   if($("nlTenure"))$("nlTenure").addEventListener("change",syncNlDeal);
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
-  function addUrlsPhotos(){
-    const el=$("impUrls2");if(!el)return;
-    const lines=(el.value||"").split(/[\n,;]+/).map(driveIdFromUrl).filter(Boolean);
-    if(!lines.length){alert("Вставьте ссылку Drive или ID файла");return;}
-    lines.forEach(id=>{const u=driveThumb(id);if(!nlRemote.includes(u))nlRemote.push(u);});
-    paintNlPreview();el.value="";alert(`Загружено фото: ${lines.length}`);
+function driveIdsFromText(t){return (t||"").split(/[\n,;]+/).map(driveIdFromUrl).filter(Boolean);}
+async function uploadBlobsToServer(files){
+  const fd=new FormData();
+  for(const f of files)fd.append("photos",f,f.name||"photo.jpg");
+  const r=await fetch("api/upload",{method:"POST",body:fd});
+  const j=await r.json();
+  if(!(j&&j.ok&&j.paths&&j.paths.length))throw new Error("upload");
+  return j.paths;
+}
+async function importYandexLinks(raw){
+  const urls=[...new Set((raw.match(/https?:\/\/(?:disk\.yandex\.[a-z]+\/(?:i\/|d\/)?[\w-]+|yadi\.sk\/[\w-]+)\/?[^\s,]*/gi)||[]))];
+  if(!urls.length)return 0;
+  let n=0;
+  for(const u of urls.slice(0,3)){
+    try{
+      const meta=await(await fetch("https://cloud-api.yandex.net/v1/disk/public/resources?public_key="+encodeURIComponent(u))).json();
+      const items=meta.type==="dir"?((meta._embedded&&meta._embedded.items)||[]):[meta];
+      for(const it of (items||[]).slice(0,6)){
+        try{
+          if(!/image/i.test(it.mime_type||"")&&!/\.(jpe?g|png|webp|gif)$/i.test(it.name||""))continue;
+          const dl=await(await fetch("https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key="+encodeURIComponent(u)+"&path="+encodeURIComponent(it.path))).json();
+          if(!dl.href)continue;
+          const blob=await(await fetch(dl.href)).blob();
+          const f=new File([blob],it.name||"photo.jpg",{type:blob.type||"image/jpeg"});
+          if(API){const ps=await uploadBlobsToServer([f]);ps.forEach(p=>{if(!nlRemote.includes(p))nlRemote.push(p);});}
+          else{try{nlPhotos.push(await fileToPhoto(f));}catch(e){}}
+          n++;
+        }catch(e){}
+      }
+    }catch(e){}
   }
+  if(n)paintNlPreview();
+  return n;
+}
+async async function addUrlsPhotos(){
+  const el=$("impUrls2");if(!el)return;
+  const raw=(el.value||"").trim();
+  if(!raw){alert("Вставьте ссылку Drive, папку Drive или Яндекс.Диск");return;}
+  if(/\/drive\/folders\//i.test(raw)){
+    el.value="";
+    if($("impFolder"))$("impFolder").value=raw;
+    switchImptab("manual");
+    const b=$("impFolderBtn");if(b)b.click();
+    return;
+  }
+  const ids=driveIdsFromText(raw);
+  if(ids.length){
+    ids.forEach(id=>{const u=driveThumb(id);if(!nlRemote.includes(u))nlRemote.push(u);});
+    paintNlPreview();el.value="";alert(`Загружено фото: ${ids.length}`);
+    return;
+  }
+  alert("Пробую Яндекс.Диск...");
+  const n=await importYandexLinks(raw);
+  if(n){el.value="";alert(`Загружено фото: ${n}`);}
+  else alert("Не понял ссылку. Нужна ссылка вида drive.google.com/file/d/.../view, папка Drive или публичная ссылка Яндекс.Диска");
+}
   if($("impUrls2"))$("impUrls2").addEventListener("change",addUrlsPhotos);
   if($("impPhotos2"))$("impPhotos2").onclick=addUrlsPhotos;
 function docIdFromUrl(url){
