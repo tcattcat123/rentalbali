@@ -191,7 +191,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.3";
+const APP_V="2.4";
 const t = k=>I18N[state.lang][k]||k;
 const isNew = it=>(Date.now()-it.createdAt)<24*H;
 
@@ -438,7 +438,7 @@ function updateMarkersSafe(){if(map)updateMarkers();}
 let editingId=null;
 function resetNlForm(){
   editingId=null;
-  ["nlTitle","nlPrice","nlArea","nlLand","nlFloors","nlYear","impText","impUrls","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
+  ["nlTitle","nlPrice","nlArea","nlLand","nlFloors","nlYear","impUrls","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
   ["nlBed","nlLiving"].forEach(k=>{if($(k))$(k).value=1;});
   if($("nlBath"))$("nlBath").value=1;
   if($("nlPark"))$("nlPark").value=0;
@@ -769,12 +769,28 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("nlType"))$("nlType").addEventListener("change",()=>paintNlAmen((AM[$("nlType").value]||[]).slice(0,4)));
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
-  if($("impParse"))$("impParse").onclick=()=>{
-    const o=parseDeskripsi($("impText").value||"");
-    if(!o||!Object.keys(o).length){alert("Пусто — вставьте текст из Google Docs");return;}
-    fillFormFromParsed(o,true);
-    if($("nlDesc")&&!$("nlDesc").value)$("nlDesc").value=($("impText").value||"").trim().slice(0,2000);
-    if(!submitForm(true)){$("manualBox").open=true;alert("Почти готово: допишите заголовок и цену вручную");}
+function docIdFromUrl(url){
+  let m=(url||"").match(/\/document\/(?:u\/\d+\/)?d\/([a-zA-Z0-9_-]+)/);
+  if(m)return{exp:`https://docs.google.com/document/d/${m[1]}/export?format=txt`};
+  m=(url||"").match(/\/document\/d\/e\/([a-zA-Z0-9_-]+)/);
+  if(m)return{exp:`https://docs.google.com/document/d/e/${m[1]}/export?format=txt`};
+  return null;
+}
+  if($("impDocBtn"))$("impDocBtn").onclick=async()=>{
+    const url=($("impDoc").value||"").trim();
+    const d=docIdFromUrl(url);
+    if(!d){alert("Вставьте ссылку вида https://docs.google.com/document/d/...");return;}
+    const btn=$("impDocBtn");btn.disabled=true;
+    try{
+      let txt="";
+      try{txt=await fetchViaProxies(d.exp,20000,"Качаю документ",btn);}catch(e){txt="";}
+      txt=(txt||"").trim();
+      if(!txt){alert("Документ не отдался. Откройте доступ «Все, у кого есть ссылка» (Читатель) и попробуйте ещё раз");btn.textContent="Распознать и создать";btn.disabled=false;return;}
+      if($("nlDesc"))$("nlDesc").value=txt.slice(0,3000);
+      fillFormFromParsed(parseDeskripsi(txt),true);
+      if(!submitForm(true)){$("manualBox").open=true;alert("Почти готово: допишите заголовок и цену вручную");}
+    }catch(e){alert("Не смог прочитать документ");}
+    btn.textContent="Распознать и создать";btn.disabled=false;
   };
   if($("impLinkBtn"))$("impLinkBtn").onclick=async()=>{
     const url=($("impLink").value||"").trim();
