@@ -75,6 +75,32 @@ def drive_fetch(url):
         return resp.read(3 * 1024 * 1024).decode("utf-8", errors="replace")
 
 
+def resolve_geo_url(url):
+    """Follow redirects of a (short) maps link, extract lat/lng."""
+    if not url or not url.startswith("http"):
+        return {}
+    direct = re.search(r"@(-?\d+\.\d+),(-?\d+\.\d+)", url)
+    if direct:
+        return {"lat": float(direct.group(1)), "lng": float(direct.group(2)),
+                "final": url}
+    q = re.search(r"[?&](?:q|query)=(-?\d+\.\d+),(-?\d+\.\d+)", url)
+    if q:
+        return {"lat": float(q.group(1)), "lng": float(q.group(2)),
+                "final": url}
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            final = resp.geturl()
+    except Exception as e:
+        return {"error": "fetch failed: %s" % e}
+    m = (re.search(r"@(-?\d+\.\d+),(-?\d+\.\d+)", final)
+         or re.search(r"[?&](?:q|query)=(-?\d+\.\d+),(-?\d+\.\d+)", final))
+    if m:
+        return {"lat": float(m.group(1)), "lng": float(m.group(2)),
+                "final": final}
+    return {"final": final}
+
+
 def drive_list(folder_id):
     html = drive_fetch(
         "https://drive.google.com/embeddedfolderview?id=" + folder_id)
@@ -242,6 +268,15 @@ class Handler(SimpleHTTPRequestHandler):
                 "photoIds": seen,
                 "files": [e["title"] for e in entries],
             })
+        if path == "/api/geo":
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            url = (qs.get("url") or [""])[0]
+            r = resolve_geo_url(url)
+            if "lat" in r:
+                return self._send_json({"ok": True, **r})
+            return self._send_json({"ok": False,
+                                    "error": r.get("error", "no coords found"),
+                                    "final": r.get("final", "")}, 422)
         return super().do_GET()
 
     def do_POST(self):

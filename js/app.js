@@ -191,7 +191,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.9";const APP_BUILD="54";
+const APP_V="2.10";const APP_BUILD="55";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -220,6 +220,11 @@ function timeAgo(ts){
 }
 function pTypeLabel(v){return t("t_"+v)||v;}
 function locLabel(it){return state.lang==="ru"?it.location:it.locationEn||it.location;}
+function waNum(it){
+  let p=String((it&&it.phone)||"+6281337341275").replace(/\D/g,"");
+  if(p.startsWith("0"))p="62"+p.slice(1);
+  return p||"6281337341275";
+}
 const SVG_PIN='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
 const SVG_EYE='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
 const SVG_BED='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 20v-9a2 2 0 012-2h16a2 2 0 012 2v9"/><path d="M2 17h20"/><circle cx="6" cy="11" r="1.6"/></svg>';
@@ -665,8 +670,27 @@ function fillFormFromParsed(o,quiet){
   if(!quiet)alert("Поля заполнены — проверьте и жмите Опубликовать");
   return true;
 }
+const DIST_CENTER={Canggu:[-8.6478,115.1385],Seminyak:[-8.6905,115.1665],Ubud:[-8.5069,115.2625],Uluwatu:[-8.815,115.1725],Sanur:[-8.693,115.2628],Denpasar:[-8.6705,115.2126],Jimbaran:[-8.7775,115.1637],NusaDua:[-8.7962,115.2229],Kuta:[-8.7184,115.1686],Pererenan:[-8.657,115.128],Umalas:[-8.62,115.15],Kerobokan:[-8.66,115.16],Tabanan:[-8.5416,115.1247],Legian:[-8.706,115.168],Lovina:[-8.16,115.03],Amed:[-8.33,115.66]};
+function parseGeoUrl(url){
+  if(!url)return null;
+  let m=url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)||url.match(/query=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m)return[+m[1],+m[2]];
+  return null;
+}
+async function resolveGeo(url){
+  const direct=parseGeoUrl(url||"");
+  if(direct)return{lat:direct[0],lng:direct[1]};
+  if(!API)return null;
+  try{
+    const r=await fetch("api/geo?url="+encodeURIComponent(url),{cache:"no-store"});
+    const j=await r.json();
+    if(j&&j.ok&&j.lat)return{lat:j.lat,lng:j.lng};
+  }catch(e){}
+  return null;
+}
 function fillDistricts(){
   const ds=$("nlDistrict");if(!ds||ds.options.length)return;
+  const o0=document.createElement("option");o0.value="";o0.textContent="— Выберите район —";ds.appendChild(o0);
   DIST_TREE.forEach(n=>{
     const o=document.createElement("option");o.value=n.key;o.textContent=n.ru;ds.appendChild(o);
     (n.kids||[]).forEach(([k,r])=>{const c=document.createElement("option");c.value=k;c.textContent="— "+r;ds.appendChild(c);});
@@ -705,16 +729,17 @@ function openDetail(id){
     <div class="params">${chips.join("")}</div>
     <div class="d-locrow"><span class="d-loc">${SVG_PIN} ${locLabel(it)}, Бали</span>
       <span class="d-meta">${SVG_EYE} ${it.views} <span class="time-pill">${timeAgo(it.createdAt)}</span></span></div>
+    ${it.addr?`<div class="d-addr">${SVG_PIN} ${it.addr} ${it.geoAcc==="approx"?'<span class="acc-badge">Ориентир</span>':'<span class="acc-badge ok">Точный адрес</span>'}</div>`:""}
     <div class="d-actions">${it.type==="request"
       ?`<button class="btn-call" data-offer="${it.id}">✉ ${t("offer_btn")}</button>`
-      :`<a class="btn-call" href="tel:+6281337341275">Позвонить</a><a class="btn-tg" href="https://t.me/renthomebali" target="_blank" rel="noopener">Написать в Telegram</a>`}</div>
+      :`<a class="btn-call" href="tel:${waNum(it)}">Позвонить</a><a class="btn-wa" href="https://wa.me/${waNum(it)}" target="_blank" rel="noopener">WhatsApp</a><a class="btn-tg" href="https://t.me/renthomebali" target="_blank" rel="noopener">Telegram</a>`}</div>
+    ${it.desc?`<div class="desc-block open"><div class="desc-body"><div class="desc-in"><div class="desc-text"></div></div></div></div>`:""}
     ${it.legal?`<div class="legal">◈ ${t("legal_txt")} · ${agent}</div>`:""}
   </div><div class="d-right">
     <div class="card d-card"><h3>${state.lang==="ru"?"Характеристики":"Features"}</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">${rows.map(r=>`<div class="flex items-baseline justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50 rounded px-2 -mx-2 transition-colors"><span class="text-[13px] text-slate-500">${r[0]}</span><span class="text-[13px] font-semibold text-slate-800 text-right">${r[1]}</span></div>`).join("")}</div></div>
     <div class="card d-card"><h3>${state.lang==="ru"?"Удобства":"Amenities"}</h3>
       <div class="flex flex-wrap gap-2">${(it.amenities||[]).map(a=>`<span class="rounded-full bg-brand-soft text-brand-dark text-[13px] font-semibold px-3.5 py-1">${a}</span>`).join("")}</div></div>
-    ${it.desc?`<div class="desc-block"><button class="desc-toggle" id="descToggle">Подробнее <span class="chev">▼</span></button><div class="desc-body"><div class="desc-in"><div class="desc-text"></div></div></div></div>`:""}
     <div class="card d-card"><h3>${state.lang==="ru"?"На карте":"On map"}</h3>
       <iframe title="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${it.lat},${it.lng}"></iframe>
       <div class="map-row"><span class="muted">${locLabel(it)}, Бали, Индонезия</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${state.lang==="ru"?"Построить маршрут":"Directions"} →</a></div></div>
@@ -722,7 +747,6 @@ function openDetail(id){
   switchView("detail");window.scrollTo({top:0});
   try{location.hash="listing-"+it.id;}catch(e){}
   const dt=document.querySelector(".desc-text");if(dt)dt.textContent=it.desc||"";
-  const dTog=$("descToggle");if(dTog)dTog.onclick=()=>dTog.closest(".desc-block").classList.toggle("open");
   $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href);}catch(e){}alert(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
   $("dFav").onclick=()=>{const on=!state.fav.has(it.id);on?state.fav.add(it.id):state.fav.delete(it.id);localStorage.setItem("rh_fav",JSON.stringify([...state.fav]));const b=$("dFav");b.textContent=on?"♥":"♡";b.classList.toggle("on",on);render();};
 }
@@ -870,7 +894,7 @@ function docIdFromUrl(url){
       if(!txt){alert("Документ не отдался. Откройте доступ «Все, у кого есть ссылка» (Читатель) и попробуйте ещё раз");btn.textContent="Распознать и создать";btn.disabled=false;return;}
       if($("nlDesc"))$("nlDesc").value=txt.slice(0,3000);
       fillFormFromParsed(parseDeskripsi(txt),true);
-      if(!submitForm(true)){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
+      if(!(await submitForm(true))){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
     }catch(e){alert("Не смог прочитать документ");}
     btn.textContent="Распознать и создать";btn.disabled=false;
   };
@@ -944,7 +968,7 @@ function docIdFromUrl(url){
       if(pf.category){state.rentCat=pf.category;document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));}
       if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
       syncNlDeal();
-      if(!submitForm(true)){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
+      if(!(await submitForm(true))){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
     }catch(e){alert("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
     done();
   };
@@ -973,7 +997,7 @@ function docIdFromUrl(url){
       if(pf.tenure)$("nlTenure").value=pf.tenure;
       if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
       syncNlDeal();
-      if(!submitForm(true)){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
+      if(!(await submitForm(true))){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
     }catch(e){alert("Папку прочитать не удалось. Проверьте доступ «Все у кого есть ссылка» или используйте другие варианты");}
     btn.textContent="Создать из папки";btn.disabled=false;
   };
@@ -991,14 +1015,21 @@ function docIdFromUrl(url){
     nlRemote=ROYAL_PHOTOS.map(driveThumb);paintNlPreview();
     alert("Royal Lotus заполнен: 21 фото + поля. Проверьте и жмите Опубликовать");
   };
-  function submitForm(auto){
+  async function submitForm(auto){
     const title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
     if(!title){if(!auto)alert("Укажите заголовок");return false;}
     if(!(price>0)){if(auto){price=0;}else{alert("Укажите цену");return false;}}
     if($("nlCur")&&$("nlCur").value==="USD")price=Math.round(price*RATE);
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
-    const dk=$("nlDistrict").value||"Canggu";
+    const dk=$("nlDistrict").value||"";
+    if(!dk){if(!auto)alert("Выберите район");else{switchImptab("manual");alert("Выберите район вручную");}return false;}
     const rl=locName(dk);
+    let lat=null,lng=null;
+    const g=await resolveGeo($("nlGeo").value.trim());
+    if(g){lat=g.lat;lng=g.lng;}
+    else{const c=DIST_CENTER[dk]||[-8.65,115.17];lat=c[0];lng=c[1];}
+    const acc=$("nlAcc").value||"exact";
+    if(acc==="approx"){lat=+(lat+(Math.random()-.5)*0.006).toFixed(5);lng=+(lng+(Math.random()-.5)*0.006).toFixed(5);}
     const pool=POOL[pt]||POOL.villa;
     const allPhotos=[...nlRemote,...nlPhotos];
     const amen=[...document.querySelectorAll("#nlAmen input:checked")].map(c=>c.value);
@@ -1007,7 +1038,8 @@ function docIdFromUrl(url){
       propertyType:pt,bedrooms:+$("nlBed").value||0,bathrooms:+$("nlBath").value||0,
       area:+$("nlArea").value||0,landArea:+$("nlLand").value||0,floors:0,
       yearBuilt:0,furnished:true,
-      location:rl,locationEn:dk,lat:-8.65+(Math.random()-.5)*.06,lng:115.17+(Math.random()-.5)*.06,
+      location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim(),geoAcc:acc,
+      phone:($("nlPhone").value||"").trim()||getProfile().phone||"",
       images:allPhotos.length?allPhotos:[pool[0]],fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
