@@ -191,7 +191,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.6";const APP_BUILD="51";
+const APP_V="2.7";const APP_BUILD="52";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -804,6 +804,16 @@ function docIdFromUrl(url){
       if(!submitForm(true)){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
     }catch(e){alert("Не смог прочитать документ");}
     btn.textContent="Распознать и создать";btn.disabled=false;
+  };
+  if($("impTgParse"))$("impTgParse").onclick=()=>{
+    const txt=($("impTgText").value||"").trim();
+    if(!txt){alert("Вставьте текст поста");return;}
+    if($("nlDesc"))$("nlDesc").value=txt.slice(0,3000);
+    const o=parseDeskripsi(txt);
+    fillFormFromParsed(o,true);
+    const first=(txt.split("\n").map(s=>s.trim()).find(s=>s)||"").replace(/#\w+/g,"").trim().slice(0,90);
+    if(first)$("nlTitle").value=first;
+    if(!submitForm(true)){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
   };
   if($("impLinkBtn"))$("impLinkBtn").onclick=async()=>{
     const url=($("impLink").value||"").trim();
