@@ -163,13 +163,13 @@
     <div class="my-head"><h3>Мои объявления</h3></div>
     <div class="card cab-form">
     <h3>Новое объявление</h3>
-    <div class="filter-group"><label>Ссылка на пост Telegram</label><input id="impLink" placeholder="https://t.me/..."><div style="margin-top:8px"><button id="impLinkBtn" class="btn-primary block">Парсинг</button></div></div>
+    <div class="filter-group"><label>Вариант 1 — ссылка на пост Telegram</label><input id="impLink" placeholder="https://t.me/..."><div style="margin-top:8px"><button id="impLinkBtn" class="btn-primary block">Парсинг</button></div></div>
+    <div class="filter-group"><label>Вариант 2 — текст из Google Docs (Deskripsi)</label><textarea id="impText" rows="3" placeholder="Вставьте описание объекта..."></textarea><div style="margin-top:8px"><button id="impParse" class="btn-primary block">Распознать и создать</button></div></div>
+    <div class="filter-group"><label>Фото по ссылкам Drive (добавятся к любому варианту)</label><textarea id="impUrls" rows="2" placeholder="https://drive.google.com/file/d/..."></textarea><div style="margin-top:8px"><button id="impPhotos" class="btn-ghost">Добавить фото по ссылкам</button></div></div>
     <details id="manualBox"><summary>Заполнить вручную</summary>
     <div class="imp-block">
     <div class="filter-group"><label>Автоимпорт из Google Drive</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="impRoyal" class="btn-ghost">Импорт Royal Lotus (Убуд)</button></div></div>
-    <div class="filter-group"><label>Текст Deskripsi — вставьте, поля заполнятся сами</label><textarea id="impText" rows="3" placeholder="Вставьте описание объекта..."></textarea><div><button id="impParse" class="btn-ghost">Распознать текст</button></div></div>
-    <div class="filter-group"><label>Фото: ссылки Drive или ID файлов (по одной на строке)</label><textarea id="impUrls" rows="3" placeholder="https://drive.google.com/file/d/..."></textarea><div><button id="impPhotos" class="btn-ghost">Добавить фото по ссылкам</button></div></div>
     </div>
     <div class="calc-grid">
     <div class="filter-group"><label>Сделка</label><select id="nlDeal"><option value="rent">Аренда</option><option value="sale">Покупка</option></select></div>

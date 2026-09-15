@@ -569,8 +569,8 @@ async function fetchViaProxies(url,ms,label,btn){
   }
   throw err||new Error("noproxy");
 }
-function fillFormFromParsed(o){
-  if(!o||!Object.keys(o).length){alert("Не смог распознать — заполните вручную");return;}
+function fillFormFromParsed(o,quiet){
+  if(!o||!Object.keys(o).length){if(!quiet)alert("Не смог распознать — заполните вручную");return false;}
   if(o.deal)$("nlDeal").value=o.deal;
   if(o.role)$("nlRole").value=o.role;
   if(o.price)$("nlPrice").value=o.price;
@@ -586,7 +586,8 @@ function fillFormFromParsed(o){
   if(o.phone){$("nlPhone").value=o.phone;}
   if(typeof o.furnished==="boolean")$("nlFurn").value=o.furnished?"yes":"no";
   if(o.name){const nm=o.name.toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());$("nlTitle").value=`Вилла ${nm} — ${o.districtRu||"Бали"}`;}
-  alert("Поля заполнены — проверьте и жмите Опубликовать");
+  if(!quiet)alert("Поля заполнены — проверьте и жмите Опубликовать");
+  return true;
 }
 function fillDistricts(){
   const ds=$("nlDistrict");if(!ds||ds.options.length)return;
@@ -767,7 +768,13 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("nlType"))$("nlType").addEventListener("change",()=>paintNlAmen((AM[$("nlType").value]||[]).slice(0,4)));
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
-  if($("impParse"))$("impParse").onclick=()=>fillFormFromParsed(parseDeskripsi($("impText").value||""));
+  if($("impParse"))$("impParse").onclick=()=>{
+    const o=parseDeskripsi($("impText").value||"");
+    if(!o||!Object.keys(o).length){alert("Пусто — вставьте текст из Google Docs");return;}
+    fillFormFromParsed(o,true);
+    if($("nlDesc")&&!$("nlDesc").value)$("nlDesc").value=($("impText").value||"").trim().slice(0,2000);
+    if(!submitForm(true)){$("manualBox").open=true;alert("Почти готово: допишите заголовок и цену вручную");}
+  };
   if($("impLinkBtn"))$("impLinkBtn").onclick=async()=>{
     const url=($("impLink").value||"").trim();
     if(!/^https?:\/\//i.test(url)){alert("Вставьте ссылку https://...");return;}
