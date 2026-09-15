@@ -448,6 +448,10 @@ function resetNlForm(){
   if($("nlSave"))$("nlSave").textContent="Опубликовать";
   const c=$("nlCancel");if(c)c.remove();
 }
+function switchImptab(name){
+  document.querySelectorAll("[data-imptab]").forEach(b=>b.classList.toggle("active",b.dataset.imptab===name));
+  document.querySelectorAll("[data-imppanel]").forEach(p=>p.classList.toggle("hidden",p.dataset.imppanel!==name));
+}
 function fillEditForm(id){
   const it=LISTINGS.find(x=>x.id===id&&x.user);if(!it)return;
   editingId=id;
@@ -463,7 +467,7 @@ function fillEditForm(id){
   $("nlLiving").value=it.living||0;$("nlPark").value=it.parking||0;
   $("nlAvail").value=it.available?it.available.slice(0,7):"";
   paintNlAmen(it.amenities||[]);syncNlDeal();
-  const mb=$("manualBox");if(mb)mb.open=true;
+  switchImptab("manual");
   nlPhotos=[];nlRemote=[...(it.images||[])];paintNlPreview();
   $("nlSave").textContent="Сохранить изменения";
   if(!$("nlCancel")){const b=document.createElement("button");b.id="nlCancel";b.className="btn-text";b.textContent="Отмена";b.style.marginTop="8px";b.onclick=()=>{resetNlForm();};$("nlSave").after(b);}
@@ -745,7 +749,8 @@ if($("mfilterBtn"))$("mfilterBtn").onclick=()=>openSheet();
 if($("mreset"))$("mreset").onclick=()=>{resetFilters();state.rentCat="";render();};
 if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render();window.scrollTo({top:0,behavior:"smooth"});};
   if($("sheetBg"))$("sheetBg").onclick=()=>closeSheet();
-  if($("manualBtn"))$("manualBtn").onclick=()=>{const mb=$("manualBox");if(mb){mb.open=true;mb.scrollIntoView({behavior:"smooth"});}};
+  if($("manualBtn"))$("manualBtn").remove();
+  document.querySelectorAll("[data-imptab]").forEach(b=>b.onclick=()=>switchImptab(b.dataset.imptab));
 if($("markersBtn"))$("markersBtn").onclick=()=>{showMarkers=!showMarkers;$("markersBtn").textContent=showMarkers?"Скрыть метки":"Показать метки";updateMarkersSafe();};
 if($("sheetApply"))$("sheetApply").onclick=()=>$("applyBtn").click();
 if($("sheetReset"))$("sheetReset").onclick=()=>$("resetBtn").click();
@@ -788,7 +793,7 @@ function docIdFromUrl(url){
       if(!txt){alert("Документ не отдался. Откройте доступ «Все, у кого есть ссылка» (Читатель) и попробуйте ещё раз");btn.textContent="Распознать и создать";btn.disabled=false;return;}
       if($("nlDesc"))$("nlDesc").value=txt.slice(0,3000);
       fillFormFromParsed(parseDeskripsi(txt),true);
-      if(!submitForm(true)){$("manualBox").open=true;alert("Почти готово: допишите заголовок и цену вручную");}
+      if(!submitForm(true)){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
     }catch(e){alert("Не смог прочитать документ");}
     btn.textContent="Распознать и создать";btn.disabled=false;
   };
@@ -852,12 +857,12 @@ function docIdFromUrl(url){
       if(pf.category){state.rentCat=pf.category;document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));}
       if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
       syncNlDeal();
-      if(!submitForm(true)){$("manualBox").open=true;alert("Почти готово: допишите заголовок и цену вручную");}
+      if(!submitForm(true)){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
     }catch(e){alert("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
     done();
   };
   if($("impPhotos"))$("impPhotos").onclick=()=>{
-    const lines=($("impUrls").value||"").split("\n").map(driveIdFromUrl).filter(Boolean);
+    const lines=($("impUrls").value||"").split(/[\n,;]+/).map(driveIdFromUrl).filter(Boolean);
     if(!lines.length){alert("Не нашёл ссылок — вставьте URL файлов Drive или ID");return;}
     lines.forEach(id=>{const u=driveThumb(id);if(!nlRemote.includes(u))nlRemote.push(u);});
     paintNlPreview();alert(`Добавлено фото: ${lines.length}`);

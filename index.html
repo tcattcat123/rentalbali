@@ -163,15 +163,24 @@
     <div class="my-head"><h3>Мои объявления</h3></div>
     <div class="card cab-form">
     <h3>Новое объявление</h3>
-    <div class="filter-group"><label>Вариант 1 — ссылка на пост Telegram</label><input id="impLink" placeholder="https://t.me/..."><div style="margin-top:8px"><button id="impLinkBtn" class="btn-primary block">Парсинг</button></div></div>
-    <div class="filter-group"><label>Вариант 2 — ссылка на Google Docs (откройте доступ «Все у кого есть ссылка»)</label><input id="impDoc" placeholder="https://docs.google.com/document/d/..."><div style="margin-top:8px"><button id="impDocBtn" class="btn-primary block">Распознать и создать</button></div></div>
-    <div class="filter-group"><label>Фото по ссылкам Drive (добавятся к любому варианту)</label><textarea id="impUrls" rows="2" placeholder="https://drive.google.com/file/d/..."></textarea><div style="margin-top:8px"><button id="impPhotos" class="btn-ghost">Добавить фото по ссылкам</button></div></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-      <button id="manualBtn" class="btn-ghost">＋ Добавить вручную с параметрами</button>
+    <div class="imp-tabs" role="tablist">
+      <button data-imptab="tg" class="active">Telegram-пост</button>
+      <button data-imptab="doc">Google Docs</button>
+      <button data-imptab="manual">Вручную</button>
     </div>
-    <details id="manualBox"><summary>Заполнить вручную</summary>
+    <div class="imp-panel" data-imppanel="tg">
+      <div class="filter-group"><label>Ссылка на пост — текст, фото и параметры подтянутся сами</label>
+      <div class="imp-row"><input id="impLink" placeholder="https://t.me/..."><button id="impLinkBtn" class="btn-primary">Парсинг</button></div></div>
+    </div>
+    <div class="imp-panel hidden" data-imppanel="doc">
+      <div class="filter-group"><label>Ссылка на документ <span class="muted">(доступ «Все у кого есть ссылка»)</span></label>
+      <div class="imp-row"><input id="impDoc" placeholder="https://docs.google.com/document/d/..."><button id="impDocBtn" class="btn-primary">Создать</button></div></div>
+      <div class="filter-group"><label>Фото по ссылкам Drive — добавятся к любому варианту</label>
+      <div class="imp-row"><input id="impUrls" placeholder="Ссылка или ID файла"><button id="impPhotos" class="btn-ghost">+ Фото</button></div></div>
+    </div>
+    <div class="imp-panel hidden" data-imppanel="manual">
     <div class="imp-block">
-    <div class="filter-group"><label>Автоимпорт из Google Drive</label>
+    <div class="filter-group"><label>Быстрый шаблон</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="impRoyal" class="btn-ghost">Импорт Royal Lotus (Убуд)</button></div></div>
     </div>
     <div class="calc-grid">
@@ -199,7 +208,7 @@
     <div class="filter-group full"><label>Фото (до 6)</label><input type="file" id="nlPhotos" accept="image/*" multiple><div id="nlPreview" class="nl-preview"></div></div>
     </div>
     <button id="nlSave" class="btn-primary block">Опубликовать</button>
-    </details>
+    </div>
     </div>
     <div id="myGrid" class="grid"></div>
   </section>
