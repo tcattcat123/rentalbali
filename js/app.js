@@ -191,7 +191,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.11";const APP_BUILD="56";
+const APP_V="2.12";const APP_BUILD="57";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -904,7 +904,7 @@ async function importYandexLinks(raw){
   if(n)paintNlPreview();
   return n;
 }
-async async function addUrlsPhotos(){
+async function addUrlsPhotos(){
   const el=$("impUrls2");if(!el)return;
   const raw=(el.value||"").trim();
   if(!raw){alert("Вставьте ссылку Drive, папку Drive или Яндекс.Диск");return;}

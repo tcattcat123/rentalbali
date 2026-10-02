@@ -22,7 +22,8 @@ body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans
 .location-meta span{display:inline-flex;align-items:center;gap:3px}
 .detail-card .meta span{display:inline-flex;align-items:center;gap:3px}
 h1,h2,h3{margin:0;font-weight:600}
-button{font-family:inherit}
+button{font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+a{-webkit-tap-highlight-color:transparent}
 /* topbar */
 .topbar{background:var(--acc-soft);color:var(--acc-dark);font-size:12px;text-align:center;padding:6px 12px;font-weight:600}
 .upd-banner{background:#FFF7DB;color:#7A5B00;text-align:center;padding:8px 12px;font-size:13px;font-weight:600;display:flex;gap:10px;align-items:center;justify-content:center;position:sticky;top:0;z-index:200}
@@ -146,7 +147,9 @@ body:not([data-settled]) .property-card{animation:rise .5s both}
 .photo-titles{position:absolute;left:12px;right:12px;bottom:10px;z-index:2;color:#fff}
 .pt-title{font-size:17px;font-weight:700;line-height:1.3;text-shadow:0 1px 6px rgba(0,0,0,.5)}
 .pt-sub{font-size:12.5px;opacity:.92;margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
-.car-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.9);border:0;border-radius:50%;width:28px;height:28px;cursor:pointer;display:none;font-size:14px;z-index:2}
+.car-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.9);border:0;border-radius:50%;width:32px;height:32px;cursor:pointer;display:none;font-size:16px;z-index:3;touch-action:manipulation}
+.property-card:hover .car-btn{display:block}
+@media (hover:none),(pointer:coarse){.property-card .car-btn{display:block;opacity:.95}}
 .property-card:hover .car-btn{display:block}
 .car-btn.prev{left:8px}.car-btn.next{right:8px}
 .photo-counter{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;z-index:2}
@@ -159,7 +162,7 @@ body:not([data-settled]) .property-card{animation:rise .5s both}
 .badge.agent{background:var(--acc-soft);color:var(--acc-dark)}
 .badge.urgent{background:var(--bad);color:#fff}
 .badge.tenure{background:rgba(20,30,50,.65);color:#fff;font-weight:600}
-.favorite-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.85);border:0;border-radius:4px;width:30px;height:30px;font-size:16px;cursor:pointer;z-index:2;color:var(--ink)}
+.favorite-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.85);border:0;border-radius:4px;width:34px;height:34px;font-size:17px;cursor:pointer;z-index:3;color:var(--ink);touch-action:manipulation}
 .favorite-btn.active{color:var(--acc)}
 .card-body{padding:10px 12px}
 .price{font-size:18px;font-weight:700;color:#1A202C;margin:2px 0 4px}
@@ -453,9 +456,12 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
   .mchips::-webkit-scrollbar{display:none}
   .mchips button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;display:flex;gap:6px;align-items:center;cursor:pointer;color:var(--ink);white-space:nowrap}
   .mchips button.active{background:var(--acc-soft);border-color:var(--acc);color:var(--acc-dark)}
-  #mshow{width:100%;height:44px;font-size:15px;border-radius:10px}
+  #mshow{width:100%;height:48px;font-size:15px;border-radius:10px;touch-action:manipulation}
   .mrow{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-  #mfilterBtn{border:0;background:none;color:var(--ink);font-size:14px;font-weight:600;display:flex;gap:6px;align-items:center;cursor:pointer}
+  #mfilterBtn{border:0;background:none;color:var(--ink);font-size:14px;font-weight:600;display:flex;gap:6px;align-items:center;cursor:pointer;min-height:44px;touch-action:manipulation}
+  .mseg button{min-height:44px;touch-action:manipulation}
+  .mchips button{min-height:40px;touch-action:manipulation}
+  .bn-item{min-height:48px;min-width:64px;touch-action:manipulation}
   .sec-head{display:flex;justify-content:space-between;align-items:center;margin:2px 2px 10px}
   .sec-head h2{font-size:17px}
   .sec-head button{border:0;background:none;color:var(--acc);font-size:13.5px;font-weight:600;cursor:pointer}
