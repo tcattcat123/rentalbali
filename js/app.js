@@ -63,12 +63,12 @@ function persistMy(){
   const saveLocal=(list)=>{try{localStorage.setItem("rh_my",JSON.stringify(list));return true;}catch(e){return false;}};
   if(!saveLocal(items)){
     const slim=items.map(o=>Object.assign({},o,{images:(o.images||[]).slice(0,1)}));
-    if(saveLocal(slim)){alert("Места мало: оставил по 1 фото на объявление. Скачайте копию кабинета.");}
-    else{alert("Хранилище переполнено: скачайте копию кабинета и удалите часть фото");return;}
+    if(saveLocal(slim)){notify("Места мало: оставил по 1 фото на объявление. Скачайте копию кабинета.");}
+    else{notify("Хранилище переполнено: скачайте копию кабинета и удалите часть фото");return;}
   }
   if(!API)return;
   fetch("api/listings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items})})
-    .then(r=>r.json()).then(j=>{if(!j.ok)alert("Не сохранено в JSON");}).catch(()=>alert("Нет связи с admin-server — сохранено только в браузере"));
+    .then(r=>r.json()).then(j=>{if(!j.ok)notify("Не сохранено в JSON");}).catch(()=>notify("Нет связи с admin-server — сохранено только в браузере"));
 }
 function getProfile(){try{const p=JSON.parse(localStorage.getItem("rh_profile")||"{}");return{name:p.name||"",guestId:getGuestId()};}catch(e){return{name:"",guestId:getGuestId()};}}
 const TEN={17:"freehold",18:"freehold",19:"leasehold",20:"freehold",12:"leasehold",16:"freehold"};
@@ -196,7 +196,16 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.18";const APP_BUILD="63";
+function notify(msg,ms){
+  let box=$("toasts");
+  if(!box){box=document.createElement("div");box.id="toasts";box.className="toasts";document.body.appendChild(box);}
+  const t=document.createElement("div");t.className="toast";t.textContent=String(msg||"");
+  box.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add("show"));
+  setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
+  while(box.children.length>3)box.firstChild.remove();
+}
+const APP_V="2.19";const APP_BUILD="64";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -654,7 +663,7 @@ async function fetchViaProxies(url,ms,label,btn){
   throw err||new Error("noproxy");
 }
 function fillFormFromParsed(o,quiet){
-  if(!o||!Object.keys(o).length){if(!quiet)alert("Не смог распознать — заполните вручную");return false;}
+  if(!o||!Object.keys(o).length){if(!quiet)notify("Не смог распознать — заполните вручную");return false;}
   if(o.deal)$("nlDeal").value=o.deal;
   if(o.role)$("nlRole").value=o.role;
   if(o.price)$("nlPrice").value=o.price;
@@ -670,7 +679,7 @@ function fillFormFromParsed(o,quiet){
   if(typeof o.furnished==="boolean"&&$("nlFurn"))$("nlFurn").value=o.furnished?"yes":"no";
   if(o.name){const nm=o.name.toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());$("nlTitle").value=/^(вилла|villa)\b/i.test(nm)?`${nm} — ${o.districtRu||"Бали"}`:`Вилла ${nm} — ${o.districtRu||"Бали"}`;}
   if(o.tenure&&$("nlTenure"))$("nlTenure").value=o.tenure;
-  if(!quiet)alert("Поля заполнены — проверьте и жмите Опубликовать");
+  if(!quiet)notify("Поля заполнены — проверьте и жмите Опубликовать");
   return true;
 }
 /* ===== AI-parse: нейросеть читает задание и формирует карточку ===== */
@@ -759,7 +768,7 @@ async function aiParseRemote(text){
 }
 async function aiCreateFromText(txt,btn){
   txt=(txt||"").trim();
-  if(!txt){alert("Вставьте текст задания");return;}
+  if(!txt){notify("Вставьте текст задания");return;}
   const done=()=>{if(btn){btn.disabled=false;btn.textContent="🤖 Нейросетью";}};
   if(btn){btn.disabled=true;btn.textContent="Нейросеть думает...";}
   try{
@@ -770,11 +779,11 @@ async function aiCreateFromText(txt,btn){
         const j=await r.json();
         if(j&&j.ok&&j.listing)raw=j.listing;
         else if(j&&j.ok===false&&j.error!=="no_server_key")throw new Error(j.error||"server");
-      }catch(e){if(String((e&&e.message)||"")==="no_server_key"){}else if(raw){}else if(!getAiSettings().key){alert("На сервере нет AI_API_KEY, а в браузере ключ не задан — откройте «Нейросеть: ключ и модель»");done();return;}}
+      }catch(e){if(String((e&&e.message)||"")==="no_server_key"){}else if(raw){}else if(!getAiSettings().key){notify("На сервере нет AI_API_KEY, а в браузере ключ не задан — откройте «Нейросеть: ключ и модель»");done();return;}}
     }
     if(!raw){
       const s=getAiSettings();
-      if(!s.key){alert("Вставьте API-ключ: кабинет → Telegram-пост → «Нейросеть: ключ и модель»");done();return;}
+      if(!s.key){notify("Вставьте API-ключ: кабинет → Telegram-пост → «Нейросеть: ключ и модель»");done();return;}
       raw=await aiParseRemote(txt);
     }
     const o=normalizeAiListing(raw,txt);
@@ -787,7 +796,7 @@ async function aiCreateFromText(txt,btn){
   }catch(e){
     const m=String((e&&e.message)||e);
     const friendly=/campaign_ended/.test(m)?"Бесплатный оффер модели завершён: используйте платную модель или пополните баланс":/402|balance_zero/.test(m)?"Баланс $0: пополните на tokenharbor.ai/dashboard":/ai_http_429|rate_limited/.test(m)?"Превышен лимит (429): проверьте баланс и квоту ключа":/ai_http_401/.test(m)?"Ключ отклонён (401): проверьте API-ключ":m.slice(0,160);
-    alert("Нейросеть не ответила: "+friendly);
+    notify("Нейросеть не ответила: "+friendly);
   }
   done();
 }
@@ -868,7 +877,7 @@ function openDetail(id){
   switchView("detail");window.scrollTo({top:0});
   try{location.hash="listing-"+it.id;}catch(e){}
   const dt=document.querySelector(".desc-text");if(dt)dt.textContent=it.desc||"";
-  $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href);}catch(e){}alert(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
+  $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href);}catch(e){}notify(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
   $("dFav").onclick=()=>{const on=!state.fav.has(it.id);on?state.fav.add(it.id):state.fav.delete(it.id);localStorage.setItem("rh_fav",JSON.stringify([...state.fav]));const b=$("dFav");b.textContent=on?"♥":"♡";b.classList.toggle("on",on);render();};
 }
 function closeDetail(){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}switchView("list");syncDealTabs();}
@@ -890,9 +899,9 @@ document.addEventListener("click",e=>{
   const c=e.target.closest("[data-car]");
   if(c){e.stopPropagation();const id=+c.dataset.id;const it=LISTINGS.find(x=>x.id===id);let i=state.carIdx[id]||0;i=(i+(c.dataset.car==="next"?1:-1)+it.images.length)%it.images.length;state.carIdx[id]=i;render();return;}
   const o=e.target.closest("[data-offer]");
-  if(o){e.stopPropagation();alert(state.lang==="ru"?"Заявка отправлена владельцу запроса!":"Proposal sent!");return;}
+  if(o){e.stopPropagation();notify(state.lang==="ru"?"Заявка отправлена владельцу запроса!":"Proposal sent!");return;}
   const ct=e.target.closest("[data-contact]");
-  if(ct){e.stopPropagation();const it=LISTINGS.find(x=>x.id===+ct.dataset.contact);const nm=it&&it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");alert(state.lang==="ru"?"Свяжемся с "+nm+" в течение часа!":"We will contact "+nm);return;}
+  if(ct){e.stopPropagation();const it=LISTINGS.find(x=>x.id===+ct.dataset.contact);const nm=it&&it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");notify(state.lang==="ru"?"Свяжемся с "+nm+" в течение часа!":"We will contact "+nm);return;}
   const p=e.target.closest("[data-page]");
   if(p){state.page=+p.dataset.page;render();window.scrollTo({top:0,behavior:"smooth"});return;}
   const cr=e.target.closest("[data-crumb]");
@@ -984,7 +993,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   const p=getProfile();
   if($("pfName"))$("pfName").value=p.name||"";
   if($("guestId"))$("guestId").textContent=getGuestId();
-  if($("pfSave"))$("pfSave").onclick=()=>{try{localStorage.setItem("rh_profile",JSON.stringify({name:$("pfName").value.trim()}));}catch(e){}alert("Профиль сохранён");};
+  if($("pfSave"))$("pfSave").onclick=()=>{try{localStorage.setItem("rh_profile",JSON.stringify({name:$("pfName").value.trim()}));}catch(e){}notify("Профиль сохранён");};
   paintNlAmen((AM[$("nlType").value]||[]).slice(0,4));syncNlDeal();
   if($("nlType"))$("nlType").addEventListener("change",()=>paintNlAmen((AM[$("nlType").value]||[]).slice(0,4)));
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
@@ -1027,7 +1036,7 @@ async function importYandexLinks(raw){
 async function addUrlsPhotos(){
   const el=$("impUrls2");if(!el)return;
   const raw=(el.value||"").trim();
-  if(!raw){alert("Вставьте ссылку Drive, папку Drive или Яндекс.Диск");return;}
+  if(!raw){notify("Вставьте ссылку Drive, папку Drive или Яндекс.Диск");return;}
   if(/\/drive\/folders\//i.test(raw)){
     el.value="";
     if($("impFolder"))$("impFolder").value=raw;
@@ -1038,13 +1047,13 @@ async function addUrlsPhotos(){
   const ids=driveIdsFromText(raw);
   if(ids.length){
     ids.forEach(id=>{const u=driveThumb(id);if(!nlRemote.includes(u))nlRemote.push(u);});
-    paintNlPreview();el.value="";alert(`Загружено фото: ${ids.length}`);
+    paintNlPreview();el.value="";notify(`Загружено фото: ${ids.length}`);
     return;
   }
-  alert("Пробую Яндекс.Диск...");
+  notify("Пробую Яндекс.Диск...");
   const n=await importYandexLinks(raw);
-  if(n){el.value="";alert(`Загружено фото: ${n}`);}
-  else alert("Не понял ссылку. Нужна ссылка вида drive.google.com/file/d/.../view, папка Drive или публичная ссылка Яндекс.Диска");
+  if(n){el.value="";notify(`Загружено фото: ${n}`);}
+  else notify("Не понял ссылку. Нужна ссылка вида drive.google.com/file/d/.../view, папка Drive или публичная ссылка Яндекс.Диска");
 }
   if($("impUrls2"))$("impUrls2").addEventListener("change",addUrlsPhotos);
   if($("impPhotos2"))$("impPhotos2").onclick=addUrlsPhotos;
@@ -1058,24 +1067,24 @@ function docIdFromUrl(url){
   if($("impDocBtn"))$("impDocBtn").onclick=async()=>{
     const url=($("impDoc").value||"").trim();
     const d=docIdFromUrl(url);
-    if(!d){alert("Вставьте ссылку вида https://docs.google.com/document/d/...");return;}
+    if(!d){notify("Вставьте ссылку вида https://docs.google.com/document/d/...");return;}
     const btn=$("impDocBtn");btn.disabled=true;
     try{
       let txt="";
       try{txt=await fetchViaProxies(d.exp,20000,"Качаю документ",btn);}catch(e){txt="";}
       txt=(txt||"").trim();
-      if(!txt){alert("Документ не отдался. Откройте доступ «Все, у кого есть ссылка» (Читатель) и попробуйте ещё раз");btn.textContent="Распознать и создать";btn.disabled=false;return;}
+      if(!txt){notify("Документ не отдался. Откройте доступ «Все, у кого есть ссылка» (Читатель) и попробуйте ещё раз");btn.textContent="Распознать и создать";btn.disabled=false;return;}
       if($("nlDesc"))$("nlDesc").value=txt.slice(0,3000);
       fillFormFromParsed(parseDeskripsi(txt),true);
       if(!(await submitForm(true))){switchImptab("manual");reportMissing();}
-    }catch(e){alert("Не смог прочитать документ");}
+    }catch(e){notify("Не смог прочитать документ");}
     btn.textContent="Распознать и создать";btn.disabled=false;
   };
   if($("impAiTop"))$("impAiTop").onclick=()=>{
     switchImptab("tg");
     const box=$("impTgText");
     const txt=(box.value||"").trim();
-    if(!txt){box.focus();alert("Вставьте текст задания в поле ниже и нажмите «Распознать и создать» — или просто пришлите текст в чат, заполню карточку сам.");return;}
+    if(!txt){box.focus();notify("Вставьте текст задания в поле ниже и нажмите «Распознать и создать» — или просто пришлите текст в чат, заполню карточку сам.");return;}
     if($("nlDesc"))$("nlDesc").value=txt.slice(0,3000);
     const o=parseDeskripsi(txt);
     fillFormFromParsed(o,true);
@@ -1085,7 +1094,7 @@ function docIdFromUrl(url){
   };
   if($("impTgParse"))$("impTgParse").onclick=()=>{
     const txt=($("impTgText").value||"").trim();
-    if(!txt){alert("Вставьте текст поста");return;}
+    if(!txt){notify("Вставьте текст поста");return;}
     if($("nlDesc"))$("nlDesc").value=txt.slice(0,3000);
     const o=parseDeskripsi(txt);
     fillFormFromParsed(o,true);
@@ -1098,7 +1107,7 @@ function docIdFromUrl(url){
   ["aiEndpoint","aiModel","aiKey"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",()=>saveAiSettings({endpoint:$("aiEndpoint").value.trim(),model:$("aiModel").value.trim(),key:$("aiKey").value.trim()}));});
   if($("impLinkBtn"))$("impLinkBtn").onclick=async()=>{
     const url=($("impLink").value||"").trim();
-    if(!/^https?:\/\//i.test(url)){alert("Вставьте ссылку https://...");return;}
+    if(!/^https?:\/\//i.test(url)){notify("Вставьте ссылку https://...");return;}
     const btn=$("impLinkBtn");const done=()=>{btn.textContent="Создать из ссылки";btn.disabled=false;};
     btn.disabled=true;
     try{
@@ -1126,11 +1135,11 @@ function docIdFromUrl(url){
             if(og.image&&!photos.includes(og.image))photos.unshift(og.image);
           }
         }
-        if(!emb&&!photos.length&&!desc){alert("Нет связи: Telegram не отдал пост (такое бывает — попробуйте ещё раз или вставьте текст вручную)");done();return;}
+        if(!emb&&!photos.length&&!desc){notify("Нет связи: Telegram не отдал пост (такое бывает — попробуйте ещё раз или вставьте текст вручную)");done();return;}
       } else {
         let can="";
         try{can=await fetchViaProxies(url,15000,"Качаю страницу",btn);}catch(e){can="";}
-        if(!can){alert("Нет связи: страницу скачать не удалось. Проверьте интернет или вставьте текст вручную");done();return;}
+        if(!can){notify("Нет связи: страницу скачать не удалось. Проверьте интернет или вставьте текст вручную");done();return;}
         const og=parseOG(can);desc=unesc(og.description||"").trim();
         if(og.image)photos.push(og.image);
       }
@@ -1139,7 +1148,7 @@ function docIdFromUrl(url){
       let title="";
       if(desc){title=(desc.split("\n").map(s=>s.trim()).find(s=>s)||"").replace(/#\w+/g,"").trim().slice(0,90);}
       if(!title&&photos.length){const tm=url.match(/t\.me\/([A-Za-z0-9_]+)\/(\d+)/);title=tm?`Пост @${tm[1]} #${tm[2]}`:"Импорт по ссылке";}
-      if(!desc&&!photos.length){alert("На странице нет ни текста, ни фото. Вставьте текст вручную");done();return;}
+      if(!desc&&!photos.length){notify("На странице нет ни текста, ни фото. Вставьте текст вручную");done();return;}
       if(title)$("nlTitle").value=title;
       if(desc)$("nlDesc").value=desc;
       photos.forEach(u=>{if(!nlRemote.includes(u))nlRemote.push(u);});
@@ -1157,12 +1166,12 @@ function docIdFromUrl(url){
       if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
       syncNlDeal();
       if(!(await submitForm(true))){switchImptab("manual");reportMissing();}
-    }catch(e){alert("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
+    }catch(e){notify("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
     done();
   };
   if($("impFolderBtn"))$("impFolderBtn").onclick=async()=>{
     const url=($("impFolder").value||"").trim();
-    if(!/\/drive\/folders\//i.test(url)){alert("Вставьте ссылку вида https://drive.google.com/drive/folders/...");return;}
+    if(!/\/drive\/folders\//i.test(url)){notify("Вставьте ссылку вида https://drive.google.com/drive/folders/...");return;}
     const btn=$("impFolderBtn");btn.disabled=true;
     try{
       btn.textContent="Читаю папку...";
@@ -1186,14 +1195,14 @@ function docIdFromUrl(url){
       if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
       syncNlDeal();
       if(!(await submitForm(true))){switchImptab("manual");reportMissing();}
-    }catch(e){alert("Папку прочитать не удалось. Проверьте доступ «Все у кого есть ссылка» или используйте другие варианты");}
+    }catch(e){notify("Папку прочитать не удалось. Проверьте доступ «Все у кого есть ссылка» или используйте другие варианты");}
     btn.textContent="Создать из папки";btn.disabled=false;
   };
   if($("impPhotos"))$("impPhotos").onclick=()=>{
     const lines=($("impUrls").value||"").split(/[\n,;]+/).map(driveIdFromUrl).filter(Boolean);
-    if(!lines.length){alert("Не нашёл ссылок — вставьте URL файлов Drive или ID");return;}
+    if(!lines.length){notify("Не нашёл ссылок — вставьте URL файлов Drive или ID");return;}
     lines.forEach(id=>{const u=driveThumb(id);if(!nlRemote.includes(u))nlRemote.push(u);});
-    paintNlPreview();alert(`Добавлено фото: ${lines.length}`);
+    paintNlPreview();notify(`Добавлено фото: ${lines.length}`);
   };
   if($("impRoyal"))$("impRoyal").onclick=()=>{
     $("nlDeal").value="sale";$("nlRole").value="offer";$("nlType").value="villa";$("nlDistrict").value="Ubud";
@@ -1201,7 +1210,7 @@ function docIdFromUrl(url){
     $("nlBed").value=3;$("nlBath").value=4;$("nlArea").value=200;$("nlLand").value=600;
     if($("nlTenure"))$("nlTenure").value="freehold";
     nlRemote=ROYAL_PHOTOS.map(driveThumb);paintNlPreview();
-    alert("Royal Lotus заполнен: 21 фото + поля. Проверьте и жмите Опубликовать");
+    notify("Royal Lotus заполнен: 21 фото + поля. Проверьте и жмите Опубликовать");
   };
   function missingFields(){
     const m=[];
@@ -1212,16 +1221,16 @@ function docIdFromUrl(url){
   }
   function reportMissing(){
     const miss=missingFields();
-    alert("Не хватает: "+(miss.length?miss.join(", "):"данные")+". Напишите это в чат — заполню сам.");
+    notify("Не хватает: "+(miss.length?miss.join(", "):"данные")+". Напишите это в чат — заполню сам.");
   }
   async function submitForm(auto){
     const title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
-    if(!title){if(!auto)alert("Укажите заголовок");return false;}
-    if(!(price>0)){if(auto){price=0;}else{alert("Укажите цену");return false;}}
+    if(!title){if(!auto)notify("Укажите заголовок");return false;}
+    if(!(price>0)){if(auto){price=0;}else{notify("Укажите цену");return false;}}
     if($("nlCur")&&$("nlCur").value==="USD")price=Math.round(price*RATE);
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
     const dk=$("nlDistrict").value||"";
-    if(!dk){if(!auto)alert("Выберите район");else{switchImptab("manual");}return false;}
+    if(!dk){if(!auto)notify("Выберите район");else{switchImptab("manual");}return false;}
     const rl=locName(dk);
     let lat=null,lng=null;
     const g=await resolveGeo($("nlGeo").value.trim());
@@ -1248,12 +1257,12 @@ function docIdFromUrl(url){
     if(editingId){
       const ix=LISTINGS.findIndex(x=>x.id===editingId);
       if(ix>=0){const old=LISTINGS[ix];it.id=old.id;it.createdAt=old.createdAt;it.views=old.views;it.rating=old.rating;it.reviews=old.reviews;it.owner=old.owner||getGuestId();LISTINGS[ix]=it;}
-      persistMy();resetNlForm();render();alert("Изменения сохранены");
+      persistMy();resetNlForm();render();notify("Изменения сохранены");
     } else {
       LISTINGS.unshift(it);persistMy();resetNlForm();
       state.deal=deal;state.role=role;state.page=1;syncRoleTabs();syncDealTabs();render();
       document.getElementById("cardsGrid").scrollIntoView({behavior:"smooth"});
-      alert("Опубликовано! Показываю его в ленте.");
+      notify("Опубликовано! Показываю его в ленте.");
     }
     return true;
   }
@@ -1279,15 +1288,17 @@ function docIdFromUrl(url){
         clean.forEach(o=>LISTINGS.unshift(o));
         persistMy();
       }
-      render();alert("Копия загружена");
-    }catch(_){alert("Не смог прочитать файл");}};
+      render();notify("Копия загружена");
+    }catch(_){notify("Не смог прочитать файл");}};
     r.readAsText(f);e.target.value="";
   };
   if($("cabWipe"))$("cabWipe").onclick=()=>{
-    if(!confirm("Стереть профиль, объявления и избранное на этом устройстве?"))return;
+    const b=$("cabWipe");
+    if(!b.dataset.armed){b.dataset.armed="1";b.textContent="Точно стереть? Нажмите ещё раз";notify("Повторное нажатие сотрёт профиль, объявления и избранное");setTimeout(()=>{delete b.dataset.armed;b.textContent="Стереть мои данные";},5000);return;}
+    delete b.dataset.armed;b.textContent="Стереть мои данные";
     try{localStorage.removeItem("rh_my");localStorage.removeItem("rh_fav");localStorage.removeItem("rh_profile");}catch(_){}
     for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
-    state.fav.clear();resetNlForm();render();alert("Готово: данные стерты");
+    state.fav.clear();resetNlForm();render();notify("Готово: данные стерты");
   };
 })();
 $("creditModal").addEventListener("click",e=>{if(e.target.id==="creditModal")$("creditModal").classList.add("hidden");});
