@@ -196,7 +196,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.13";const APP_BUILD="58";
+const APP_V="2.14";const APP_BUILD="59";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -673,6 +673,115 @@ function fillFormFromParsed(o,quiet){
   if(!quiet)alert("Поля заполнены — проверьте и жмите Опубликовать");
   return true;
 }
+/* ===== AI-parse: нейросеть читает задание и формирует карточку ===== */
+const AI_DEFAULTS={endpoint:"https://api.openai.com/v1",model:"gpt-4o-mini"};
+function getAiSettings(){
+  try{
+    const s=JSON.parse(localStorage.getItem("rh_ai")||"{}");
+    return{endpoint:(s.endpoint||AI_DEFAULTS.endpoint).replace(/\/+$/,""),model:s.model||AI_DEFAULTS.model,key:s.key||""};
+  }catch(e){return{endpoint:AI_DEFAULTS.endpoint,model:AI_DEFAULTS.model,key:""};}
+}
+function saveAiSettings(s){
+  try{localStorage.setItem("rh_ai",JSON.stringify({endpoint:s.endpoint||AI_DEFAULTS.endpoint,model:s.model||AI_DEFAULTS.model,key:s.key||""}));}catch(e){}
+}
+function loadAiSettings(){
+  const s=getAiSettings();
+  if($("aiEndpoint")&&!$("aiEndpoint").value)$("aiEndpoint").value=s.endpoint;
+  if($("aiModel")&&!$("aiModel").value)$("aiModel").value=s.model;
+  if($("aiKey")&&!$("aiKey").value)$("aiKey").value=s.key;
+}
+function aiDistricts(){
+  const out=[];
+  DIST_TREE.forEach(n=>{out.push(n.key);(n.kids||[]).forEach(([k])=>out.push(k));});
+  return out;
+}
+function buildAiPrompt(text){
+  const system="Ты парсер объявлений недвижимости Бали. Ответь СТРОГО одним JSON-объектом без пояснений. Схема: {\"deal\":\"rent|sale\",\"role\":\"offer|request\",\"price\":число в IDR (B/miliar=1e9, млн=1e6; USD переведи по 16000; 0 если нет цены),\"category\":\"monthly|yearly (только для rent; иначе monthly)\",\"ptype\":\"villa|house|apartment|homestay|land|townhouse|boarding|commercial\",\"district\":\"ключ района строго из списка\",\"area\":площадь строения м² числом,\"land\":участок м² числом (сотка/are=100)\",\"bedrooms\":число,\"bathrooms\":число,\"tenure\":\"freehold|leasehold (только для sale)\",\"furnished\":true|false,\"amenities\":[строки из: Бассейн,Wi-Fi,Кондиционер,Кухня,Парковка,Сад,Холодильник,Телевизор,Стиральная машина,Плита,Завтраки,Общая кухня,Электричество,Вода],\"title\":краткий заголовок до 90 символов,\"desc\":сжатое описание до 600 символов}. Районы: "+aiDistricts().join(",")+". Не выдумывай отсутствующие числа — ставь 0. Цена помесячной аренды — category monthly, годовой — yearly.";
+  return{system,user:"Текст задания:\n"+String(text||"").slice(0,4000)};
+}
+function extractJson(s){
+  s=String(s||"");
+  const fenced=s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const cand=fenced?fenced[1]:s;
+  const m=cand.match(/\{[\s\S]*\}/);
+  if(!m)throw new Error("nojson");
+  return JSON.parse(m[0]);
+}
+function normalizeAiListing(o,fallbackText){
+  o=o||{};
+  const PT=["villa","house","apartment","homestay","land","townhouse","boarding","commercial"];
+  const validDist=new Set(aiDistricts());
+  const num=v=>{const n=Number(v);return isFinite(n)&&n>=0?Math.round(n):0;};
+  const out={};
+  out.deal=o.deal==="sale"?"sale":"rent";
+  out.role=o.role==="request"?"request":"offer";
+  out.price=num(o.price);
+  if(out.deal==="sale")out.price=out.price||0;
+  out.category=o.category==="yearly"?"yearly":"monthly";
+  out.pt=PT.includes(o.ptype)?o.ptype:(PT.includes(o.propertyType)?o.propertyType:"villa");
+  if(typeof o.district==="string"&&validDist.has(o.district))out.district=o.district;
+  out.area=num(o.area);out.land=num(o.land);
+  out.bedrooms=num(o.bedrooms);out.bathrooms=num(o.bathrooms);
+  if(out.deal==="sale"&&(o.tenure==="leasehold"||o.tenure==="freehold"))out.tenure=o.tenure;
+  if(typeof o.furnished==="boolean")out.furnished=o.furnished;
+  if(Array.isArray(o.amenities))out.amenities=o.amenities.filter(x=>typeof x==="string").slice(0,8);
+  const aiTitle=String(o.title||"").replace(/\s+/g," ").trim().slice(0,90);
+  if(aiTitle)out.name=aiTitle;
+  else{const first=String(fallbackText||"").split("\n").map(s=>s.trim()).find(s=>s)||"";if(first)out.name=first.replace(/#\w+/g,"").trim().slice(0,90);}
+  out._desc=String(o.desc||"").slice(0,600);
+  return out;
+}
+function aiChatUrl(endpoint){
+  endpoint=String(endpoint||"").replace(/\/+$/,"");
+  return /\/chat\/completions$/.test(endpoint)?endpoint:endpoint+"/chat/completions";
+}
+async function aiParseRemote(text){
+  const s=getAiSettings();
+  const{system,user}=buildAiPrompt(text);
+  const body={model:s.model,messages:[{role:"system",content:system},{role:"user",content:user}],temperature:0.1};
+  async function post(withFormat){
+    const b=Object.assign({},body);
+    if(withFormat)b.response_format={type:"json_object"};
+    const r=await fetch(aiChatUrl(s.endpoint),{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.key},body:JSON.stringify(b)});
+    if(!r.ok){const t=await r.text().catch(()=> "");throw new Error("ai_http_"+r.status+" "+t.slice(0,200));}
+    return r.json();
+  }
+  let j;
+  try{j=await post(true);}
+  catch(e){if(!/ai_http_400/.test(String(e&&e.message)))throw e;j=await post(false);}
+  const content=j&&j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content||"";
+  return extractJson(content);
+}
+async function aiCreateFromText(txt,btn){
+  txt=(txt||"").trim();
+  if(!txt){alert("Вставьте текст задания");return;}
+  const done=()=>{if(btn){btn.disabled=false;btn.textContent="🤖 Нейросетью";}};
+  if(btn){btn.disabled=true;btn.textContent="Нейросеть думает...";}
+  try{
+    let raw=null;
+    if(API){
+      try{
+        const r=await fetch("api/ai-parse",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:txt})});
+        const j=await r.json();
+        if(j&&j.ok&&j.listing)raw=j.listing;
+        else if(j&&j.ok===false&&j.error!=="no_server_key")throw new Error(j.error||"server");
+      }catch(e){if(String((e&&e.message)||"")==="no_server_key"){}else if(raw){}else if(!getAiSettings().key){alert("На сервере нет AI_API_KEY, а в браузере ключ не задан — откройте «Нейросеть: ключ и модель»");done();return;}}
+    }
+    if(!raw){
+      const s=getAiSettings();
+      if(!s.key){alert("Вставьте API-ключ: кабинет → Telegram-пост → «Нейросеть: ключ и модель»");done();return;}
+      raw=await aiParseRemote(txt);
+    }
+    const o=normalizeAiListing(raw,txt);
+    if($("nlDesc"))$("nlDesc").value=(o._desc||txt).slice(0,3000);
+    delete o._desc;
+    if(o.pt&&$("nlType")){$("nlType").value=o.pt;paintNlAmen((AM[o.pt]||[]).slice(0,4));}
+    fillFormFromParsed(o,true);
+    if(o.name)$("nlTitle").value=o.name;
+    if(!(await submitForm(true))){switchImptab("manual");alert("Нейросеть заполнила что смогла: допишите район/цену вручную");}
+  }catch(e){alert("Нейросеть не ответила: "+String((e&&e.message)||e).slice(0,160));}
+  done();
+}
 const DIST_CENTER={Canggu:[-8.6478,115.1385],Seminyak:[-8.6905,115.1665],Ubud:[-8.5069,115.2625],Uluwatu:[-8.815,115.1725],Sanur:[-8.693,115.2628],Denpasar:[-8.6705,115.2126],Jimbaran:[-8.7775,115.1637],NusaDua:[-8.7962,115.2229],Kuta:[-8.7184,115.1686],Pererenan:[-8.657,115.128],Umalas:[-8.62,115.15],Kerobokan:[-8.66,115.16],Tabanan:[-8.5416,115.1247],Legian:[-8.706,115.168],Lovina:[-8.16,115.03],Amed:[-8.33,115.66]};
 function parseGeoUrl(url){
   if(!url)return null;
@@ -963,6 +1072,9 @@ function docIdFromUrl(url){
     if(first)$("nlTitle").value=first;
     if(!submitForm(true)){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
   };
+  if($("impAiParse"))$("impAiParse").onclick=()=>aiCreateFromText(($("impTgText").value||"").trim(),$("impAiParse"));
+  loadAiSettings();
+  ["aiEndpoint","aiModel","aiKey"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",()=>saveAiSettings({endpoint:$("aiEndpoint").value.trim(),model:$("aiModel").value.trim(),key:$("aiKey").value.trim()}));});
   if($("impLinkBtn"))$("impLinkBtn").onclick=async()=>{
     const url=($("impLink").value||"").trim();
     if(!/^https?:\/\//i.test(url)){alert("Вставьте ссылку https://...");return;}

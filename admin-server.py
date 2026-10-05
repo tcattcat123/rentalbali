@@ -27,6 +27,67 @@ IMG_DIR = os.path.join(ROOT, "img", "listings")
 ALLOWED_EXT = {".jpg": "image/jpeg", ".jpeg": "image/jpeg",
                ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif"}
 MAX_IMG_BYTES = 8 * 1024 * 1024
+AI_ENDPOINT = os.environ.get("AI_ENDPOINT", "https://api.openai.com/v1").rstrip("/")
+AI_MODEL = os.environ.get("AI_MODEL", "gpt-4o-mini")
+AI_KEY = os.environ.get("AI_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+AI_DISTRICTS = ("Canggu,Berawa,BatuBolong,TumbakBayuh,Pererenan,Umalas,Kerobokan,"
+                "Seseh,Buduk,Seminyak,BeachsideCenter,ResidentialSide,Oberoi,Legian,"
+                "Petitenget,Kuta,TanahLot,Kedungu,Cemagi,Uluwatu,Bingin,Balangan,"
+                "Jimbaran,NusaDua,Ungasan,Pecatu,Ubud,Mas,Payangan,Denpasar,Sanur,"
+                "Gianyar,Sukawati,Tabanan,Mengwi,Lovina,Singaraja,Pemuteran,Amed,"
+                "Candidasa,Sidemen,NusaPenida,NusaLembongan")
+AI_SYSTEM = ("Ты парсер объявлений недвижимости Бали. Ответь СТРОГО одним JSON-объектом без пояснений. "
+             "Схема: {\"deal\":\"rent|sale\",\"role\":\"offer|request\",\"price\":число в IDR "
+             "(B/miliar=1e9, млн=1e6; USD переведи по 16000; 0 если нет цены),"
+             "\"category\":\"monthly|yearly (только для rent; иначе monthly)\","
+             "\"ptype\":\"villa|house|apartment|homestay|land|townhouse|boarding|commercial\","
+             "\"district\":\"ключ района строго из списка\",\"area\":площадь строения м² числом,"
+             "\"land\":участок м² числом (сотка/are=100),\"bedrooms\":число,\"bathrooms\":число,"
+             "\"tenure\":\"freehold|leasehold (только для sale)\",\"furnished\":true|false,"
+             "\"amenities\":[строки из: Бассейн,Wi-Fi,Кондиционер,Кухня,Парковка,Сад,Холодильник,"
+             "Телевизор,Стиральная машина,Плита,Завтраки,Общая кухня,Электричество,Вода],"
+             "\"title\":краткий заголовок до 90 символов,"
+             "\"desc\":сжатое описание до 600 символов}. "
+             "Районы: " + AI_DISTRICTS + ". "
+             "Не выдумывай отсутствующие числа — ставь 0.")
+
+
+def ai_chat_completions(text, model):
+    url = AI_ENDPOINT + "/chat/completions"
+    payload = {"model": model or AI_MODEL,
+               "messages": [{"role": "system", "content": AI_SYSTEM},
+                            {"role": "user", "content": "Текст задания:\n" + (text or "")[:4000]}],
+               "temperature": 0.1, "response_format": {"type": "json_object"}}
+    last_err = "unknown"
+    for attempt in range(2):
+        body = dict(payload)
+        if attempt == 1:
+            body.pop("response_format", None)
+        req = urllib.request.Request(
+            url, data=json.dumps(body).encode("utf-8"),
+            headers={"Content-Type": "application/json",
+                     "Authorization": "Bearer " + AI_KEY})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                return json.load(resp)
+        except Exception as e:
+            last_err = str(e)[:300]
+            if "HTTP Error 400" not in str(e):
+                break
+    raise RuntimeError(last_err)
+
+
+def ai_extract_listing(resp):
+    try:
+        content = resp["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError):
+        raise RuntimeError("bad ai response")
+    m = re.search(r"```(?:json)?\s*([\s\S]*?)```", content, re.I)
+    cand = m.group(1) if m else content
+    m2 = re.search(r"\{[\s\S]*\}", cand)
+    if not m2:
+        raise RuntimeError("no json in ai response")
+    return json.loads(m2.group(0))
 
 
 def tg_embed_url(url):
@@ -316,6 +377,22 @@ class Handler(SimpleHTTPRequestHandler):
             if not saved:
                 return self._send_json({"ok": False, "error": "no image received"}, 400)
             return self._send_json({"ok": True, "paths": saved})
+        if path == "/api/ai-parse":
+            if not AI_KEY:
+                return self._send_json({"ok": False, "error": "no_server_key"}, 200)
+            try:
+                payload = json.loads(self.rfile.read(length).decode("utf-8"))
+            except ValueError:
+                return self._send_json({"ok": False, "error": "bad json"}, 400)
+            text = (payload.get("text") or "").strip()
+            if not text:
+                return self._send_json({"ok": False, "error": "empty text"}, 400)
+            try:
+                resp = ai_chat_completions(text, payload.get("model"))
+                listing = ai_extract_listing(resp)
+                return self._send_json({"ok": True, "listing": listing})
+            except Exception as e:
+                return self._send_json({"ok": False, "error": "ai failed: %s" % e}, 502)
         return self._send_json({"ok": False, "error": "not found"}, 404)
 
 
