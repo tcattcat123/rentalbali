@@ -205,7 +205,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.27";const APP_BUILD="72";
+const APP_V="2.28";const APP_BUILD="73";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1564,20 +1564,6 @@ async function agentPublish(){
     agentAskNext();
   }
   agent.busy=false;
-}
-  if(prog)prog.remove();
-  const placed=ok&&d&&LISTINGS.some(x=>x.user&&x.title===(d.title||""));
-  if(placed){
-    const deal=d.deal==="sale"?"Продажа":"Аренда";
-    agentPush("bot","Карточка заполнена и выложена ✅\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):"")+"\n• "+(d.price>0?d.price.toLocaleString("ru-RU")+" IDR":"Цена по запросу")+"\nПроверьте в каталоге и поправьте данные, если нужно.");
-    agent.data={};
-    switchView("list");syncDealTabs();
-    setTimeout(()=>{const g=$("cardsGrid");if(g)g.scrollIntoView({behavior:"smooth"});},100);
-  }else{
-    agent.mode="collect";
-    agentPush("bot","Не выложилось"+(err?": "+err:"")+". Не хватает: "+(agentMissing().map(f=>f==="district"?"район":f).join(", ")||"данные")+". Напишите это сюда — подставлю и размещу.");
-    agentAskNext();
-  }
 }
 function agentStart(){
   agent.mode="collect";agent.field=null;agent.data={};agentQr(null);
