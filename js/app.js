@@ -205,7 +205,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.26";const APP_BUILD="71";
+const APP_V="2.27";const APP_BUILD="72";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1268,6 +1268,7 @@ function docIdFromUrl(url){
     return true;
   }
   if($("nlSave"))$("nlSave").onclick=()=>submitForm(false);
+  window.__cab={submitForm:submitForm};
   if($("guestId"))$("guestId").textContent=getGuestId();
   if($("cabExport"))$("cabExport").onclick=()=>{
     const data={app:"renthome-bali",v:1,exportedAt:new Date().toISOString(),guestId:getGuestId(),profile:getProfile(),fav:[...state.fav],items:LISTINGS.filter(x=>x.user)};
@@ -1338,7 +1339,7 @@ function agentComposeTitle(d){
   const t=[];
   t.push(d.pt?pTypeLabel(d.pt):"Объект");
   if(d.rawName)t.push(d.rawName);
-  if(d.district)t.push("в "+locName(d.district));
+  if(d.district)t.push(locPrep(d.district));
   let s=t.join(" ");
   if(d.bedrooms>0)s+=" — "+d.bedrooms+" "+plural(d.bedrooms,["спальня","спальни","спален"]);
   return (s.slice(0,90)||"Объявление");
@@ -1358,6 +1359,9 @@ function agentComposeDesc(){
   s.push(f.price>0?("Цена: "+f.price.toLocaleString("ru-RU")+" IDR."):"Цена по запросу.");
   return s.join(" ").slice(0,3000);
 }
+function fmtShort(v){v=Math.round(v);if(v>=1e9){const b=v/1e9;return (Number.isInteger(b)?b:b.toFixed(1)).toLocaleString("ru-RU")+" млрд";}if(v>=1e6){const m=v/1e6;return (Number.isInteger(m)?m:m.toFixed(1)).toLocaleString("ru-RU")+" млн";}if(v>=1e3){const t2=v/1e3;return (Number.isInteger(t2)?t2:t2.toFixed(1)).toLocaleString("ru-RU")+" тыс";}return String(v);}
+const LOC_PREP={Canggu:"в Чангу",Berawa:"в Бераве",BatuBolong:"в Бату Болонге",TumbakBayuh:"в Тумбак Баюхе",Pererenan:"в Переренане",Umalas:"в Умаласе",Kerobokan:"в Керобокане",Seseh:"в Сесехе",Buduk:"в Будуке",Seminyak:"в Семиньяке",BeachsideCenter:"в Семиньяке",ResidentialSide:"в Семиньяке",Oberoi:"в Оберое",Legian:"в Легиане",Petitenget:"в Петитенгете",Kuta:"в Куте",TanahLot:"в Танах Лоте",Kedungu:"в Кедунгу",Cemagi:"в Чемаги",Uluwatu:"в Улувату",Bingin:"в Бингине",Balangan:"в Балагане",Jimbaran:"в Джимбаране",NusaDua:"в Нуса-Дуа",Ungasan:"в Унгасане",Pecatu:"в Печату",Ubud:"в Убуде",Mas:"в Масе",Payangan:"в Паянгане",Denpasar:"в Денпасаре",Sanur:"в Сануре",Gianyar:"в Гианьяре",Sukawati:"в Сукавати",Tabanan:"в Табанане",Mengwi:"в Менгви",Lovina:"в Ловине",Singaraja:"в Сингарадже",Pemuteran:"в Пемутеране",Amed:"в Амеде",Candidasa:"в Кандидасе",Sidemen:"в Сидемене",NusaPenida:"на Нуса-Пениде",NusaLembongan:"на Нуса-Лембонгане"};
+function locPrep(k){return LOC_PREP[k]||(k?"в "+k:"");}
 function agentScanPrice(txt){
   const t=String(txt||"");
   let m=t.match(/(\d[\d.,]*)\s*(млрд|миллиард|miliar|\bB\b)/i);
@@ -1365,6 +1369,8 @@ function agentScanPrice(txt){
   m=t.match(/(\d[\d.,]*)\s*(млн|million|jt\b|juta)/i);
   if(m)return{v:Math.round(smartNum(m[1])*1e6),amb:false};
   m=t.match(/(\d[\d.,]*)\s*(usd|\$)/i);
+  if(m)return{v:Math.round(smartNum(m[1])*RATE),amb:false};
+  m=t.match(/(\d[\d.,]*)\s*(доллар|долларов|бакс|usd|\$)/i);
   if(m)return{v:Math.round(smartNum(m[1])*RATE),amb:false};
   m=t.match(/(\d[\d.,]*)\s*(к|k|тыс\.?|тысяч|thousand)(?![а-яёa-z])/i);
   if(m)return{v:Math.round(smartNum(m[1])*1e3),amb:true,base:Math.round(smartNum(m[1]))};
@@ -1374,9 +1380,9 @@ function agentScanPrice(txt){
 }
 function agentPriceOptions(base,deal){
   const out=[];
-  const add=(v,u)=>out.push({label:v.toLocaleString("ru-RU")+" IDR ("+u+")",act:"set-price",value:v});
-  if(deal==="sale"){add(base*1e9,"млрд");add(base*1e6,"млн");if(base>=100)add(base*1e3,"тыс");}
-  else{add(base*1e6,"млн");add(base*1e3,"тыс");if(base>=1000)add(base,"");}
+  const add=v=>out.push({label:fmtShort(v)+" IDR",act:"set-price",value:v});
+  if(deal==="sale"){add(base*1e9);add(base*1e6);if(base>=100)add(base*1e3);}
+  else{add(base*1e6);add(base*1e3);if(base>=1000)add(base);}
   out.push({label:"⏭ Пропустить",act:"skip-price"});
   return out;
 }
@@ -1394,7 +1400,8 @@ function agentParsePrice(txt){
   const m=String(txt).replace(/\s/g,"").match(/(\d[\d.,]*)/);
   if(!m)return NaN;
   let n=smartNum(m[1]);
-  if(/млрд|miliar|\bB\b/.test(txt))n*=1e9;
+  if(/доллар|бакс|usd|\$/i.test(txt))n*=RATE;
+  else if(/млрд|miliar|\bB\b/.test(txt))n*=1e9;
   else if(/млн/.test(txt))n*=1e6;
   else if(/(\d[\d.,]*)\s*(к|k|тыс\.?|тысяч|thousand)(?![а-яёa-z])/i.test(txt.replace(/\s/g,"")))n*=1e3;
   else if(/jt\b|juta/i.test(txt))n*=1e6;
@@ -1439,7 +1446,7 @@ function agentQr(btns){
   });
 }
 function agentQrTap(b){
-  if(!b||agent.busy)return;
+  if(!b)return;if(agent.busy){notify("Секунду, обрабатываю предыдущее...");return;}
   if(b.act==="publish"){agentPush("user",b.label);agentPublish();return;}
   if(b.act==="skip-price"){agentPush("user",b.label);agent.data.price=0;agent.data._pq=true;delete agent.data._numBase;agent.field=null;agentFillForm();agentPublish();return;}
   if(b.act==="set-price"){agentPush("user",b.label);agent.data.price=b.value;agent.data._pq=true;delete agent.data._numBase;agent.field=null;agentFillForm();agentPublish();return;}
@@ -1448,7 +1455,7 @@ function agentQrTap(b){
 }
 function agentSuggestTitle(){
   const d=agentFilled();
-  return ((d.pt?pTypeLabel(d.pt):"Объект")+(d.district?" в "+locName(d.district):"")).slice(0,90);
+  return ((d.pt?pTypeLabel(d.pt):"Объект")+(d.district?" "+locPrep(d.district):"")).slice(0,90);
 }
 function agentAskField(){
   const f=agent.field;
@@ -1532,14 +1539,34 @@ function agentSummary(){
   return parts.length?("Заполнил: "+parts.join(" · ")+"."):"";
 }
 async function agentPublish(){
+  if(agent.busy){notify("Секунду, уже публикую...");return;}
+  agent.busy=true;
   agent.mode="idle";agent.field=null;agentQr(null);
-  agentFillForm();
-  const d=agentFilled();
   const prog=agentPush("bot","⏳ Заполняю карточку и публикую...");
-  let ok=false,err="";
-  try{ok=await submitForm(true,{via:"ai"});}catch(e){ok=false;err=String((e&&e.message)||e).slice(0,120);}
+  let ok=false,err="",d=null;
+  try{
+    agentFillForm();d=agentFilled();
+    const sf=(window.__cab&&window.__cab.submitForm)||null;
+    if(!sf)throw new Error("форма не готова, обновите страницу");
+    ok=await sf(true,{via:"ai"});
+  }catch(e){ok=false;err=String((e&&e.message)||e).slice(0,120);}
   if(prog)prog.remove();
-  const placed=ok&&LISTINGS.some(x=>x.user&&x.title===(d.title||""));
+  const placed=ok&&d&&LISTINGS.some(x=>x.user&&x.title===(d.title||""));
+  if(placed){
+    const deal=d.deal==="sale"?"Продажа":"Аренда";
+    agentPush("bot","Карточка заполнена и выложена ✅\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):"")+"\n• "+(d.price>0?d.price.toLocaleString("ru-RU")+" IDR":"Цена по запросу")+"\nПроверьте в каталоге и поправьте данные, если нужно.");
+    agent.data={};
+    switchView("list");syncDealTabs();
+    setTimeout(()=>{const g=$("cardsGrid");if(g)g.scrollIntoView({behavior:"smooth"});},100);
+  }else{
+    agent.mode="collect";
+    agentPush("bot","Не выложилось"+(err?": "+err:"")+". Не хватает: "+(agentMissing().map(f=>f==="district"?"район":f).join(", ")||"данные")+". Напишите это сюда — подставлю и размещу.");
+    agentAskNext();
+  }
+  agent.busy=false;
+}
+  if(prog)prog.remove();
+  const placed=ok&&d&&LISTINGS.some(x=>x.user&&x.title===(d.title||""));
   if(placed){
     const deal=d.deal==="sale"?"Продажа":"Аренда";
     agentPush("bot","Карточка заполнена и выложена ✅\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):"")+"\n• "+(d.price>0?d.price.toLocaleString("ru-RU")+" IDR":"Цена по запросу")+"\nПроверьте в каталоге и поправьте данные, если нужно.");
@@ -1558,19 +1585,19 @@ function agentStart(){
   agentPush("bot","Опишите объект одним сообщением: что, где, почём. Всё остальное додумаю сам. Пример: «Сдаю виллу в Чангу, 3 спальни, 25 млн/мес».");
 }
 async function agentOnUserText(txt){
-  txt=(txt||"").trim();if(!txt||agent.busy)return;
+  txt=(txt||"").trim();if(!txt)return;if(agent.busy){notify("Секунду, обрабатываю предыдущее...");return;}
   agentPush("user",txt);
   if(agent.mode==="collect"&&agent.field){agentApplyField(txt);return;}
   if(agent.mode!=="collect"&&/разместить|объявление|сдать|сдаю|продам|продаю|снять|сниму|куплю/i.test(txt)){agentStart();if(!/разместить|объявление/i.test(txt))return;}
   if(agent.mode!=="collect"){agent.mode="collect";agent.field=null;agent.data={};}
   agent.busy=true;
   const typing=agentPush("bot","Разбираю...");
-  typing.classList.add("typing");
   try{
+    if(typing)typing.classList.add("typing");
     const o=await agentExtract(txt);
     agentMerge(o,txt);
     agentFillForm();
-    typing.remove();
+    if(typing)typing.remove();
     const miss=agentMissing();
     const got=[];
     if(agent.data.pt)got.push("тип: "+pTypeLabel(agent.data.pt));
@@ -1580,18 +1607,18 @@ async function agentOnUserText(txt){
     if(got.length)agentPush("bot","Понял и разложил по полям: "+got.join("; ")+".");
     else agentPush("bot","Текст получил, но конкретики мало.");
     agentAskNext();
-  }catch(e){typing.remove();agentPush("bot","Не смог разобрать. Опишите проще: тип, район, цена.");}
-  agent.busy=false;
+  }catch(e){if(typing)typing.remove();agentPush("bot","Не смог разобрать. Опишите проще: тип, район, цена.");}
+  finally{agent.busy=false};
 }
 async function agentFreeChat(txt){
   agent.busy=true;
   const typing=agentPush("bot","Думаю...");
-  typing.classList.add("typing");
   try{
+    if(typing)typing.classList.add("typing");
     const j=await aiServer({messages:[{role:"user",content:txt}]});
-    typing.remove();agentPush("bot",j.reply||"...");
-  }catch(e){typing.remove();agentPush("bot","На этот вопрос лучше ответят в Telegram @renthomebali или WhatsApp +62813-3734-1275.");}
-  agent.busy=false;
+    if(typing)typing.remove();agentPush("bot",j.reply||"...");
+  }catch(e){if(typing)typing.remove();agentPush("bot","На этот вопрос лучше ответят в Telegram @renthomebali или WhatsApp +62813-3734-1275.");}
+  finally{agent.busy=false};
 }
 function agentSend(){
   const inp=$("aiText");if(!inp)return;
