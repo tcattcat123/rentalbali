@@ -196,7 +196,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.15";const APP_BUILD="60";
+const APP_V="2.16";const APP_BUILD="61";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -674,11 +674,16 @@ function fillFormFromParsed(o,quiet){
   return true;
 }
 /* ===== AI-parse: нейросеть читает задание и формирует карточку ===== */
-const AI_DEFAULTS={endpoint:"https://api.mistral.ai/v1",model:"mistral-small-latest"};
+const AI_DEFAULTS={endpoint:"https://tokenharbor.ai/v1",model:"qwen3.8-flash:free"};
+const AI_KNOWN_ENDPOINTS=["https://api.openai.com/v1","https://api.mistral.ai/v1"];
+const AI_KNOWN_MODELS=["gpt-4o-mini","mistral-small-latest"];
 function getAiSettings(){
   try{
     const s=JSON.parse(localStorage.getItem("rh_ai")||"{}");
-    return{endpoint:(s.endpoint||AI_DEFAULTS.endpoint).replace(/\/+$/,""),model:s.model||AI_DEFAULTS.model,key:s.key||""};
+    let endpoint=String(s.endpoint||"").replace(/\/+$/,"");
+    if(!endpoint||AI_KNOWN_ENDPOINTS.includes(endpoint))endpoint=AI_DEFAULTS.endpoint;
+    const model=(!s.model||AI_KNOWN_MODELS.includes(s.model))?AI_DEFAULTS.model:s.model;
+    return{endpoint,model,key:s.key||""};
   }catch(e){return{endpoint:AI_DEFAULTS.endpoint,model:AI_DEFAULTS.model,key:""};}
 }
 function saveAiSettings(s){
@@ -781,7 +786,7 @@ async function aiCreateFromText(txt,btn){
     if(!(await submitForm(true))){switchImptab("manual");alert("Нейросеть заполнила что смогла: допишите район/цену вручную");}
   }catch(e){
     const m=String((e&&e.message)||e);
-    const friendly=/ai_http_429/.test(m)?"Превышен лимит Mistral (429): проверьте баланс/квоту ключа в console.mistral.ai":/ai_http_401/.test(m)?"Ключ отклонён (401): проверьте API-ключ":m.slice(0,160);
+    const friendly=/campaign_ended/.test(m)?"Бесплатный оффер модели завершён: используйте платную модель или пополните баланс":/402|balance_zero/.test(m)?"Баланс $0: пополните на tokenharbor.ai/dashboard":/ai_http_429|rate_limited/.test(m)?"Превышен лимит (429): проверьте баланс и квоту ключа":/ai_http_401/.test(m)?"Ключ отклонён (401): проверьте API-ключ":m.slice(0,160);
     alert("Нейросеть не ответила: "+friendly);
   }
   done();
