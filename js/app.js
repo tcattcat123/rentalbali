@@ -205,7 +205,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.20";const APP_BUILD="65";
+const APP_V="2.21";const APP_BUILD="66";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -683,9 +683,9 @@ function fillFormFromParsed(o,quiet){
   return true;
 }
 /* ===== AI-parse: нейросеть читает задание и формирует карточку ===== */
-const AI_DEFAULTS={endpoint:"https://anymodel.org/v1",model:"qwen3.8-flash:free"};
+const AI_DEFAULTS={endpoint:"https://anymodel.org/v1",model:"ag/gemini-2.5-flash-lite"};
 const AI_KNOWN_ENDPOINTS=["https://api.openai.com/v1","https://api.mistral.ai/v1","https://tokenharbor.ai/v1"];
-const AI_KNOWN_MODELS=["gpt-4o-mini","mistral-small-latest"];
+const AI_KNOWN_MODELS=["gpt-4o-mini","mistral-small-latest","qwen3.8-flash:free","qwen3.8-flash"];
 function getAiSettings(){
   try{
     const s=JSON.parse(localStorage.getItem("rh_ai")||"{}");

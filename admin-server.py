@@ -28,7 +28,7 @@ ALLOWED_EXT = {".jpg": "image/jpeg", ".jpeg": "image/jpeg",
                ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif"}
 MAX_IMG_BYTES = 8 * 1024 * 1024
 AI_ENDPOINT = os.environ.get("AI_ENDPOINT", "https://anymodel.org/v1").rstrip("/")
-AI_MODEL = os.environ.get("AI_MODEL", "qwen3.8-flash:free")
+AI_MODEL = os.environ.get("AI_MODEL", "ag/gemini-2.5-flash-lite")
 AI_KEY = os.environ.get("AI_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
 AI_DISTRICTS = ("Canggu,Berawa,BatuBolong,TumbakBayuh,Pererenan,Umalas,Kerobokan,"
                 "Seseh,Buduk,Seminyak,BeachsideCenter,ResidentialSide,Oberoi,Legian,"
@@ -66,7 +66,9 @@ def ai_chat_completions(text, model):
         req = urllib.request.Request(
             url, data=json.dumps(body).encode("utf-8"),
             headers={"Content-Type": "application/json",
-                     "Authorization": "Bearer " + AI_KEY})
+                     "Authorization": "Bearer " + AI_KEY,
+                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+                     "Accept": "application/json"})
         try:
             with urllib.request.urlopen(req, timeout=60) as resp:
                 return json.load(resp)
