@@ -196,7 +196,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.16";const APP_BUILD="61";
+const APP_V="2.17";const APP_BUILD="62";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1070,6 +1070,18 @@ function docIdFromUrl(url){
       if(!(await submitForm(true))){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
     }catch(e){alert("Не смог прочитать документ");}
     btn.textContent="Распознать и создать";btn.disabled=false;
+  };
+  if($("impAiTop"))$("impAiTop").onclick=()=>{
+    switchImptab("tg");
+    const box=$("impTgText");
+    const txt=(box.value||"").trim();
+    if(!txt){box.focus();alert("Вставьте текст задания в поле ниже и нажмите «Распознать и создать» — или просто пришлите текст в чат, заполню карточку сам.");return;}
+    if($("nlDesc"))$("nlDesc").value=txt.slice(0,3000);
+    const o=parseDeskripsi(txt);
+    fillFormFromParsed(o,true);
+    const first=(txt.split("\n").map(s=>s.trim()).find(s=>s)||"").replace(/#\w+/g,"").trim().slice(0,90);
+    if(first)$("nlTitle").value=first;
+    if(!submitForm(true)){switchImptab("manual");alert("Заполнил что смог: допишите район/цену вручную — или пришлите текст в чат, разберу сам.");}
   };
   if($("impTgParse"))$("impTgParse").onclick=()=>{
     const txt=($("impTgText").value||"").trim();
