@@ -92,6 +92,34 @@ def ai_extract_listing(resp):
     return json.loads(m2.group(0))
 
 
+ASSISTANT_SYSTEM = ("Ты помощник аренды недвижимости на Бали (RentHome Bali). "
+                   "Отвечай кратко по-русски, максимум 3-4 предложения. "
+                   "Помогаешь снять, сдать или купить: виллы, дома, квартиры, землю. "
+                   "Контакты: WhatsApp +62813-3734-1275, Telegram @renthomebali. "
+                   "Если просят разместить объявление — скажи нажать кнопку чата "
+                   "«Разместить объявление» и описать объект одним сообщением.")
+
+
+def ai_extract_reply(resp):
+    try:
+        return resp["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError):
+        raise RuntimeError("bad ai response")
+
+
+def ai_chat_messages(messages, model):
+    url = AI_ENDPOINT + "/chat/completions"
+    payload = {"model": model or AI_MODEL, "messages": messages, "temperature": 0.4}
+    req = urllib.request.Request(
+        url, data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json",
+                 "Authorization": "Bearer " + AI_KEY,
+                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+                 "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        return json.load(resp)
+
+
 def tg_embed_url(url):
     m = re.match(r"https?://t\.me/([A-Za-z0-9_]+)/(\d+)", url or "")
     if not m:
@@ -346,6 +374,25 @@ class Handler(SimpleHTTPRequestHandler):
         path = urllib.parse.urlparse(self.path).path
         length = int(self.headers.get("Content-Length") or 0)
         ctype = self.headers.get("Content-Type") or ""
+        if path == "/api/ai-chat":
+            if not AI_KEY:
+                return self._send_json({"ok": False, "error": "no_server_key"}, 200)
+            try:
+                payload = json.loads(self.rfile.read(length).decode("utf-8"))
+            except ValueError:
+                return self._send_json({"ok": False, "error": "bad json"}, 400)
+            try:
+                if payload.get("text") and not payload.get("messages"):
+                    resp = ai_chat_completions((payload.get("text") or "").strip()[:4000], payload.get("model"))
+                    return self._send_json({"ok": True, "listing": ai_extract_listing(resp)})
+                msgs = payload.get("messages") or []
+                msgs = [{"role": "system", "content": ASSISTANT_SYSTEM}] + [
+                    {"role": ("assistant" if m.get("role") == "assistant" else "user"),
+                     "content": str(m.get("content") or "")[:2000]} for m in msgs[-6:]]
+                resp = ai_chat_messages(msgs, payload.get("model"))
+                return self._send_json({"ok": True, "reply": ai_extract_reply(resp)[:800]})
+            except Exception as e:
+                return self._send_json({"ok": False, "error": "ai failed: %s" % e}, 502)
         if path == "/api/listings":
             try:
                 payload = json.loads(self.rfile.read(length).decode("utf-8"))

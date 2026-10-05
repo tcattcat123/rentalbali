@@ -205,7 +205,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.22";const APP_BUILD="67";
+const APP_V="2.23";const APP_BUILD="68";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1301,6 +1301,200 @@ function docIdFromUrl(url){
     state.fav.clear();resetNlForm();render();notify("Готово: данные стерты");
   };
 })();
+/* ===== On-site AI agent: chat + auto card fill (each field separately) ===== */
+const agent={mode:"idle",field:null,data:{},busy:false};
+function agentPush(who,text){
+  const box=$("aiMsgs");if(!box)return null;
+  const d=document.createElement("div");d.className="ai-msg "+who;d.textContent=String(text||"");
+  box.appendChild(d);box.scrollTop=box.scrollHeight;return d;
+}
+function agentToggle(force){
+  const p=$("aiChat");if(!p)return;
+  const open=force!==undefined?force:p.classList.contains("hidden");
+  p.classList.toggle("hidden",!open);
+  if(open&&!$("aiMsgs").children.length)agentPush("bot","Привет! Опишите объект одним сообщением — тип, район, цену, спальни. Разберу всё по полям сам, недостающее спрошу здесь. Или нажмите «📝 Разместить объявление».");
+}
+function matchDistrict(txt){
+  const t=String(txt||"").toLowerCase();
+  for(const n of DIST_TREE){
+    if(n.ru&&t.includes(n.ru.toLowerCase()))return n.key;
+    if(t.includes(n.key.toLowerCase()))return n.key;
+    for(const [k,r] of (n.kids||[])){if(t.includes(String(r).toLowerCase())||t.includes(k.toLowerCase()))return k;}
+  }
+  return "";
+}
+function agentParsePrice(txt){
+  if(/пропустить|потом|нет|—|-|не знаю/i.test(String(txt)))return 0;
+  const m=String(txt).replace(/\s/g,"").match(/(\d[\d.,]*)/);
+  if(!m)return NaN;
+  let n=smartNum(m[1]);
+  if(/млрд|miliar|\bB\b/.test(txt))n*=1e9;
+  else if(/млн/.test(txt))n*=1e6;
+  else if(/usd|\$/i.test(txt))n*=RATE;
+  return Math.round(n);
+}
+function agentFilled(){
+  const d=agent.data;
+  return{deal:d.deal||"rent",role:d.role||"offer",ptype:d.pt||"villa",district:d.district||"",title:d.title||"",price:d.price||0};
+}
+function agentFillForm(){
+  const d=agentFilled();
+  if($("nlDeal"))$("nlDeal").value=d.deal;
+  if($("nlRole"))$("nlRole").value=d.role;
+  if($("nlType")){$("nlType").value=d.pt;paintNlAmen((AM[d.pt]||[]).slice(0,4));}
+  if(d.district&&$("nlDistrict"))$("nlDistrict").value=d.district;
+  if(d.title)$("nlTitle").value=d.title;
+  if($("nlPrice"))$("nlPrice").value=d.price||"";
+  if(agent.data.area&&$("nlArea"))$("nlArea").value=agent.data.area;
+  if(agent.data.land&&$("nlLand"))$("nlLand").value=agent.data.land;
+  if(agent.data.bedrooms!=null&&$("nlBed"))$("nlBed").value=agent.data.bedrooms;
+  if(agent.data.bathrooms!=null&&$("nlBath"))$("nlBath").value=agent.data.bathrooms;
+  if(agent.data.category){state.rentCat=agent.data.category;document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));}
+  if(agent.data.amenities&&agent.data.amenities.length)paintNlAmen(agent.data.amenities);
+  if(agent.data.tenure&&$("nlTenure"))$("nlTenure").value=agent.data.tenure;
+  if($("nlDesc"))$("nlDesc").value=String(agent.data.desc||agent.data.raw||"").slice(0,3000);
+  syncNlDeal();
+}
+function agentMissing(){
+  const miss=[];
+  if(!agent.data.district)miss.push("district");
+  if(!agent.data.title)miss.push("title");
+  return miss;
+}
+function agentAskNext(){
+  const miss=agentMissing();
+  if(!miss.length){agentPublish();return;}
+  agent.field=miss[0];
+  if(agent.field==="district")agentPush("bot","Какой район? Например: Чангу, Убуд, Семиньяк, Улувату...");
+  else if(agent.field==="title")agentPush("bot","Как назвать объявление? Например: «Вилла с бассейном в Чангу».");
+}
+async function aiServer(payload){
+  const r=await fetch("api/ai-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const j=await r.json();
+  if(j&&j.ok)return j;
+  throw new Error((j&&j.error)||"ai");
+}
+async function agentExtract(text){
+  try{
+    const j=await aiServer({text});
+    if(j.listing)return normalizeAiListing(j.listing,text);
+  }catch(e){}
+  return parseDeskripsi(text);
+}
+function agentMerge(o,text){
+  const d=agent.data;
+  if(!d.raw&&text)d.raw=text;
+  ["deal","role","category","district","area","land","bedrooms","bathrooms","tenure","furnished"].forEach(k=>{if(o[k]!==undefined&&o[k]!==""&&o[k]!==0&&d[k]===undefined)d[k]=o[k];});
+  if((o.pt||o.propertyType)&&!d.pt)d.pt=o.pt||o.propertyType;
+  if(o.price>0&&!d.price)d.price=o.price;
+  if(o.amenities&&o.amenities.length&&!d.amenities)d.amenities=o.amenities;
+  if(o.name&&!d.title)d.title=o.name;
+  if(o._desc&&!d.desc)d.desc=o._desc;
+  if(d.price===undefined&&o.price!==undefined)d.price=o.price;
+}
+function agentApplyField(txt){
+  const f=agent.field;txt=(txt||"").trim();
+  if(txt.length>80){agent.field=null;agentOnUserText(txt);return;}
+  if(f==="district"){
+    const k=matchDistrict(txt)||(/^[A-Za-z]+$/.test(txt)?txt:"");
+    if(k&&(aiDistricts().includes(k))){agent.data.district=k;agent.field=null;agentFillForm();agentPush("bot","Район: "+locName(k)+". "+agentSummary());agentAskNext();}
+    else agentPush("bot","Не узнал район. Напишите, например: Чангу, Убуд, Семиньяк, Улувату, Санур, Денпасар.");
+    return;
+  }
+  if(f==="price"){
+    const n=agentParsePrice(txt);
+    if(isNaN(n)){agentPush("bot","Не понял цену. Напишите число (млн = миллион IDR) или «пропустить» — поставлю «Цена по запросу».");return;}
+    agent.data.price=n;agent.field=null;agentFillForm();agentPush("bot",(n>0?"Цена: "+n.toLocaleString("ru-RU")+" IDR. ":"Цену пропускаем. ")+agentSummary());agentAskNext();
+    return;
+  }
+  if(f==="title"){
+    if(!txt){agentPush("bot","Название пустое — напишите заголовок объявления.");return;}
+    agent.data.title=txt.slice(0,90);agent.field=null;agentFillForm();agentPush("bot","Заголовок: "+agent.data.title+". "+agentSummary());agentAskNext();
+    return;
+  }
+}
+function agentSummary(){
+  const d=agentFilled();
+  const parts=[];
+  if(d.pt)parts.push(pTypeLabel(d.pt));
+  if(d.district)parts.push(locName(d.district));
+  if(d.price>0)parts.push(d.price.toLocaleString("ru-RU")+" IDR");
+  if(d.title)parts.push("«"+d.title+"»");
+  return parts.length?("Заполнил: "+parts.join(" · ")+"."):"";
+}
+async function agentPublish(){
+  agent.mode="idle";agent.field=null;
+  agentFillForm();
+  let ok=false;
+  try{ok=await submitForm(true);}catch(e){ok=false;}
+  if(ok){
+    agent.data={};
+    agentPush("bot","Разместил ✅ Проверьте карточку в каталоге и поправьте данные, если что-то не так.");
+    switchView("list");syncDealTabs();
+    setTimeout(()=>{const g=$("cardsGrid");if(g)g.scrollIntoView({behavior:"smooth"});},100);
+  }else{
+    agent.mode="collect";
+    agentPush("bot","Не хватает данных: "+(missingFields().join(", ")||"данные")+". Напишите это сюда — подставлю и размещу.");
+    const miss=agentMissing();agent.field=miss[0]||null;
+    if(agent.field==="district")agentPush("bot","Какой район?");
+    else if(agent.field==="title")agentPush("bot","Как назвать объявление?");
+  }
+}
+function agentStart(){
+  agent.mode="collect";agent.field=null;agent.data={};
+  agentToggle(true);
+  agentPush("bot","Опишите объект одним сообщением: что сдаёте/продаёте, район, цену, спальни, площадь. Пример: «Сдаю виллу в Чангу, 3 спальни, бассейн, 25 млн/мес».");
+}
+async function agentOnUserText(txt){
+  txt=(txt||"").trim();if(!txt||agent.busy)return;
+  agentPush("user",txt);
+  if(agent.mode==="collect"&&agent.field){agentApplyField(txt);return;}
+  if(agent.mode!=="collect"&&/разместить|объявление|сдать|сдаю|продам|продаю|снять|сниму|куплю/i.test(txt)){agentStart();if(!/разместить|объявление/i.test(txt))return;}
+  if(agent.mode!=="collect"){agent.mode="collect";agent.field=null;agent.data={};}
+  agent.busy=true;
+  const typing=agentPush("bot","Разбираю...");
+  typing.classList.add("typing");
+  try{
+    const o=await agentExtract(txt);
+    agentMerge(o,txt);
+    agentFillForm();
+    typing.remove();
+    const miss=agentMissing();
+    const got=[];
+    if(agent.data.pt)got.push("тип: "+pTypeLabel(agent.data.pt));
+    if(agent.data.district)got.push("район: "+locName(agent.data.district));
+    if(agent.data.price>0)got.push("цена: "+agent.data.price.toLocaleString("ru-RU")+" IDR");
+    if(agent.data.title)got.push("заголовок: «"+agent.data.title+"»");
+    if(got.length)agentPush("bot","Понял и разложил по полям: "+got.join("; ")+".");
+    else agentPush("bot","Текст получил, но конкретики мало.");
+    if(!miss.length&&!agent.data.price){agentPush("bot","Какая цена? Напишите число (млн = миллион IDR) или «пропустить» — поставлю «Цена по запросу».");agent.field="price";}
+    else agentAskNext();
+  }catch(e){typing.remove();agentPush("bot","Не смог разобрать. Опишите проще: тип, район, цена.");}
+  agent.busy=false;
+}
+async function agentFreeChat(txt){
+  agent.busy=true;
+  const typing=agentPush("bot","Думаю...");
+  typing.classList.add("typing");
+  try{
+    const j=await aiServer({messages:[{role:"user",content:txt}]});
+    typing.remove();agentPush("bot",j.reply||"...");
+  }catch(e){typing.remove();agentPush("bot","На этот вопрос лучше ответят в Telegram @renthomebali или WhatsApp +62813-3734-1275.");}
+  agent.busy=false;
+}
+function agentSend(){
+  const inp=$("aiText");if(!inp)return;
+  const txt=(inp.value||"").trim();if(!txt)return;
+  inp.value="";
+  if(agent.mode==="collect")agentOnUserText(txt);
+  else if(/разместить|объявление|сдать|сдаю|продам|продаю|снять|сниму|куплю|цена|сколько|вилла|дом|квартира|земля|где|район/i.test(txt))agentOnUserText(txt);
+  else agentFreeChat(txt);
+}
+if($("aiFab"))$("aiFab").onclick=()=>agentToggle();
+if($("aiClose"))$("aiClose").onclick=()=>agentToggle(false);
+if($("aiSend"))$("aiSend").onclick=agentSend;
+if($("aiText"))$("aiText").addEventListener("keydown",e=>{if(e.key==="Enter")agentSend();});
+document.querySelectorAll("[data-aiq]").forEach(b=>b.onclick=()=>{if(b.dataset.aiq==="listing")agentStart();});
 $("creditModal").addEventListener("click",e=>{if(e.target.id==="creditModal")$("creditModal").classList.add("hidden");});
 $("simCalc").onclick=calcCredit;
 ["simPrice","simDP","simRate","simYears"].forEach(id=>$(id).addEventListener("input",calcCredit));
