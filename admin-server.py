@@ -27,7 +27,7 @@ IMG_DIR = os.path.join(ROOT, "img", "listings")
 ALLOWED_EXT = {".jpg": "image/jpeg", ".jpeg": "image/jpeg",
                ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif"}
 MAX_IMG_BYTES = 8 * 1024 * 1024
-AI_ENDPOINT = os.environ.get("AI_ENDPOINT", "https://tokenharbor.ai/v1").rstrip("/")
+AI_ENDPOINT = os.environ.get("AI_ENDPOINT", "https://anymodel.org/v1").rstrip("/")
 AI_MODEL = os.environ.get("AI_MODEL", "qwen3.8-flash:free")
 AI_KEY = os.environ.get("AI_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
 AI_DISTRICTS = ("Canggu,Berawa,BatuBolong,TumbakBayuh,Pererenan,Umalas,Kerobokan,"

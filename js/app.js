@@ -205,7 +205,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.19";const APP_BUILD="64";
+const APP_V="2.20";const APP_BUILD="65";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -683,8 +683,8 @@ function fillFormFromParsed(o,quiet){
   return true;
 }
 /* ===== AI-parse: нейросеть читает задание и формирует карточку ===== */
-const AI_DEFAULTS={endpoint:"https://tokenharbor.ai/v1",model:"qwen3.8-flash:free"};
-const AI_KNOWN_ENDPOINTS=["https://api.openai.com/v1","https://api.mistral.ai/v1"];
+const AI_DEFAULTS={endpoint:"https://anymodel.org/v1",model:"qwen3.8-flash:free"};
+const AI_KNOWN_ENDPOINTS=["https://api.openai.com/v1","https://api.mistral.ai/v1","https://tokenharbor.ai/v1"];
 const AI_KNOWN_MODELS=["gpt-4o-mini","mistral-small-latest"];
 function getAiSettings(){
   try{
@@ -795,7 +795,7 @@ async function aiCreateFromText(txt,btn){
     if(!(await submitForm(true))){switchImptab("manual");reportMissing();}
   }catch(e){
     const m=String((e&&e.message)||e);
-    const friendly=/campaign_ended/.test(m)?"Бесплатный оффер модели завершён: используйте платную модель или пополните баланс":/402|balance_zero/.test(m)?"Баланс $0: пополните на tokenharbor.ai/dashboard":/ai_http_429|rate_limited/.test(m)?"Превышен лимит (429): проверьте баланс и квоту ключа":/ai_http_401/.test(m)?"Ключ отклонён (401): проверьте API-ключ":m.slice(0,160);
+    const friendly=/campaign_ended/.test(m)?"Бесплатный оффер модели завершён: используйте платную модель или пополните баланс":/402|balance_zero|balance has run out/.test(m)?"Баланс $0: пополните счёт провайдера нейросети":/ai_http_429|rate_limited/.test(m)?"Превышен лимит (429): проверьте баланс и квоту ключа":/ai_http_401/.test(m)?"Ключ отклонён (401): проверьте API-ключ":m.slice(0,160);
     notify("Нейросеть не ответила: "+friendly);
   }
   done();
