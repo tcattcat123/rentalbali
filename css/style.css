@@ -132,6 +132,22 @@ a{-webkit-tap-highlight-color:transparent}
 .ai-input input:focus{border-color:var(--acc)}
 .ai-input .btn-primary{height:38px}
 @media(max-width:767px){#aiFab{bottom:76px}#aiChat{bottom:138px}}
+#aiFab::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(235,87,87,.5);animation:fabPulse 2s ease-out infinite}
+@keyframes fabPulse{0%{transform:scale(.85);opacity:1}100%{transform:scale(1.25);opacity:0}}
+#aiChat{animation:aiUp .25s ease}
+@keyframes aiUp{from{transform:translateY(16px);opacity:.4}}
+.ai-head{background:linear-gradient(135deg,var(--acc),var(--acc-dark));color:#fff;border-bottom:0}
+.ai-head button{color:#fff;opacity:.85}
+.ai-head button:hover{opacity:1}
+.ai-msg{animation:aiMsg .2s ease}
+@keyframes aiMsg{from{opacity:0;transform:translateY(6px)}}
+.ai-qr{display:flex;gap:6px;overflow-x:auto;padding:8px 12px 0;scrollbar-width:none}
+.ai-qr::-webkit-scrollbar{display:none}
+.ai-qr.hidden{display:none}
+.ai-qr button{flex:0 0 auto;border:1px solid var(--acc);background:#fff;color:var(--acc-dark);border-radius:16px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.ai-qr button:hover{background:var(--acc);color:#fff}
+.ai-input input{height:40px}
+.ai-input .btn-primary{min-width:44px}
 .btn-ghost{background:transparent;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer;color:var(--ink);font-size:12px;height:28px}
 .btn-ghost:hover{background:var(--line-soft)}
 .btn-text{background:transparent;border:0;color:var(--mut);cursor:pointer;font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:6px 4px}

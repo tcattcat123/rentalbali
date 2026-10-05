@@ -205,7 +205,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.23";const APP_BUILD="68";
+const APP_V="2.24";const APP_BUILD="69";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1314,6 +1314,18 @@ function agentToggle(force){
   p.classList.toggle("hidden",!open);
   if(open&&!$("aiMsgs").children.length)agentPush("bot","Привет! Опишите объект одним сообщением — тип, район, цену, спальни. Разберу всё по полям сам, недостающее спрошу здесь. Или нажмите «📝 Разместить объявление».");
 }
+function guessPtype(txt){
+  const t=String(txt||"").toLowerCase();
+  if(/вилл|villa/.test(t))return "villa";
+  if(/таунхаус|townhouse/.test(t))return "townhouse";
+  if(/квартир|апарт|студи|apartment|studio/.test(t))return "apartment";
+  if(/homestay|хомстей|хоумстей/.test(t))return "homestay";
+  if(/\bkos\b|sewa kos|кос\b|boarding/.test(t))return "boarding";
+  if(/земл|участ|участок|\bland\b|соток|сотк|are\b/.test(t))return "land";
+  if(/коммерч|commercial|офис|магазин|ресторан|помещение/.test(t))return "commercial";
+  if(/\bдом|house|хаус/.test(t))return "house";
+  return "";
+}
 function matchDistrict(txt){
   const t=String(txt||"").toLowerCase();
   for(const n of DIST_TREE){
@@ -1361,12 +1373,47 @@ function agentMissing(){
   if(!agent.data.title)miss.push("title");
   return miss;
 }
+function agentQr(btns){
+  const box=$("aiQr");if(!box)return;
+  box.innerHTML="";box.classList.toggle("hidden",!btns||!btns.length);
+  (btns||[]).forEach(b=>{
+    const el=document.createElement("button");el.type="button";el.textContent=b.label;
+    el.onclick=()=>{box.innerHTML="";box.classList.add("hidden");agentQrTap(b);};
+    box.appendChild(el);
+  });
+}
+function agentQrTap(b){
+  if(!b||agent.busy)return;
+  if(b.act==="publish"){agentPush("user",b.label);agentPublish();return;}
+  if(b.act==="skip-price"){agentPush("user",b.label);agent.data.price=0;agent.data._pq=true;agent.field=null;agentFillForm();agentPublish();return;}
+  if(b.act==="value"){agentPush("user",b.label);agent.data[b.field]=b.value;agent.field=null;agentFillForm();agentAskNext();return;}
+  if(b.act==="field"){agent.field=b.field;agentAskField();return;}
+}
+function agentSuggestTitle(){
+  const d=agentFilled();
+  return ((d.pt?pTypeLabel(d.pt):"Объект")+(d.district?" в "+locName(d.district):"")).slice(0,90);
+}
+function agentAskField(){
+  const f=agent.field;
+  if(f==="district"){
+    agentPush("bot","Какой район? Выберите кнопку или напишите свой.");
+    agentQr(["Canggu","Ubud","Seminyak","Uluwatu","Pererenan","Sanur","Denpasar"].map(k=>({label:locName(k),act:"value",field:"district",value:k})));
+  }else if(f==="price"){
+    agentPush("bot","Какая цена в IDR? (млн = миллион)");
+    agentQr([{label:"⏭ Пропустить",act:"skip-price"}]);
+  }else if(f==="title"){
+    const sug=agent.data.title||agentSuggestTitle();
+    agentPush("bot","Как назвать объявление? Можно своей фразой.");
+    agentQr([{label:"Оставить «"+sug+"»",act:"value",field:"title",value:sug}]);
+  }
+}
 function agentAskNext(){
   const miss=agentMissing();
-  if(!miss.length){agentPublish();return;}
-  agent.field=miss[0];
-  if(agent.field==="district")agentPush("bot","Какой район? Например: Чангу, Убуд, Семиньяк, Улувату...");
-  else if(agent.field==="title")agentPush("bot","Как назвать объявление? Например: «Вилла с бассейном в Чангу».");
+  if(!miss.length){
+    if(!agent.data.price&&!agent.data._pq){agent.data._pq=true;agent.field="price";agentAskField();return;}
+    agentPublish();return;
+  }
+  agent.field=miss[0];agentAskField();
 }
 async function aiServer(payload){
   const r=await fetch("api/ai-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
@@ -1386,6 +1433,8 @@ function agentMerge(o,text){
   if(!d.raw&&text)d.raw=text;
   ["deal","role","category","district","area","land","bedrooms","bathrooms","tenure","furnished"].forEach(k=>{if(o[k]!==undefined&&o[k]!==""&&o[k]!==0&&d[k]===undefined)d[k]=o[k];});
   if((o.pt||o.propertyType)&&!d.pt)d.pt=o.pt||o.propertyType;
+  if(!d.pt&&text){const g=guessPtype(text);if(g)d.pt=g;}
+  if(!d.title&&text){const fl=String(text).split("\n").map(s=>s.trim()).find(s=>s);if(fl)d.title=fl.replace(/#\w+/g,"").trim().slice(0,90);}
   if(o.price>0&&!d.price)d.price=o.price;
   if(o.amenities&&o.amenities.length&&!d.amenities)d.amenities=o.amenities;
   if(o.name&&!d.title)d.title=o.name;
@@ -1404,7 +1453,7 @@ function agentApplyField(txt){
   if(f==="price"){
     const n=agentParsePrice(txt);
     if(isNaN(n)){agentPush("bot","Не понял цену. Напишите число (млн = миллион IDR) или «пропустить» — поставлю «Цена по запросу».");return;}
-    agent.data.price=n;agent.field=null;agentFillForm();agentPush("bot",(n>0?"Цена: "+n.toLocaleString("ru-RU")+" IDR. ":"Цену пропускаем. ")+agentSummary());agentAskNext();
+    agent.data.price=n;agent.data._pq=true;agent.field=null;agentFillForm();agentPublish();
     return;
   }
   if(f==="title"){
@@ -1423,25 +1472,25 @@ function agentSummary(){
   return parts.length?("Заполнил: "+parts.join(" · ")+"."):"";
 }
 async function agentPublish(){
-  agent.mode="idle";agent.field=null;
+  agent.mode="idle";agent.field=null;agentQr(null);
   agentFillForm();
+  const d=agentFilled();
   let ok=false;
   try{ok=await submitForm(true);}catch(e){ok=false;}
   if(ok){
+    const deal=d.deal==="sale"?"Продажа":"Аренда";
+    agentPush("bot","Карточка заполнена и выложена ✅\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):"")+"\n• "+(d.price>0?d.price.toLocaleString("ru-RU")+" IDR":"Цена по запросу")+"\nПроверьте в каталоге и поправьте данные, если нужно.");
     agent.data={};
-    agentPush("bot","Разместил ✅ Проверьте карточку в каталоге и поправьте данные, если что-то не так.");
     switchView("list");syncDealTabs();
     setTimeout(()=>{const g=$("cardsGrid");if(g)g.scrollIntoView({behavior:"smooth"});},100);
   }else{
     agent.mode="collect";
     agentPush("bot","Не хватает данных: "+(missingFields().join(", ")||"данные")+". Напишите это сюда — подставлю и размещу.");
-    const miss=agentMissing();agent.field=miss[0]||null;
-    if(agent.field==="district")agentPush("bot","Какой район?");
-    else if(agent.field==="title")agentPush("bot","Как назвать объявление?");
+    agentAskNext();
   }
 }
 function agentStart(){
-  agent.mode="collect";agent.field=null;agent.data={};
+  agent.mode="collect";agent.field=null;agent.data={};agentQr(null);
   agentToggle(true);
   agentPush("bot","Опишите объект одним сообщением: что сдаёте/продаёте, район, цену, спальни, площадь. Пример: «Сдаю виллу в Чангу, 3 спальни, бассейн, 25 млн/мес».");
 }
@@ -1467,8 +1516,7 @@ async function agentOnUserText(txt){
     if(agent.data.title)got.push("заголовок: «"+agent.data.title+"»");
     if(got.length)agentPush("bot","Понял и разложил по полям: "+got.join("; ")+".");
     else agentPush("bot","Текст получил, но конкретики мало.");
-    if(!miss.length&&!agent.data.price){agentPush("bot","Какая цена? Напишите число (млн = миллион IDR) или «пропустить» — поставлю «Цена по запросу».");agent.field="price";}
-    else agentAskNext();
+    agentAskNext();
   }catch(e){typing.remove();agentPush("bot","Не смог разобрать. Опишите проще: тип, район, цена.");}
   agent.busy=false;
 }
@@ -1485,7 +1533,7 @@ async function agentFreeChat(txt){
 function agentSend(){
   const inp=$("aiText");if(!inp)return;
   const txt=(inp.value||"").trim();if(!txt)return;
-  inp.value="";
+  inp.value="";agentQr(null);
   if(agent.mode==="collect")agentOnUserText(txt);
   else if(/разместить|объявление|сдать|сдаю|продам|продаю|снять|сниму|куплю|цена|сколько|вилла|дом|квартира|земля|где|район/i.test(txt))agentOnUserText(txt);
   else agentFreeChat(txt);
