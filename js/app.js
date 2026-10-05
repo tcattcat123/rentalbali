@@ -205,7 +205,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.24";const APP_BUILD="69";
+const APP_V="2.25";const APP_BUILD="70";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -261,6 +261,7 @@ function cardHTML(it,i){
   if(isNew(it))badges+=`<span class="badge new">★ ${t("new")}</span>`;
   if(it.isAgent)badges+=`<span class="badge agent">${t("agent")}${it.agentName?" · "+it.agentName:""}</span>`;
   if(it.isUrgent)badges+=`<span class="badge urgent">${t("urgent")}</span>`;
+  if(it.ai)badges+=`<span class="badge ai-badge">🤖 AI</span>`;
   const areaV=it.area>0?it.area:it.landArea;
   const sub=it.propertyType==="land"?`Участок ${it.landArea} м²`:(it.amenities||[]).slice(0,3).join(" · ");
   const am=(it.amenities||[]).concat(["—","—"]);
@@ -272,7 +273,7 @@ function cardHTML(it,i){
     <div class="spec">${SVG_POOL}<b>${am[0]}</b><span>${am[1]}</span></div></div>`;
   const agentRow=it.type==="request"?"":`<div class="agent-row"><div class="who"><b>${it.isAgent?"Агент "+agent:agent}</b><small>На связи · 10:00–20:00</small></div><button class="btn-ghost sm" data-contact="${it.id}">Связаться</button></div>`;
   const extra=it.type==="request"?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`:"";
-  return `<div class="property-card" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
+  return `<div class="property-card${it.ai?" ai":""}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
     <div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="Фото объекта">
       ${it.images.length>1?`<button class="car-btn prev" data-car="prev" data-id="${it.id}" aria-label="prev">‹</button><button class="car-btn next" data-car="next" data-id="${it.id}" aria-label="next">›</button>`:""}
       <span class="photo-counter">${(idx%it.images.length)+1}/${it.images.length}</span>
@@ -1223,7 +1224,7 @@ function docIdFromUrl(url){
     const miss=missingFields();
     notify("Не хватает: "+(miss.length?miss.join(", "):"данные")+". Напишите это в чат — заполню сам.");
   }
-  async function submitForm(auto){
+  async function submitForm(auto,opts){
     const title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
     if(!title){if(!auto)notify("Укажите заголовок");return false;}
     if(!(price>0)){if(auto){price=0;}else{notify("Укажите цену");return false;}}
@@ -1247,7 +1248,7 @@ function docIdFromUrl(url){
       area:+$("nlArea").value||0,landArea:+$("nlLand").value||0,floors:0,
       yearBuilt:0,furnished:true,
       location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim(),geoAcc:acc,
-      phone:"",owner:getGuestId(),status:"published",
+      phone:"",owner:getGuestId(),status:"published",ai:!!(opts&&opts.via==="ai"),
       images:allPhotos.length?allPhotos:[pool[0]],fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
@@ -1256,7 +1257,7 @@ function docIdFromUrl(url){
       amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:null,desc:$("nlDesc").value.trim()};
     if(editingId){
       const ix=LISTINGS.findIndex(x=>x.id===editingId);
-      if(ix>=0){const old=LISTINGS[ix];it.id=old.id;it.createdAt=old.createdAt;it.views=old.views;it.rating=old.rating;it.reviews=old.reviews;it.owner=old.owner||getGuestId();LISTINGS[ix]=it;}
+      if(ix>=0){const old=LISTINGS[ix];it.id=old.id;it.createdAt=old.createdAt;it.views=old.views;it.rating=old.rating;it.reviews=old.reviews;it.owner=old.owner||getGuestId();it.ai=old.ai||it.ai;LISTINGS[ix]=it;}
       persistMy();resetNlForm();render();notify("Изменения сохранены");
     } else {
       LISTINGS.unshift(it);persistMy();resetNlForm();
@@ -1327,11 +1328,11 @@ function guessPtype(txt){
   return "";
 }
 function matchDistrict(txt){
-  const t=String(txt||"").toLowerCase();
+  const t=String(txt||"").toLowerCase().replace(/ё/g,"е");
   for(const n of DIST_TREE){
-    if(n.ru&&t.includes(n.ru.toLowerCase()))return n.key;
+    if(n.ru&&t.includes(n.ru.toLowerCase().replace(/ё/g,"е")))return n.key;
     if(t.includes(n.key.toLowerCase()))return n.key;
-    for(const [k,r] of (n.kids||[])){if(t.includes(String(r).toLowerCase())||t.includes(k.toLowerCase()))return k;}
+    for(const [k,r] of (n.kids||[])){if(t.includes(String(r).toLowerCase().replace(/ё/g,"е"))||t.includes(k.toLowerCase()))return k;}
   }
   return "";
 }
@@ -1342,6 +1343,7 @@ function agentParsePrice(txt){
   let n=smartNum(m[1]);
   if(/млрд|miliar|\bB\b/.test(txt))n*=1e9;
   else if(/млн/.test(txt))n*=1e6;
+  else if(/jt\b|juta/i.test(txt))n*=1e6;
   else if(/usd|\$/i.test(txt))n*=RATE;
   return Math.round(n);
 }
@@ -1435,6 +1437,7 @@ function agentMerge(o,text){
   if((o.pt||o.propertyType)&&!d.pt)d.pt=o.pt||o.propertyType;
   if(!d.pt&&text){const g=guessPtype(text);if(g)d.pt=g;}
   if(!d.title&&text){const fl=String(text).split("\n").map(s=>s.trim()).find(s=>s);if(fl)d.title=fl.replace(/#\w+/g,"").trim().slice(0,90);}
+  if(!d.district&&text){const k=matchDistrict(text);if(k)d.district=k;}
   if(o.price>0&&!d.price)d.price=o.price;
   if(o.amenities&&o.amenities.length&&!d.amenities)d.amenities=o.amenities;
   if(o.name&&!d.title)d.title=o.name;
@@ -1475,9 +1478,12 @@ async function agentPublish(){
   agent.mode="idle";agent.field=null;agentQr(null);
   agentFillForm();
   const d=agentFilled();
-  let ok=false;
-  try{ok=await submitForm(true);}catch(e){ok=false;}
-  if(ok){
+  const prog=agentPush("bot","⏳ Заполняю карточку и публикую...");
+  let ok=false,err="";
+  try{ok=await submitForm(true,{via:"ai"});}catch(e){ok=false;err=String((e&&e.message)||e).slice(0,120);}
+  if(prog)prog.remove();
+  const placed=ok&&LISTINGS.some(x=>x.user&&x.title===(d.title||""));
+  if(placed){
     const deal=d.deal==="sale"?"Продажа":"Аренда";
     agentPush("bot","Карточка заполнена и выложена ✅\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):"")+"\n• "+(d.price>0?d.price.toLocaleString("ru-RU")+" IDR":"Цена по запросу")+"\nПроверьте в каталоге и поправьте данные, если нужно.");
     agent.data={};
@@ -1485,7 +1491,7 @@ async function agentPublish(){
     setTimeout(()=>{const g=$("cardsGrid");if(g)g.scrollIntoView({behavior:"smooth"});},100);
   }else{
     agent.mode="collect";
-    agentPush("bot","Не хватает данных: "+(missingFields().join(", ")||"данные")+". Напишите это сюда — подставлю и размещу.");
+    agentPush("bot","Не выложилось"+(err?": "+err:"")+". Не хватает: "+(missingFields().join(", ")||"данные")+". Напишите это сюда — подставлю и размещу.");
     agentAskNext();
   }
 }

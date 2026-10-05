@@ -146,6 +146,8 @@ a{-webkit-tap-highlight-color:transparent}
 .ai-qr.hidden{display:none}
 .ai-qr button{flex:0 0 auto;border:1px solid var(--acc);background:#fff;color:var(--acc-dark);border-radius:16px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation}
 .ai-qr button:hover{background:var(--acc);color:#fff}
+.property-card.ai{border:2px solid #EB5757;box-shadow:0 0 0 1px #EB5757,0 4px 16px rgba(235,87,87,.25)}
+.badge.ai-badge{background:#EB5757;color:#fff}
 .ai-input input{height:40px}
 .ai-input .btn-primary{min-width:44px}
 .btn-ghost{background:transparent;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer;color:var(--ink);font-size:12px;height:28px}
