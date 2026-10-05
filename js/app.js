@@ -196,7 +196,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.14";const APP_BUILD="59";
+const APP_V="2.15";const APP_BUILD="60";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -674,7 +674,7 @@ function fillFormFromParsed(o,quiet){
   return true;
 }
 /* ===== AI-parse: нейросеть читает задание и формирует карточку ===== */
-const AI_DEFAULTS={endpoint:"https://api.openai.com/v1",model:"gpt-4o-mini"};
+const AI_DEFAULTS={endpoint:"https://api.mistral.ai/v1",model:"mistral-small-latest"};
 function getAiSettings(){
   try{
     const s=JSON.parse(localStorage.getItem("rh_ai")||"{}");
@@ -779,7 +779,11 @@ async function aiCreateFromText(txt,btn){
     fillFormFromParsed(o,true);
     if(o.name)$("nlTitle").value=o.name;
     if(!(await submitForm(true))){switchImptab("manual");alert("Нейросеть заполнила что смогла: допишите район/цену вручную");}
-  }catch(e){alert("Нейросеть не ответила: "+String((e&&e.message)||e).slice(0,160));}
+  }catch(e){
+    const m=String((e&&e.message)||e);
+    const friendly=/ai_http_429/.test(m)?"Превышен лимит Mistral (429): проверьте баланс/квоту ключа в console.mistral.ai":/ai_http_401/.test(m)?"Ключ отклонён (401): проверьте API-ключ":m.slice(0,160);
+    alert("Нейросеть не ответила: "+friendly);
+  }
   done();
 }
 const DIST_CENTER={Canggu:[-8.6478,115.1385],Seminyak:[-8.6905,115.1665],Ubud:[-8.5069,115.2625],Uluwatu:[-8.815,115.1725],Sanur:[-8.693,115.2628],Denpasar:[-8.6705,115.2126],Jimbaran:[-8.7775,115.1637],NusaDua:[-8.7962,115.2229],Kuta:[-8.7184,115.1686],Pererenan:[-8.657,115.128],Umalas:[-8.62,115.15],Kerobokan:[-8.66,115.16],Tabanan:[-8.5416,115.1247],Legian:[-8.706,115.168],Lovina:[-8.16,115.03],Amed:[-8.33,115.66]};
