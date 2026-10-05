@@ -196,7 +196,7 @@ function enhanceMonth(input){
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
 const $ = id=>document.getElementById(id);
-const APP_V="2.17";const APP_BUILD="62";
+const APP_V="2.18";const APP_BUILD="63";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -783,7 +783,7 @@ async function aiCreateFromText(txt,btn){
     if(o.pt&&$("nlType")){$("nlType").value=o.pt;paintNlAmen((AM[o.pt]||[]).slice(0,4));}
     fillFormFromParsed(o,true);
     if(o.name)$("nlTitle").value=o.name;
-    if(!(await submitForm(true))){switchImptab("manual");alert("Нейросеть заполнила что смогла: допишите район/цену вручную");}
+    if(!(await submitForm(true))){switchImptab("manual");reportMissing();}
   }catch(e){
     const m=String((e&&e.message)||e);
     const friendly=/campaign_ended/.test(m)?"Бесплатный оффер модели завершён: используйте платную модель или пополните баланс":/402|balance_zero/.test(m)?"Баланс $0: пополните на tokenharbor.ai/dashboard":/ai_http_429|rate_limited/.test(m)?"Превышен лимит (429): проверьте баланс и квоту ключа":/ai_http_401/.test(m)?"Ключ отклонён (401): проверьте API-ключ":m.slice(0,160);
@@ -1067,7 +1067,7 @@ function docIdFromUrl(url){
       if(!txt){alert("Документ не отдался. Откройте доступ «Все, у кого есть ссылка» (Читатель) и попробуйте ещё раз");btn.textContent="Распознать и создать";btn.disabled=false;return;}
       if($("nlDesc"))$("nlDesc").value=txt.slice(0,3000);
       fillFormFromParsed(parseDeskripsi(txt),true);
-      if(!(await submitForm(true))){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
+      if(!(await submitForm(true))){switchImptab("manual");reportMissing();}
     }catch(e){alert("Не смог прочитать документ");}
     btn.textContent="Распознать и создать";btn.disabled=false;
   };
@@ -1081,7 +1081,7 @@ function docIdFromUrl(url){
     fillFormFromParsed(o,true);
     const first=(txt.split("\n").map(s=>s.trim()).find(s=>s)||"").replace(/#\w+/g,"").trim().slice(0,90);
     if(first)$("nlTitle").value=first;
-    if(!submitForm(true)){switchImptab("manual");alert("Заполнил что смог: допишите район/цену вручную — или пришлите текст в чат, разберу сам.");}
+    if(!submitForm(true)){switchImptab("manual");reportMissing();}
   };
   if($("impTgParse"))$("impTgParse").onclick=()=>{
     const txt=($("impTgText").value||"").trim();
@@ -1091,7 +1091,7 @@ function docIdFromUrl(url){
     fillFormFromParsed(o,true);
     const first=(txt.split("\n").map(s=>s.trim()).find(s=>s)||"").replace(/#\w+/g,"").trim().slice(0,90);
     if(first)$("nlTitle").value=first;
-    if(!submitForm(true)){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
+    if(!submitForm(true)){switchImptab("manual");reportMissing();}
   };
   if($("impAiParse"))$("impAiParse").onclick=()=>aiCreateFromText(($("impTgText").value||"").trim(),$("impAiParse"));
   loadAiSettings();
@@ -1156,7 +1156,7 @@ function docIdFromUrl(url){
       if(pf.category){state.rentCat=pf.category;document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));}
       if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
       syncNlDeal();
-      if(!(await submitForm(true))){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
+      if(!(await submitForm(true))){switchImptab("manual");reportMissing();}
     }catch(e){alert("Не смог прочитать ссылку — вставьте текст вручную или добавьте фото по ссылкам Drive");}
     done();
   };
@@ -1185,7 +1185,7 @@ function docIdFromUrl(url){
       if(pf.tenure)$("nlTenure").value=pf.tenure;
       if(pf.amenities&&pf.amenities.length)paintNlAmen(pf.amenities);
       syncNlDeal();
-      if(!(await submitForm(true))){switchImptab("manual");alert("Почти готово: допишите заголовок и цену вручную");}
+      if(!(await submitForm(true))){switchImptab("manual");reportMissing();}
     }catch(e){alert("Папку прочитать не удалось. Проверьте доступ «Все у кого есть ссылка» или используйте другие варианты");}
     btn.textContent="Создать из папки";btn.disabled=false;
   };
@@ -1203,6 +1203,17 @@ function docIdFromUrl(url){
     nlRemote=ROYAL_PHOTOS.map(driveThumb);paintNlPreview();
     alert("Royal Lotus заполнен: 21 фото + поля. Проверьте и жмите Опубликовать");
   };
+  function missingFields(){
+    const m=[];
+    if(!$("nlTitle").value.trim())m.push("заголовок");
+    if(!(parseFloat($("nlPrice").value)>0))m.push("цену");
+    if(!$("nlDistrict").value)m.push("район");
+    return m;
+  }
+  function reportMissing(){
+    const miss=missingFields();
+    alert("Не хватает: "+(miss.length?miss.join(", "):"данные")+". Напишите это в чат — заполню сам.");
+  }
   async function submitForm(auto){
     const title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
     if(!title){if(!auto)alert("Укажите заголовок");return false;}
@@ -1210,7 +1221,7 @@ function docIdFromUrl(url){
     if($("nlCur")&&$("nlCur").value==="USD")price=Math.round(price*RATE);
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
     const dk=$("nlDistrict").value||"";
-    if(!dk){if(!auto)alert("Выберите район");else{switchImptab("manual");alert("Выберите район вручную");}return false;}
+    if(!dk){if(!auto)alert("Выберите район");else{switchImptab("manual");}return false;}
     const rl=locName(dk);
     let lat=null,lng=null;
     const g=await resolveGeo($("nlGeo").value.trim());
