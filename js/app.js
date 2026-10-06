@@ -209,7 +209,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.30";const APP_BUILD="75";
+const APP_V="2.31";const APP_BUILD="76";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1321,11 +1321,30 @@ function agentPush(who,text){
   const d=document.createElement("div");d.className="ai-msg "+who;d.textContent=String(text||"");
   box.appendChild(d);box.scrollTop=box.scrollHeight;return d;
 }
+let aiStatus=null;
+async function aiStatusCheck(){
+  if(aiStatus)return aiStatus;
+  try{
+    const r=await fetch("api/ai-status",{cache:"no-store"});
+    const j=await r.json();
+    aiStatus={configured:!!(j&&j.configured),model:(j&&j.model)||""};
+  }catch(e){
+    try{
+      const r2=await fetch("api/ai-chat",{cache:"no-store"});
+      const j2=await r2.json();
+      aiStatus={configured:!!(j2&&j2.configured),model:(j2&&j2.model)||""};
+    }catch(e2){aiStatus={configured:false,model:""};}
+  }
+  return aiStatus;
+}
 function agentToggle(force){
   const p=$("aiChat");if(!p)return;
   const open=force!==undefined?force:p.classList.contains("hidden");
   p.classList.toggle("hidden",!open);
-  if(open&&!$("aiMsgs").children.length)agentPush("bot","Привет! Опишите объект одним сообщением — всё остальное додумаю сам: заголовок, описание, поля. Что не скажете — поставлю прочерк и не переспрошу. Или нажмите «📝 Разместить объявление».");
+  if(open&&!$("aiMsgs").children.length){
+    agentPush("bot","Привет! Опишите объект одним сообщением — всё остальное додумаю сам: заголовок, описание, поля. Что не скажете — поставлю прочерк и не переспрошу. Или нажмите «📝 Разместить объявление».");
+    aiStatusCheck().then(s=>agentPush("bot",s.configured?("🤖 Нейросеть подключена ("+s.model+"). Разбираю текст и пишу описание сам."):("⚠️ Нейросеть не подключена: добавьте ключ AI_API_KEY на сервер — пока работает только быстрый разбор.")));
+  }
 }
 function guessPtype(txt){
   const t=String(txt||"").toLowerCase();

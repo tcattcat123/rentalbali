@@ -37,8 +37,9 @@ async function chatCompletions(key, body) {
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== "POST") return res.status(405).json({ ok: false, error: "POST only" });
   const key = process.env.AI_API_KEY || process.env.OPENAI_API_KEY || "";
+  if (req.method === "GET") return res.status(200).json({ ok: true, configured: !!key, model: MODEL });
+  if (req.method !== "POST") return res.status(405).json({ ok: false, error: "POST only" });
   if (!key) return res.status(200).json({ ok: false, error: "no_server_key" });
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch (e) { return res.status(400).json({ ok: false, error: "bad json" }); } }

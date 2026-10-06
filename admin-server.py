@@ -300,6 +300,8 @@ class Handler(SimpleHTTPRequestHandler):
         path = urllib.parse.urlparse(self.path).path
         if path == "/api/ping":
             return self._send_json({"ok": True, "mode": "file"})
+        if path == "/api/ai-status":
+            return self._send_json({"ok": True, "configured": bool(AI_KEY), "model": AI_MODEL})
         if path == "/api/listings":
             return self._send_json({"ok": True, "items": read_user_items()})
         if path == "/api/tg":
