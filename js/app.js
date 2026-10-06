@@ -209,7 +209,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.28";const APP_BUILD="73";
+const APP_V="2.29";const APP_BUILD="74";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1344,14 +1344,21 @@ function cleanName(s){
   s=s.replace(/\b(?:на\s+)?(?:прода(?:жу|же|ть)|продаю|продам|sale|rent|сда(?:ю|ется|ть))\b/ig,"")
     .replace(/\b\d+\s*(?:спальн\w*|ванн\w*|комнат\w*)\b/ig,"")
     .replace(/\s*[-–—,:;]+\s*/g," ").replace(/\s+/g," ").trim();
+  s=s.replace(/^(?:вилл[а-яё]*|дом[а-яё]*|апартамент[а-яё]*|квартир[а-яё]*|участ[а-яё]*|земл[а-яё]*|таунхаус[а-яё]*|homestay|villa|house|apartment|land)\s+/i,"").trim();
+  if(!s)return "";
+  if(s.split(/\s+/).length>4)return "";
   return s.slice(0,60);
 }
 function agentComposeTitle(d){
   d=d||agent.data;
   if(d.title&&!d._autoTitle)return d.title;
   const t=[];
-  t.push(d.pt?pTypeLabel(d.pt):"Объект");
-  if(d.rawName)t.push(d.rawName);
+  const ptName=d.pt?pTypeLabel(d.pt):"Объект";
+  t.push(ptName);
+  let nm=d.rawName||"";
+  const nmLow=nm.toLowerCase();
+  if(nm&&(nmLow===ptName.toLowerCase()||(d.district&&(nmLow===locName(d.district).toLowerCase()||nmLow===d.district.toLowerCase()))))nm="";
+  if(nm)t.push(nm);
   let s=t.join(" ");
   if(d.district)s+=" "+locPrep(d.district);
   if(d.bedrooms>0)s+=" — "+d.bedrooms+" "+plural(d.bedrooms,["спальня","спальни","спален"]);
