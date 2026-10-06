@@ -209,7 +209,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.29";const APP_BUILD="74";
+const APP_V="2.30";const APP_BUILD="75";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1470,12 +1470,13 @@ function agentNeedsReview(){
   if(!d.bathrooms&&d.pt!=="land")items.push("ванные не указаны");
   return items;
 }
-function agentAskConfirm(){
+function agentAskConfirm(engine){
   agent.mode="confirm";agent.field=null;
   const needs=agentNeedsReview();
   const detail=needs.length?"\nНе указано: "+needs.join("; ")+".":"";
   const defaults=agent.data._baseAmenities?"\nДобавил стандартную комплектацию для объекта.":"";
-  agentPush("bot","Заполнил карточку: «"+agent.data.title+"»."+detail+defaults+"\nХотите что-то дополнить? Напишите одним сообщением или ответьте «ничего» — размещу как есть.");
+  const tag=engine==="ai"?"\n🤖 Разобрано нейросетью.":engine==="fast"?"\n⚡ Быстрый разбор без нейросети.":"";
+  agentPush("bot","Заполнил карточку: «"+agent.data.title+"»."+detail+defaults+tag+"\nХотите что-то дополнить? Напишите одним сообщением или ответьте «ничего» — размещу как есть.");
   agentQr([{label:"Разместить как есть",act:"confirm-publish"},{label:"Добавить детали",act:"confirm-add"}]);
 }
 function agentQr(btns){
@@ -1516,12 +1517,12 @@ function agentAskField(){
     agentQr([{label:"Оставить «"+sug+"»",act:"value",field:"title",value:sug}]);
   }
 }
-function agentAskNext(){
+function agentAskNext(engine){
   agent.field=null;
-  agentAskConfirm();
+  agentAskConfirm(engine);
 }
-async function aiServer(payload){
-  const r=await fetch("api/ai-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+async function aiServer(payload,signal){
+  const r=await fetch("api/ai-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:signal||undefined});
   const j=await r.json();
   if(j&&j.ok)return j;
   throw new Error((j&&j.error)||"ai");
@@ -1546,6 +1547,16 @@ function agentFastExtract(text){
 }
 function agentWaitForAi(promise,fallback,ms){
   return Promise.race([promise,new Promise(resolve=>setTimeout(()=>resolve(fallback),ms))]);
+}
+async function agentExtractRace(text,ms){
+  const c=(typeof AbortController!=="undefined")?new AbortController():null;
+  const timer=setTimeout(()=>{try{c&&c.abort();}catch(e){}},ms||4500);
+  try{
+    const j=await aiServer({text},c?c.signal:undefined);
+    clearTimeout(timer);
+    if(j&&j.listing)return{o:normalizeAiListing(j.listing,text),engine:"ai"};
+  }catch(e){clearTimeout(timer);}
+  return{o:agentFastExtract(text),engine:"fast"};
 }
 function agentMerge(o,text){
   const d=agent.data;
@@ -1635,9 +1646,9 @@ async function agentOnUserText(txt){
     agent.mode="collect";agent.busy=true;
     const typing=agentPush("bot","Добавляю детали…");
     try{
-      const o=await agentWaitForAi(agentExtract(txt),agentFastExtract(txt),4500);
-      agentMerge(o,txt);agentFillForm();if(typing)typing.remove();agentAskConfirm();
-    }catch(_){agentMerge(agentFastExtract(txt),txt);agentFillForm();if(typing)typing.remove();agentAskConfirm();}
+      const r=await agentExtractRace(txt,4500);
+      agentMerge(r.o,txt);agentFillForm();if(typing)typing.remove();agentAskConfirm(r.engine);
+    }catch(_){agentMerge(agentFastExtract(txt),txt);agentFillForm();if(typing)typing.remove();agentAskConfirm("fast");}
     finally{agent.busy=false;}
     return;
   }
@@ -1648,12 +1659,12 @@ async function agentOnUserText(txt){
   const typing=agentPush("bot","Разбираю...");
   try{
     if(typing)typing.classList.add("typing");
-    const o=await agentWaitForAi(agentExtract(txt),agentFastExtract(txt),4500);
-    agentMerge(o,txt);
+    const r=await agentExtractRace(txt,4500);
+    agentMerge(r.o,txt);
     agentFillForm();
     if(typing)typing.remove();
-    agentAskNext();
-  }catch(e){if(typing)typing.remove();agentMerge(agentFastExtract(txt),txt);agentFillForm();agentAskNext();}
+    agentAskNext(r.engine);
+  }catch(e){if(typing)typing.remove();agentMerge(agentFastExtract(txt),txt);agentFillForm();agentAskNext("fast");}
   finally{agent.busy=false};
 }
 async function agentFreeChat(txt){
