@@ -58,7 +58,7 @@ fetch("api/ping",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
   }).catch(()=>{});
 }).catch(()=>{});
 function getGuestId(){try{let g=localStorage.getItem("rh_guest");if(!g){g="g-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);localStorage.setItem("rh_guest",g);}return g;}catch(e){return "g-local";}}
-function persistMy(){
+async function persistMy(){
   const items=LISTINGS.filter(x=>x.user);
   const saveLocal=(list)=>{try{localStorage.setItem("rh_my",JSON.stringify(list));return true;}catch(e){return false;}};
   if(!saveLocal(items)){
@@ -66,9 +66,13 @@ function persistMy(){
     if(saveLocal(slim)){notify("Места мало: оставил по 1 фото на объявление. Скачайте копию кабинета.");}
     else{notify("Хранилище переполнено: скачайте копию кабинета и удалите часть фото");return;}
   }
-  if(!API)return;
-  fetch("api/listings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items})})
-    .then(r=>r.json()).then(j=>{if(!j.ok)notify("Не сохранено в JSON");}).catch(()=>notify("Нет связи с admin-server — сохранено только в браузере"));
+  if(!API)return true;
+  try{
+    const response=await fetch("api/listings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items})});
+    const result=await response.json();
+    if(!response.ok||!result.ok)throw new Error("server save failed");
+    return true;
+  }catch(_){notify("Карточка осталась в браузере; сервер не подтвердил сохранение");return false;}
 }
 function getProfile(){try{const p=JSON.parse(localStorage.getItem("rh_profile")||"{}");return{name:p.name||"",guestId:getGuestId()};}catch(e){return{name:"",guestId:getGuestId()};}}
 const TEN={17:"freehold",18:"freehold",19:"leasehold",20:"freehold",12:"leasehold",16:"freehold"};
@@ -210,7 +214,9 @@ try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
     const b=document.createElement("div");b.className="upd-banner";
-    b.innerHTML=`<span>Доступна новая версия — обновите страницу</span><button onclick="location.reload()">Обновить</button>`;
+    b.innerHTML=`<span>Доступна новая версия — обновите страницу</span><div class="upd-actions"><button type="button" class="upd-refresh">Обновить</button><button type="button" class="upd-dismiss">Отменить</button></div>`;
+    b.querySelector(".upd-refresh").onclick=()=>location.reload();
+    b.querySelector(".upd-dismiss").onclick=()=>b.remove();
     document.body.prepend(b);
   }
 }catch(e){}
@@ -515,7 +521,7 @@ function driveIdFromUrl(s){
   if(/^[a-zA-Z0-9_-]{10,}$/.test(s))return s;
   return"";
 }
-const RU_LOC=[["УБУД","Ubud","Убуд"],["ЧАНГУ","Canggu","Чангу"],["СЕМИНЬЯК","Seminyak","Семиньяк"],["УЛУВАТУ","Uluwatu","Улувату"],["САНУР","Sanur","Санур"],["ДЕНПАСАР","Denpasar","Денпасар"],["ДЖИМБАРАН","Jimbaran","Джимбаран"],["НУСА","NusaDua","Нуса-Дуа"],["КУТА","Kuta","Кута"],["ПЕРЕРЕНАН","Pererenan","Переренан"],["УМАЛАС","Umalas","Умалас"],["КЕРОБОКАН","Kerobokan","Керобокан"],["СЕСЕХ","Seseh","Сесех"],["БУДУК","Buduk","Будук"],["ЛЕГИАН","Legian","Легиан"],["ПЕТИТЕНГЕТ","Petitenget","Петитенгет"],["ОБЕРОЙ","Oberoi","Оберой"],["БЕРАВА","Berawa","Берава"],["БАТУ[-\s]?БОЛОНГ","BatuBolong","Бату Болонг"],["ТУМБАК","TumbakBayuh","Тумбак Баюх"],["КЕДУНГУ","Kedungu","Кедунгу"],["ЧЕМАГИ","Cemagi","Чемаги"],["БИНГИН","Bingin","Бингин"],["БАЛАГАН","Balangan","Балаган"],["УНГАСАН","Ungasan","Унгасан"],["ПЕЧАТУ","Pecatu","Печату"],["ТАНАХ|ТАНА","TanahLot","Танах Лот"],["МАС(?![а-яё])","Mas","Мас"],["ПАЯНГАН","Payangan","Паянган"],["ГИАНЬЯР","Gianyar","Гианьяр"],["СУКАВАТИ","Sukawati","Сукавати"],["МЕНГВИ","Mengwi","Менгви"],["ЛОВИНА","Lovina","Ловина"],["СИНГАРАДЖА","Singaraja","Сингараджа"],["ПЕМУТЕРАН","Pemuteran","Пемутеран"],["АМЕД","Amed","Амед"],["КАНДИДАСА","Candidasa","Кандидаса"],["СИДЕМЕН","Sidemen","Сидемен"],["ПЕНИДА","NusaPenida","Нуса-Пенида"],["ЛЕМБОНГАН","NusaLembongan","Нуса-Лембонган"],["ТАБАНАН","Tabanan","Табанан"]];
+const RU_LOC=[["УБУД(?:Е|А)?","Ubud","Убуд"],["ЧАНГУ","Canggu","Чангу"],["СЕМИНЬЯК(?:Е|А)?","Seminyak","Семиньяк"],["УЛУВАТУ","Uluwatu","Улувату"],["САНУР(?:Е|А)?","Sanur","Санур"],["ДЕНПАСАР(?:Е|А)?","Denpasar","Денпасар"],["ДЖИМБАРАН(?:Е|А)?","Jimbaran","Джимбаран"],["НУСА","NusaDua","Нуса-Дуа"],["КУТА(?:Е|Ы)?","Kuta","Кута"],["ПЕРЕРЕНАН(?:Е)?","Pererenan","Переренан"],["УМАЛАС(?:Е)?","Umalas","Умалас"],["КЕРОБОКАН(?:Е)?","Kerobokan","Керобокан"],["СЕСЕХ(?:Е)?","Seseh","Сесех"],["БУДУК(?:Е)?","Buduk","Будук"],["ЛЕГИАН(?:Е)?","Legian","Легиан"],["ПЕТИТЕНГЕТ(?:Е)?","Petitenget","Петитенгет"],["ОБЕРОЙ(?:Е)?","Oberoi","Оберой"],["БЕРАВА(?:Е)?","Berawa","Берава"],["БАТУ[-\s]?БОЛОНГ(?:Е)?","BatuBolong","Бату Болонг"],["ТУМБАК","TumbakBayuh","Тумбак Баюх"],["КЕДУНГУ(?:Е)?","Kedungu","Кедунгу"],["ЧЕМАГИ","Cemagi","Чемаги"],["БИНГИН(?:Е)?","Bingin","Бингин"],["БАЛАГАН(?:Е)?","Balangan","Балаган"],["УНГАСАН(?:Е)?","Ungasan","Унгасан"],["ПЕЧАТУ","Pecatu","Печату"],["ТАНАХ|ТАНА","TanahLot","Танах Лот"],["МАС(?![а-яё])","Mas","Мас"],["ПАЯНГАН","Payangan","Паянган"],["ГИАНЬЯР(?:Е)?","Gianyar","Гианьяр"],["СУКАВАТИ","Sukawati","Сукавати"],["МЕНГВИ","Mengwi","Менгви"],["ЛОВИНА(?:Е)?","Lovina","Ловина"],["СИНГАРАДЖА(?:Е)?","Singaraja","Сингараджа"],["ПЕМУТЕРАН(?:Е)?","Pemuteran","Пемутеран"],["АМЕД(?:Е)?","Amed","Амед"],["КАНДИДАСА(?:Е)?","Candidasa","Кандидаса"],["СИДЕМЕН(?:Е)?","Sidemen","Сидемен"],["ПЕНИДА","NusaPenida","Нуса-Пенида"],["ЛЕМБОНГАН","NusaLembongan","Нуса-Лембонган"],["ТАБАНАН(?:Е)?","Tabanan","Табанан"]];
 function smartNum(s){
   s=String(s||"").replace(/\s/g,"");if(!s)return 0;
   const hasC=s.includes(","),hasD=s.includes(".");
@@ -532,7 +538,7 @@ function parseDeskripsi(text){
   const ruM=text.match(/Описани[ея]([\s\S]*?)(Location|Foto|Локация|$)/i);
   const t=(ruM?ruM[1]:text).slice(0,4000);
   const num=s=>parseInt(s.replace(/\D/g,""),10)||0;
-  out.deal=/ПРОДАМ|SALE|DIJUAL/i.test(t)?"sale":"rent";
+  out.deal=/ПРОДАМ|ПРОДАЖ|НА\s+ПРОДАЖУ|SALE|DIJUAL/i.test(t)?"sale":"rent";
   out.role=/СНИМУ|ИЩУ|WANTED|DICARI/i.test(t)&&!/ПРОДАМ/i.test(t)?"request":"offer";
   const saleMark=/ПРОДАМ|\bSALE\b|DIJUAL/i.test(t);
   const rentMark=/аренд|akam|\/мес|\/год|\brent\b/i.test(t);
@@ -559,9 +565,9 @@ function parseDeskripsi(text){
   if(lm){const u=lm[2]||"м";out.land=Math.round(+lm[1]*((/соток|сотки|are/i.test(u))?100:1));}
   const bd=t.match(/(\d+)\s*(?:BD|BR)\b/i),hb=t.match(/#(\d+)bdr/i);
   const bde=t.match(/(\d+)\s*bedrooms?\b/i);
-  const bm=(t.match(/(\d+)\s*спальни/i)||[])[1];
-  out.bedrooms=Math.max(+((bd||[])[1]||0),+((hb||[])[1]||0),+((bde||[])[1]||0),(+bm||0)+(/одна спальня/i.test(t)?1:0));
-  const bt=t.match(/(\d+)\s*baths?\b/i);
+  const bm=(t.match(/(\d+)\s*спальн[а-яё]*/i)||[])[1];
+  out.bedrooms=Math.max(+((bd||[])[1]||0),+((hb||[])[1]||0),+((bde||[])[1]||0),+bm||0,(/одна спальня/i.test(t)?1:0));
+  const bt=t.match(/(\d+)\s*(?:baths?\b|ванн[а-яё]*)/i);
   const fl=t.match(/(\d+)\s*этаж/i)||t.match(/(\d+)\s*floors?/i);if(fl)out.floors=+fl[1];
   else if(/одноэтажн/i.test(t))out.floors=1;
   out.bathrooms=+((bt||[])[1]||0)||(out.bedrooms+((/гостевой санузел/i.test(t)||(/санузл/i.test(t)&&out.bedrooms<3))?1:0));
@@ -1224,17 +1230,21 @@ function docIdFromUrl(url){
     const miss=missingFields();
     notify("Не хватает: "+(miss.length?miss.join(", "):"данные")+". Напишите это в чат — заполню сам.");
   }
-  async function submitForm(auto,opts){
+async function submitForm(auto,opts){
     const title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
-    if(!title){if(!auto)notify("Укажите заголовок");return false;}
+    if(!title&&auto){$("nlTitle").value=agentComposeTitle();}
+    const finalTitle=$("nlTitle").value.trim();
+    if(!finalTitle){if(!auto)notify("Укажите заголовок");return false;}
     if(!(price>0)){if(auto){price=0;}else{notify("Укажите цену");return false;}}
     if($("nlCur")&&$("nlCur").value==="USD")price=Math.round(price*RATE);
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
     const dk=$("nlDistrict").value||"";
-    if(!dk){if(!auto)notify("Выберите район");else{switchImptab("manual");}return false;}
-    const rl=locName(dk);
+    const rl=dk?locName(dk):"Бали";
     let lat=null,lng=null;
-    const g=await resolveGeo($("nlGeo").value.trim());
+    let g=null;
+    if(dk&&$("nlGeo").value.trim()){
+      try{g=await Promise.race([resolveGeo($("nlGeo").value.trim()),new Promise(resolve=>setTimeout(()=>resolve(null),5000))]);}catch(_){g=null;}
+    }
     if(g){lat=g.lat;lng=g.lng;}
     else{const c=DIST_CENTER[dk]||[-8.65,115.17];lat=c[0];lng=c[1];}
     const acc=$("nlAcc").value||"exact";
@@ -1255,15 +1265,16 @@ function docIdFromUrl(url){
       living:+$("nlLiving").value||0,parking:+$("nlPark").value||0,leaseYears:leaseY,
       available:$("nlAvail").value?$("nlAvail").value+"-01":null,
       amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:null,desc:$("nlDesc").value.trim()};
+    let backendSaved=true;
     if(editingId){
       const ix=LISTINGS.findIndex(x=>x.id===editingId);
       if(ix>=0){const old=LISTINGS[ix];it.id=old.id;it.createdAt=old.createdAt;it.views=old.views;it.rating=old.rating;it.reviews=old.reviews;it.owner=old.owner||getGuestId();it.ai=old.ai||it.ai;LISTINGS[ix]=it;}
-      persistMy();resetNlForm();render();notify("Изменения сохранены");
+      backendSaved=await persistMy();resetNlForm();render();notify(backendSaved?"Изменения сохранены":"Изменения сохранены только в браузере");
     } else {
-      LISTINGS.unshift(it);persistMy();resetNlForm();
+      LISTINGS.unshift(it);backendSaved=await persistMy();resetNlForm();
       state.deal=deal;state.role=role;state.page=1;syncRoleTabs();syncDealTabs();render();
       document.getElementById("cardsGrid").scrollIntoView({behavior:"smooth"});
-      notify("Опубликовано! Показываю его в ленте.");
+      notify(backendSaved?"Опубликовано! Показываю его в ленте.":"Карточка сохранена в этом браузере.");
     }
     return true;
   }
@@ -1330,7 +1341,9 @@ function guessPtype(txt){
 }
 function cleanName(s){
   s=String(s||"").replace(/\s+/g," ").trim();
-  if(/размест|опубликуй|запости|выложи|продам|продаю|продать|продаж|сдаю|сдать|сдают|сниму|снять|куплю|купить|цена|стоит|спальн|спалн|комнат/i.test(s))return "";
+  s=s.replace(/\b(?:на\s+)?(?:прода(?:жу|же|ть)|продаю|продам|sale|rent|сда(?:ю|ется|ть))\b/ig,"")
+    .replace(/\b\d+\s*(?:спальн\w*|ванн\w*|комнат\w*)\b/ig,"")
+    .replace(/\s*[-–—,:;]+\s*/g," ").replace(/\s+/g," ").trim();
   return s.slice(0,60);
 }
 function agentComposeTitle(d){
@@ -1339,39 +1352,46 @@ function agentComposeTitle(d){
   const t=[];
   t.push(d.pt?pTypeLabel(d.pt):"Объект");
   if(d.rawName)t.push(d.rawName);
-  if(d.district)t.push(locPrep(d.district));
   let s=t.join(" ");
+  if(d.district)s+=" "+locPrep(d.district);
   if(d.bedrooms>0)s+=" — "+d.bedrooms+" "+plural(d.bedrooms,["спальня","спальни","спален"]);
   return (s.slice(0,90)||"Объявление");
 }
 function agentComposeDesc(){
   const d=agent.data;
   if(d.desc)return String(d.desc).slice(0,3000);
-  const f=agentFilled();const s=[];
-  s.push((f.pt?pTypeLabel(f.pt):"Объект")+(f.district?" в "+locName(f.district):" на Бали")+".");
-  const det=[];
-  if(d.bedrooms>0)det.push("спален: "+d.bedrooms);
-  if(d.bathrooms>0)det.push("ванных: "+d.bathrooms);
-  if(d.area>0)det.push("площадь "+d.area+" м²");
-  if(d.land>0)det.push("участок "+d.land+" м²");
-  if(det.length)s.push(det.join(", ")+".");
-  if(d.amenities&&d.amenities.length)s.push("Удобства: "+d.amenities.join(", ")+".");
-  s.push(f.price>0?("Цена: "+f.price.toLocaleString("ru-RU")+" IDR."):"Цена по запросу.");
-  return s.join(" ").slice(0,3000);
+  const f=agentFilled(),type=f.pt?pTypeLabel(f.pt).toLowerCase():"объект",place=f.district?"в "+locName(f.district):"на Бали";
+  const paragraphs=[];
+  let intro=type+(d.rawName?" «"+d.rawName+"»":"")+" "+place;
+  if(d.bedrooms>0)intro+=" — с "+d.bedrooms+" "+plural(d.bedrooms,["спальней","спальнями","спальнями"]);
+  paragraphs.push(intro+".");
+  const details=[];
+  if(d.bathrooms>0)details.push(d.bathrooms+" "+plural(d.bathrooms,["ванная комната","ванные комнаты","ванных комнат"]));
+  if(d.area>0)details.push("площадь дома "+d.area+" м²");
+  if(d.land>0)details.push("участок "+d.land+" м²");
+  if(details.length)paragraphs.push("В доме "+details.join(", ")+".");
+  if(d._view)paragraphs.push(d._view+".");
+  const amenities=d.amenities&&d.amenities.length?d.amenities:(d._baseAmenities?(AM[f.pt]||AM.villa):[]);
+  if(amenities.length)paragraphs.push("В комплектации: "+amenities.join(", ").toLowerCase()+".");
+  const price=d.price>0?(d._priceLabel||d.price.toLocaleString("ru-RU")+" IDR"):"по запросу";
+  paragraphs.push((f.deal==="sale"?"Объект предлагается к продаже":"Объект сдаётся")+". Цена: "+price+".");
+  return paragraphs.join(" ").slice(0,3000);
 }
 function fmtShort(v){v=Math.round(v);if(v>=1e9){const b=v/1e9;return (Number.isInteger(b)?b:b.toFixed(1)).toLocaleString("ru-RU")+" млрд";}if(v>=1e6){const m=v/1e6;return (Number.isInteger(m)?m:m.toFixed(1)).toLocaleString("ru-RU")+" млн";}if(v>=1e3){const t2=v/1e3;return (Number.isInteger(t2)?t2:t2.toFixed(1)).toLocaleString("ru-RU")+" тыс";}return String(v);}
 const LOC_PREP={Canggu:"в Чангу",Berawa:"в Бераве",BatuBolong:"в Бату Болонге",TumbakBayuh:"в Тумбак Баюхе",Pererenan:"в Переренане",Umalas:"в Умаласе",Kerobokan:"в Керобокане",Seseh:"в Сесехе",Buduk:"в Будуке",Seminyak:"в Семиньяке",BeachsideCenter:"в Семиньяке",ResidentialSide:"в Семиньяке",Oberoi:"в Оберое",Legian:"в Легиане",Petitenget:"в Петитенгете",Kuta:"в Куте",TanahLot:"в Танах Лоте",Kedungu:"в Кедунгу",Cemagi:"в Чемаги",Uluwatu:"в Улувату",Bingin:"в Бингине",Balangan:"в Балагане",Jimbaran:"в Джимбаране",NusaDua:"в Нуса-Дуа",Ungasan:"в Унгасане",Pecatu:"в Печату",Ubud:"в Убуде",Mas:"в Масе",Payangan:"в Паянгане",Denpasar:"в Денпасаре",Sanur:"в Сануре",Gianyar:"в Гианьяре",Sukawati:"в Сукавати",Tabanan:"в Табанане",Mengwi:"в Менгви",Lovina:"в Ловине",Singaraja:"в Сингарадже",Pemuteran:"в Пемутеране",Amed:"в Амеде",Candidasa:"в Кандидасе",Sidemen:"в Сидемене",NusaPenida:"на Нуса-Пениде",NusaLembongan:"на Нуса-Лембонгане"};
 function locPrep(k){return LOC_PREP[k]||(k?"в "+k:"");}
 function agentScanPrice(txt){
   const t=String(txt||"");
-  let m=t.match(/(\d[\d.,]*)\s*(млрд|миллиард|miliar|\bB\b)/i);
+  let m=t.match(/(\d[\d.,]*)\s*(к|k|тыс\.?|тысяч)\s*(доллар\w*|бакс\w*|usd|\$)/i);
+  if(m)return{v:Math.round(smartNum(m[1])*1e3*RATE),amb:false,label:Math.round(smartNum(m[1])*1e3)+" USD"};
+  m=t.match(/(\d[\d.,]*)\s*(доллар\w*|бакс\w*|usd|\$)\s*(к|k|тыс\.?|тысяч)/i);
+  if(m)return{v:Math.round(smartNum(m[1])*1e3*RATE),amb:false,label:Math.round(smartNum(m[1])*1e3)+" USD"};
+  m=t.match(/(\d[\d.,]*)\s*(usd|\$|доллар\w*|бакс\w*)/i);
+  if(m)return{v:Math.round(smartNum(m[1])*RATE),amb:false,label:smartNum(m[1])+" USD"};
+  m=t.match(/(\d[\d.,]*)\s*(млрд|миллиард|miliar|\bB\b)/i);
   if(m)return{v:Math.round(smartNum(m[1])*1e9),amb:false};
   m=t.match(/(\d[\d.,]*)\s*(млн|million|jt\b|juta)/i);
   if(m)return{v:Math.round(smartNum(m[1])*1e6),amb:false};
-  m=t.match(/(\d[\d.,]*)\s*(usd|\$)/i);
-  if(m)return{v:Math.round(smartNum(m[1])*RATE),amb:false};
-  m=t.match(/(\d[\d.,]*)\s*(доллар|долларов|бакс|usd|\$)/i);
-  if(m)return{v:Math.round(smartNum(m[1])*RATE),amb:false};
   m=t.match(/(\d[\d.,]*)\s*(к|k|тыс\.?|тысяч|thousand)(?![а-яёa-z])/i);
   if(m)return{v:Math.round(smartNum(m[1])*1e3),amb:true,base:Math.round(smartNum(m[1]))};
   m=t.match(/(\d[\d.,]*)/);
@@ -1410,7 +1430,7 @@ function agentParsePrice(txt){
 }
 function agentFilled(){
   const d=agent.data;
-  return{deal:d.deal||"rent",role:d.role||"offer",ptype:d.pt||"villa",district:d.district||"",title:d.title||"",price:d.price||0};
+  return{deal:d.deal||"rent",role:d.role||"offer",ptype:d.pt||"villa",district:d.district||"",title:d.title||"",price:d.price||0,id:d.id||0};
 }
 function agentFillForm(){
   if(!agent.data.title||agent.data._autoTitle){agent.data.title=agentComposeTitle(agent.data);agent.data._autoTitle=true;}
@@ -1427,14 +1447,29 @@ function agentFillForm(){
   if(agent.data.bathrooms!=null&&$("nlBath"))$("nlBath").value=agent.data.bathrooms;
   if(agent.data.category){state.rentCat=agent.data.category;document.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.cat===state.rentCat));}
   if(agent.data.amenities&&agent.data.amenities.length)paintNlAmen(agent.data.amenities);
+  else if(agent.data._baseAmenities)paintNlAmen((AM[d.pt]||AM.villa).concat(["Бассейн","Wi-Fi"]));
   if(agent.data.tenure&&$("nlTenure"))$("nlTenure").value=agent.data.tenure;
   if($("nlDesc"))$("nlDesc").value=agentComposeDesc();
   syncNlDeal();
 }
 function agentMissing(){
-  const miss=[];
-  if(!agent.data.district)miss.push("district");
-  return miss;
+  return [];
+}
+function agentNeedsReview(){
+  const d=agent.data,items=[];
+  if(!d.district)items.push("район не указан, поставлю Бали");
+  if(!(d.price>0))items.push("цена не указана, поставлю «по запросу»");
+  if(!d.bedrooms&&d.pt!=="land")items.push("спальни не указаны");
+  if(!d.bathrooms&&d.pt!=="land")items.push("ванные не указаны");
+  return items;
+}
+function agentAskConfirm(){
+  agent.mode="confirm";agent.field=null;
+  const needs=agentNeedsReview();
+  const detail=needs.length?"\nНе указано: "+needs.join("; ")+".":"";
+  const defaults=agent.data._baseAmenities?"\nДобавил стандартную комплектацию для объекта.":"";
+  agentPush("bot","Заполнил карточку: «"+agent.data.title+"»."+detail+defaults+"\nХотите что-то дополнить? Напишите одним сообщением или ответьте «ничего» — размещу как есть.");
+  agentQr([{label:"Разместить как есть",act:"confirm-publish"},{label:"Добавить детали",act:"confirm-add"}]);
 }
 function agentQr(btns){
   const box=$("aiQr");if(!box)return;
@@ -1448,6 +1483,8 @@ function agentQr(btns){
 function agentQrTap(b){
   if(!b)return;if(agent.busy){notify("Секунду, обрабатываю предыдущее...");return;}
   if(b.act==="publish"){agentPush("user",b.label);agentPublish();return;}
+  if(b.act==="confirm-publish"){agentPush("user",b.label);agentQr(null);agentPublish();return;}
+  if(b.act==="confirm-add"){agentPush("user",b.label);agentQr(null);agent.mode="collect";agentPush("bot","Напишите, что добавить — объединю с карточкой и размещу.");return;}
   if(b.act==="skip-price"){agentPush("user",b.label);agent.data.price=0;agent.data._pq=true;delete agent.data._numBase;agent.field=null;agentFillForm();agentPublish();return;}
   if(b.act==="set-price"){agentPush("user",b.label);agent.data.price=b.value;agent.data._pq=true;delete agent.data._numBase;agent.field=null;agentFillForm();agentPublish();return;}
   if(b.act==="value"){agentPush("user",b.label);agent.data[b.field]=b.value;agent.field=null;agentFillForm();agentAskNext();return;}
@@ -1473,12 +1510,8 @@ function agentAskField(){
   }
 }
 function agentAskNext(){
-  const miss=agentMissing();
-  if(!miss.length){
-    if(!agent.data.price&&!agent.data._pq){agent.data._pq=true;agent.field="price";agentAskField();return;}
-    agentPublish();return;
-  }
-  agent.field=miss[0];agentAskField();
+  agent.field=null;
+  agentAskConfirm();
 }
 async function aiServer(payload){
   const r=await fetch("api/ai-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
@@ -1493,16 +1526,33 @@ async function agentExtract(text){
   }catch(e){}
   return parseDeskripsi(text);
 }
+function agentFastExtract(text){
+  const out=parseDeskripsi(text);
+  const type=guessPtype(text);if(type)out.pt=type;
+  const district=matchDistrict(text);if(district)out.district=district;
+  const price=agentScanPrice(text);if(price.v>0&&!price.amb){out.price=price.v;out._priceLabel=price.label||"";}
+  const raw=String(text||"").split(/[\n.!?;]/)[0].trim();
+  if(raw){const name=cleanName(raw.replace(/#\w+/g,""));if(name)out.rawName=name;}
+  if(/базов\w* комплектац\w*|вся комплектац\w* есть|все удобств\w* есть/i.test(text))out._baseAmenities=true;
+  if(/вид\w* на рисов\w* поля|рисов\w* поля/i.test(text)){out._view="Вид на рисовые поля";out.amenities=[...(out.amenities||[]),"Вид на рисовые поля"];}
+  return out;
+}
+function agentWaitForAi(promise,fallback,ms){
+  return Promise.race([promise,new Promise(resolve=>setTimeout(()=>resolve(fallback),ms))]);
+}
 function agentMerge(o,text){
   const d=agent.data;
   if(!d.raw&&text)d.raw=text;
-  ["deal","role","category","district","area","land","bedrooms","bathrooms","tenure","furnished"].forEach(k=>{if(o[k]!==undefined&&o[k]!==""&&o[k]!==0&&d[k]===undefined)d[k]=o[k];});
+  ["deal","role","category","district","area","land","bedrooms","bathrooms","tenure","furnished"].forEach(k=>{if(o[k]!==undefined&&o[k]!==""&&(o[k]!==0||k==="bedrooms"||k==="bathrooms")&&d[k]===undefined)d[k]=o[k];});
   if((o.pt||o.propertyType)&&!d.pt)d.pt=o.pt||o.propertyType;
   if(!d.pt&&text){const g=guessPtype(text);if(g)d.pt=g;}
   if(!d.rawName&&text){const fl=String(text).split("\n").map(s=>s.trim()).find(s=>s);const nm=cleanName((fl||"").replace(/#\w+/g,""));if(nm)d.rawName=nm;}
   if(!d.district&&text){const k=matchDistrict(text);if(k)d.district=k;}
   if(o.price>0&&!d.price){d.price=o.price;delete d._numBase;}
   if(o.amenities&&o.amenities.length&&!d.amenities)d.amenities=o.amenities;
+  if(o._priceLabel&&!d._priceLabel)d._priceLabel=o._priceLabel;
+  if(o._baseAmenities)d._baseAmenities=true;
+  if(o._view&&!d._view)d._view=o._view;
   const onm=cleanName(o.name||"");
   if(onm&&!d.rawName)d.rawName=onm;
   if(o._desc&&!d.desc)d.desc=o._desc;
@@ -1534,7 +1584,7 @@ function agentSummary(){
   const parts=[];
   if(d.pt)parts.push(pTypeLabel(d.pt));
   if(d.district)parts.push(locName(d.district));
-  if(d.price>0)parts.push(d.price.toLocaleString("ru-RU")+" IDR");
+  if(d.price>0)parts.push(d._priceLabel||d.price.toLocaleString("ru-RU")+" IDR");
   if(d.title)parts.push("«"+d.title+"»");
   return parts.length?("Заполнил: "+parts.join(" · ")+"."):"";
 }
@@ -1542,7 +1592,7 @@ async function agentPublish(){
   if(agent.busy){notify("Секунду, уже публикую...");return;}
   agent.busy=true;
   agent.mode="idle";agent.field=null;agentQr(null);
-  const prog=agentPush("bot","⏳ Заполняю карточку и публикую...");
+  const prog=agentPush("bot","Готовлю карточку…");
   let ok=false,err="",d=null;
   try{
     agentFillForm();d=agentFilled();
@@ -1551,17 +1601,16 @@ async function agentPublish(){
     ok=await sf(true,{via:"ai"});
   }catch(e){ok=false;err=String((e&&e.message)||e).slice(0,120);}
   if(prog)prog.remove();
-  const placed=ok&&d&&LISTINGS.some(x=>x.user&&x.title===(d.title||""));
+  const placed=ok&&d&&LISTINGS.some(x=>x.user&&(x.id===d.id||x.title===(d.title||"")));
   if(placed){
     const deal=d.deal==="sale"?"Продажа":"Аренда";
-    agentPush("bot","Карточка заполнена и выложена ✅\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):"")+"\n• "+(d.price>0?d.price.toLocaleString("ru-RU")+" IDR":"Цена по запросу")+"\nПроверьте в каталоге и поправьте данные, если нужно.");
+    agentPush("bot",(API?"Карточка опубликована ✅":"Черновик добавлен в каталог этого браузера ✅")+"\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):", Бали")+"\n• "+(d.price>0?(d._priceLabel||d.price.toLocaleString("ru-RU")+" IDR"):"Цена по запросу"));
     agent.data={};
     switchView("list");syncDealTabs();
     setTimeout(()=>{const g=$("cardsGrid");if(g)g.scrollIntoView({behavior:"smooth"});},100);
   }else{
     agent.mode="collect";
-    agentPush("bot","Не выложилось"+(err?": "+err:"")+". Не хватает: "+(agentMissing().map(f=>f==="district"?"район":f).join(", ")||"данные")+". Напишите это сюда — подставлю и размещу.");
-    agentAskNext();
+    agentPush("bot","Не удалось сохранить карточку."+(err?" "+err:" Проверьте доступ браузера к хранилищу и попробуйте ещё раз."));
   }
   agent.busy=false;
 }
@@ -1573,6 +1622,18 @@ function agentStart(){
 async function agentOnUserText(txt){
   txt=(txt||"").trim();if(!txt)return;if(agent.busy){notify("Секунду, обрабатываю предыдущее...");return;}
   agentPush("user",txt);
+  if(agent.mode==="confirm"){
+    agentQr(null);
+    if(/^(ничего|всё|все|нет|нечего|нечего добавить|оставь так|как есть|публикуй|размещай|да)\b/i.test(txt)){agentPublish();return;}
+    agent.mode="collect";agent.busy=true;
+    const typing=agentPush("bot","Добавляю детали…");
+    try{
+      const o=await agentWaitForAi(agentExtract(txt),agentFastExtract(txt),4500);
+      agentMerge(o,txt);agentFillForm();if(typing)typing.remove();agentAskConfirm();
+    }catch(_){agentMerge(agentFastExtract(txt),txt);agentFillForm();if(typing)typing.remove();agentAskConfirm();}
+    finally{agent.busy=false;}
+    return;
+  }
   if(agent.mode==="collect"&&agent.field){agentApplyField(txt);return;}
   if(agent.mode!=="collect"&&/разместить|объявление|сдать|сдаю|продам|продаю|снять|сниму|куплю/i.test(txt)){agentStart();if(!/разместить|объявление/i.test(txt))return;}
   if(agent.mode!=="collect"){agent.mode="collect";agent.field=null;agent.data={};}
@@ -1580,30 +1641,23 @@ async function agentOnUserText(txt){
   const typing=agentPush("bot","Разбираю...");
   try{
     if(typing)typing.classList.add("typing");
-    const o=await agentExtract(txt);
+    const o=await agentWaitForAi(agentExtract(txt),agentFastExtract(txt),4500);
     agentMerge(o,txt);
     agentFillForm();
     if(typing)typing.remove();
-    const miss=agentMissing();
-    const got=[];
-    if(agent.data.pt)got.push("тип: "+pTypeLabel(agent.data.pt));
-    if(agent.data.district)got.push("район: "+locName(agent.data.district));
-    if(agent.data.price>0)got.push("цена: "+agent.data.price.toLocaleString("ru-RU")+" IDR");
-    if(agent.data.title)got.push("заголовок: «"+agent.data.title+"»");
-    if(got.length)agentPush("bot","Понял и разложил по полям: "+got.join("; ")+".");
-    else agentPush("bot","Текст получил, но конкретики мало.");
     agentAskNext();
-  }catch(e){if(typing)typing.remove();agentPush("bot","Не смог разобрать. Опишите проще: тип, район, цена.");}
+  }catch(e){if(typing)typing.remove();agentMerge(agentFastExtract(txt),txt);agentFillForm();agentAskNext();}
   finally{agent.busy=false};
 }
 async function agentFreeChat(txt){
   agent.busy=true;
-  const typing=agentPush("bot","Думаю...");
+  const typing=agentPush("bot","Секунду…");
   try{
     if(typing)typing.classList.add("typing");
-    const j=await aiServer({messages:[{role:"user",content:txt}]});
+    const fallback={reply:"Чтобы создать объявление, нажмите «Разместить объявление» и опишите объект одним сообщением."};
+    const j=await agentWaitForAi(aiServer({messages:[{role:"user",content:txt}]}).catch(()=>fallback),fallback,6000);
     if(typing)typing.remove();agentPush("bot",j.reply||"...");
-  }catch(e){if(typing)typing.remove();agentPush("bot","На этот вопрос лучше ответят в Telegram @renthomebali или WhatsApp +62813-3734-1275.");}
+  }catch(e){if(typing)typing.remove();agentPush("bot","Не удалось обработать сообщение. Попробуйте ещё раз.");}
   finally{agent.busy=false};
 }
 function agentSend(){

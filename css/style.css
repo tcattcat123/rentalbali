@@ -28,6 +28,9 @@ a{-webkit-tap-highlight-color:transparent}
 .topbar{background:var(--acc-soft);color:var(--acc-dark);font-size:12px;text-align:center;padding:6px 12px;font-weight:600}
 .upd-banner{background:#FFF7DB;color:#7A5B00;text-align:center;padding:8px 12px;font-size:13px;font-weight:600;display:flex;gap:10px;align-items:center;justify-content:center;position:sticky;top:0;z-index:200}
 .upd-banner button{border:1px solid #7A5B00;background:transparent;border-radius:4px;padding:4px 12px;font-weight:700;cursor:pointer;color:#7A5B00}
+.upd-actions{display:flex;gap:6px;align-items:center}
+.upd-banner .upd-dismiss{border-color:transparent;font-weight:600;opacity:.78}
+.upd-banner .upd-dismiss:hover{background:rgba(122,91,0,.08);opacity:1}
 /* header */
 .header{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--line)}
 .header-inner{max-width:1200px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -150,6 +153,39 @@ a{-webkit-tap-highlight-color:transparent}
 .badge.ai-badge{background:#EB5757;color:#fff}
 .ai-input input{height:40px}
 .ai-input .btn-primary{min-width:44px}
+/* Listing assistant: clearer hierarchy, readable status, and touch-friendly actions. */
+#aiFab{background:linear-gradient(145deg,#ff7867,#df4052);box-shadow:0 8px 24px rgba(220,65,80,.34)}
+#aiFab::before{content:"";position:absolute;inset:5px;border:1px solid rgba(255,255,255,.42);border-radius:50%;pointer-events:none}
+#aiChat{width:min(400px,calc(100% - 24px));height:min(600px,78vh);border:1px solid rgba(30,41,59,.12);border-radius:20px;box-shadow:0 24px 70px rgba(15,23,42,.26)}
+.ai-head{min-height:58px;padding:10px 16px;background:linear-gradient(120deg,#e85058,#b83d69);position:relative}
+.ai-head b{font-size:15px;letter-spacing:.1px}
+.ai-head b::after{content:"Объявления за одно сообщение";display:block;margin-top:3px;font-size:11px;font-weight:500;opacity:.82;letter-spacing:0}
+.ai-head button{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.16);font-size:17px;line-height:1}
+.ai-head button:hover{background:rgba(255,255,255,.26)}
+#aiMsgs{padding:16px;gap:10px;background:linear-gradient(180deg,rgba(245,247,250,.38),transparent 55%)}
+.ai-msg{max-width:91%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.ai-msg.bot{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:5px}
+.ai-msg.user{background:linear-gradient(135deg,var(--acc),var(--acc-dark));border-bottom-right-radius:5px}
+.ai-msg.typing{position:relative;padding-left:35px;opacity:.8}
+.ai-msg.typing::before{content:"✦";position:absolute;left:13px;color:var(--acc);animation:aiThinking 1s ease-in-out infinite alternate}
+@keyframes aiThinking{to{transform:rotate(35deg) scale(1.2);opacity:.5}}
+.ai-quick{padding:9px 14px 2px}
+.ai-quick button{border-radius:12px;padding:9px 14px;font-size:13px}
+.ai-qr{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:10px 14px 4px}
+.ai-qr button{flex:1 1 calc(50% - 8px);white-space:normal;min-height:42px;border-radius:12px;padding:9px 11px;font-size:13px;transition:transform .15s,background .15s,box-shadow .15s}
+.ai-qr button:first-child{background:var(--acc);color:#fff;box-shadow:0 4px 12px rgba(0,102,255,.2)}
+.ai-qr button:first-child:hover{background:var(--acc-dark)}
+.ai-qr button:active,.ai-quick button:active{transform:scale(.98)}
+.ai-input{gap:9px;padding:12px 14px max(12px,env(safe-area-inset-bottom));background:var(--card)}
+.ai-input input{height:44px;border-radius:13px;padding:9px 14px}
+.ai-input input::placeholder{color:var(--mut);opacity:.8}
+.ai-input .btn-primary{height:44px;min-width:46px;border-radius:13px;font-size:17px}
+@media(max-width:767px){
+  #aiChat{right:8px;bottom:calc(132px + env(safe-area-inset-bottom));width:calc(100% - 16px);height:min(68vh,620px);border-radius:20px}
+  #aiMsgs{padding:13px}
+  .ai-qr{padding-left:12px;padding-right:12px}
+}
+@media(prefers-reduced-motion:reduce){#aiFab::after,.ai-msg.typing::before{animation:none}.ai-msg,.ai-chat{animation:none}}
 .btn-ghost{background:transparent;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer;color:var(--ink);font-size:12px;height:28px}
 .btn-ghost:hover{background:var(--line-soft)}
 .btn-text{background:transparent;border:0;color:var(--mut);cursor:pointer;font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:6px 4px}
