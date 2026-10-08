@@ -1250,7 +1250,7 @@ async function submitForm(auto,opts){
     const acc=$("nlAcc").value||"exact";
     if(acc==="approx"){lat=+(lat+(Math.random()-.5)*0.006).toFixed(5);lng=+(lng+(Math.random()-.5)*0.006).toFixed(5);}
     const pool=POOL[pt]||POOL.villa;
-    const allPhotos=[...nlRemote,...nlPhotos];
+    const allPhotos=[...nlRemote,...nlPhotos,...((opts&&opts.photos)||[])];
     const amen=[...document.querySelectorAll("#nlAmen input:checked")].map(c=>c.value);
     const leaseY=+$("nlLease").value||0;
     const it={id:editingId||Date.now(),type:role,dealType:deal,category:$("nlCat").value,title,price,currency:"IDR",
@@ -1625,6 +1625,24 @@ function agentSummary(){
   if(d.title)parts.push("«"+d.title+"»");
   return parts.length?("Заполнил: "+parts.join(" · ")+"."):"";
 }
+function agentPhotosPreview(){
+  const box=$("aiPhotos");if(!box)return;
+  const ph=agent.data.photos||[];
+  box.classList.toggle("hidden",!ph.length);
+  box.innerHTML=ph.map((s,i)=>`<span class="ai-ph"><img src="${s}" alt="фото ${i+1}"><button type="button" data-aiphot="${i}">✕</button></span>`).join("");
+}
+async function agentAddPhotos(files){
+  const cur=agent.data.photos||[];
+  const room=Math.max(0,6-cur.length);
+  if(!room){notify("Максимум 6 фото");return;}
+  const batch=[...files].slice(0,room);
+  if(!batch.length)return;
+  agentPush("user","📷 Отправлено фото: "+batch.length);
+  for(const f of batch){try{cur.push(await fileToPhoto(f));}catch(e){}}
+  agent.data.photos=cur.slice(0,6);
+  agentPhotosPreview();
+  agentPush("bot","Принял "+cur.length+" фото — размещу их в карточке."+(agent.mode!=="collect"?" Опишите объект одним сообщением.":""));
+}
 async function agentPublish(){
   if(agent.busy){notify("Секунду, уже публикую...");return;}
   agent.busy=true;
@@ -1635,14 +1653,15 @@ async function agentPublish(){
     agentFillForm();d=agentFilled();
     const sf=(window.__cab&&window.__cab.submitForm)||null;
     if(!sf)throw new Error("форма не готова, обновите страницу");
-    ok=await sf(true,{via:"ai"});
+    ok=await sf(true,{via:"ai",photos:(agent.data.photos||[])});
   }catch(e){ok=false;err=String((e&&e.message)||e).slice(0,120);}
   if(prog)prog.remove();
   const placed=ok&&d&&LISTINGS.some(x=>x.user&&(x.id===d.id||x.title===(d.title||"")));
   if(placed){
     const deal=d.deal==="sale"?"Продажа":"Аренда";
-    agentPush("bot",(API?"Карточка опубликована ✅":"Черновик добавлен в каталог этого браузера ✅")+"\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):", Бали")+"\n• "+(d.price>0?(d._priceLabel||d.price.toLocaleString("ru-RU")+" IDR"):"Цена по запросу"));
-    agent.data={};
+    const phN=((agent.data.photos||[]).length)||0;
+    agentPush("bot",(API?"Карточка опубликована ✅":"Черновик добавлен в каталог этого браузера ✅")+"\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):", Бали")+"\n• "+(d.price>0?(d._priceLabel||d.price.toLocaleString("ru-RU")+" IDR"):"Цена по запросу")+(phN?"\n• 📷 Фото: "+phN:""));
+    agent.data={};agentPhotosPreview();
     switchView("list");syncDealTabs();
     setTimeout(()=>{const g=$("cardsGrid");if(g)g.scrollIntoView({behavior:"smooth"});},100);
   }else{
@@ -1652,7 +1671,7 @@ async function agentPublish(){
   agent.busy=false;
 }
 function agentStart(){
-  agent.mode="collect";agent.field=null;agent.data={};agentQr(null);
+  agent.mode="collect";agent.field=null;const _ph=agent.data.photos||[];agent.data={photos:_ph};agentQr(null);agentPhotosPreview();
   agentToggle(true);
   agentPush("bot","Опишите объект одним сообщением: что, где, почём. Всё остальное додумаю сам. Пример: «Сдаю виллу в Чангу, 3 спальни, 25 млн/мес».");
 }
@@ -1673,7 +1692,7 @@ async function agentOnUserText(txt){
   }
   if(agent.mode==="collect"&&agent.field){agentApplyField(txt);return;}
   if(agent.mode!=="collect"&&/разместить|объявление|сдать|сдаю|продам|продаю|снять|сниму|куплю/i.test(txt)){agentStart();if(!/разместить|объявление/i.test(txt))return;}
-  if(agent.mode!=="collect"){agent.mode="collect";agent.field=null;agent.data={};}
+  if(agent.mode!=="collect"){agent.mode="collect";agent.field=null;const _ph2=agent.data.photos||[];agent.data={photos:_ph2};}
   agent.busy=true;
   const typing=agentPush("bot","Разбираю...");
   try{
@@ -1705,6 +1724,12 @@ function agentSend(){
   else if(/разместить|объявление|сдать|сдаю|продам|продаю|снять|сниму|куплю|цена|сколько|вилла|дом|квартира|земля|где|район/i.test(txt))agentOnUserText(txt);
   else agentFreeChat(txt);
 }
+if($("aiAttach"))$("aiAttach").onclick=()=>{const f=$("aiFiles");if(f)f.click();};
+if($("aiFiles"))$("aiFiles").addEventListener("change",e=>{if(e.target.files&&e.target.files.length)agentAddPhotos(e.target.files);e.target.value="";});
+if($("aiPhotos"))$("aiPhotos").addEventListener("click",e=>{
+  const b=e.target.closest("[data-aiphot]");if(!b)return;
+  (agent.data.photos||[]).splice(+b.dataset.aiphot,1);agentPhotosPreview();
+});
 if($("aiFab"))$("aiFab").onclick=()=>agentToggle();
 if($("aiClose"))$("aiClose").onclick=()=>agentToggle(false);
 if($("aiSend"))$("aiSend").onclick=agentSend;

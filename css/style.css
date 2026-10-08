@@ -152,6 +152,14 @@ a{-webkit-tap-highlight-color:transparent}
 .property-card.ai{border:2px solid #EB5757;box-shadow:0 0 0 1px #EB5757,0 4px 16px rgba(235,87,87,.25)}
 .badge.ai-badge{background:#EB5757;color:#fff}
 .ai-input input{height:40px}
+#aiAttach{border:1px solid var(--line);background:var(--card);border-radius:8px;min-width:40px;height:40px;font-size:17px;cursor:pointer;color:var(--ink2);touch-action:manipulation}
+#aiAttach:hover{border-color:var(--acc);color:var(--acc-dark)}
+.ai-photos{display:flex;gap:6px;padding:8px 12px 0;overflow-x:auto;scrollbar-width:none}
+.ai-photos::-webkit-scrollbar{display:none}
+.ai-photos.hidden{display:none}
+.ai-ph{position:relative;flex:0 0 auto}
+.ai-ph img{width:64px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+.ai-ph button{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;border:0;background:#EB5757;color:#fff;font-size:11px;cursor:pointer;line-height:1}
 .ai-input .btn-primary{min-width:44px}
 /* Listing assistant: clearer hierarchy, readable status, and touch-friendly actions. */
 #aiFab{background:linear-gradient(145deg,#ff7867,#df4052);box-shadow:0 8px 24px rgba(220,65,80,.34)}
