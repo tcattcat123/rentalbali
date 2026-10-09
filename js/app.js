@@ -248,7 +248,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.33";const APP_BUILD="78";
+const APP_V="2.34";const APP_BUILD="79";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -417,7 +417,7 @@ function render(){
   const favs=LISTINGS.filter(x=>state.fav.has(x.id));
   $("favGrid").innerHTML=favs.map(cardHTML).join("");
   $("favEmpty").style.display=favs.length?"none":"block";
-  $("myGrid").innerHTML=LISTINGS.filter(x=>x.mine).map(it=>`<div>${cardHTML(it)}${it.user?`<div class="my-actions"><button class="edit-btn" data-edit="${it.id}">✎ Редактировать</button><button class="del-btn" data-del="${it.id}">✕ Удалить</button></div>`:""}</div>`).join("");
+  $("myGrid").innerHTML=LISTINGS.filter(x=>x.mine&&(cabProjFilter==="all"||x.type===cabProjFilter)).map(it=>`<div>${cardHTML(it)}${it.user?`<div class="my-actions"><button class="edit-btn" data-edit="${it.id}">✎ Редактировать</button><button class="del-btn" data-del="${it.id}">✕ Удалить</button></div>`:""}</div>`).join("");
   $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini" data-card="${x.id}"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>${locLabel(x)}</div>`).join("");
 }
 
@@ -539,6 +539,12 @@ function resetNlForm(){
   if($("nlSave"))$("nlSave").textContent="Опубликовать";
   const c=$("nlCancel");if(c)c.remove();
 }
+let cabTab="profile",cabProjFilter="all";
+function switchCabtab(name){
+  cabTab=name;
+  document.querySelectorAll("#view-profile [data-cabtab]").forEach(b=>b.classList.toggle("active",b.dataset.cabtab===name));
+  document.querySelectorAll("#view-profile [data-cabpanel]").forEach(p=>p.classList.toggle("hidden",p.dataset.cabpanel!==name));
+}
 function switchImptab(name){
   document.querySelectorAll("[data-imptab]").forEach(b=>b.classList.toggle("active",b.dataset.imptab===name));
   document.querySelectorAll("[data-imppanel]").forEach(p=>p.classList.toggle("hidden",p.dataset.imppanel!==name));
@@ -561,8 +567,8 @@ function fillEditForm(id){
   nlPhotos=[];nlRemote=[...(it.images||[])];paintNlPreview();
   $("nlSave").textContent="Сохранить изменения";
   if(!$("nlCancel")){const b=document.createElement("button");b.id="nlCancel";b.className="btn-text";b.textContent="Отмена";b.style.marginTop="8px";b.onclick=()=>{resetNlForm();};$("nlSave").after(b);}
-  switchView("profile");
-  document.querySelector(".cab-form").scrollIntoView({behavior:"smooth"});
+  switchView("profile");switchCabtab("add");
+  document.querySelector('#view-profile [data-cabpanel="add"]').scrollIntoView({behavior:"smooth"});
 }
 /* ===== auto-import from Drive-style Deskripsi ===== */
 const ROYAL_PHOTOS=["1VwkuAYKxXgJlhlM18aoXGD0t9S5-MVdq","1WK8Z_wTKfkJTJqbUY2oACkdUdSOCSecH","1WGjym2USpv4PaMBr3ZxyRUzQ_VqGmVLc","1W5digmIAPKLE1y-7mpM1yaVJtk3KhViT","1VwPuRcAI0MWMREsa3AbLB_9R6gtxi0TY","1WNAVSoBft5KQDP8jBwg8lPBXjKFQFBlf","1WQEhpnbn0Zu-uFkpcjyCOQ6KZ3fIuf__","1WRJxQjDRp0hqwl3QebKV3rsy98Rj4f0o","1WSnI-T3f9LHHU93YmSu78gFUSK6gmXKK","1VvBtRGDAA9rJDnQZn9VkIv_xCoKKkY1W","1WXOrnr9CjX0GYhLcmJM_MyRaMbOKojsM","1WXhCn5QfNYmEFHWQdt5coUm85dI2mTN5","1WsCgw1DT-njTO-5sme_0fGdJ2RF9P8v0","1WzWN5Alu1MQQjTLxgihnQjO3Auyjycyg","1X8AGCyWEd491XzmQ1Ye3jwCHHfP9SHmk","1Wn7wwJnH02eeyErFsVhpuNwrYTlEBiXQ","1WfzYRnUSmXnH-w9RDJzyNpJMWXPouv8W","1XJrz8jI4yhbi99h1a1oiRzkDtGADrM76","1X1GDWUJIc3BOSmiJAiEQXqZlw7r_Xw5r","1WizO6aWWELMWT9v0TopUQTwxo_5WDMAd","1VtwCUE4Q4o8vE1BKhJJ_gPfAjRJoW4k3"];
@@ -979,7 +985,7 @@ document.addEventListener("click",e=>{
   const card=e.target.closest("[data-card]");
   if(card&&!e.target.closest("button")){openDetail(card.dataset.card);return;}
   const bn=e.target.closest(".bn-item");
-  if(bn){switchView(bn.dataset.view);syncDealTabs();return;}
+  if(bn){switchView(bn.dataset.view);if(bn.dataset.view==="profile")switchCabtab("profile");syncDealTabs();return;}
 });
 
 function resetFilters(){
@@ -1022,7 +1028,7 @@ $("tabOffer").onclick=()=>{state.role="offer";state.page=1;$("tabOffer").classLi
 $("tabRequest").onclick=()=>{state.role="request";state.page=1;$("tabRequest").classList.add("active");$("tabOffer").classList.remove("active");render();updateMarkersSafe();};
 document.querySelectorAll(".seg-btn").forEach(b=>b.onclick=()=>{if(b.dataset.cat){state.rentCat=state.rentCat===b.dataset.cat?"":b.dataset.cat;}if(b.dataset.tenure){state.tenure=state.tenure===b.dataset.tenure?"":b.dataset.tenure;}state.page=1;render();});
 $("favHeaderBtn").onclick=()=>{switchView("fav");syncDealTabs();};
-$("profileBtn").onclick=()=>{switchView("profile");syncDealTabs();};
+$("profileBtn").onclick=()=>{switchView("profile");switchCabtab("profile");syncDealTabs();};
 $("logoBtn").onclick=e=>{e.preventDefault();closeDetail();window.scrollTo({top:0,behavior:"smooth"});};
 ["fType","fRooms","fLiving","furnQ","fFloors","fPark","fAmen","sortSelect","currencySelect"].forEach(id=>{const el=$(id);if(el)enhanceSelect(el);});
 if($("fAvail"))enhanceMonth($("fAvail"));
@@ -1038,6 +1044,8 @@ if($("mreset"))$("mreset").onclick=()=>{resetFilters();state.rentCat="";render()
 if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render();window.scrollTo({top:0,behavior:"smooth"});};
   if($("sheetBg"))$("sheetBg").onclick=()=>closeSheet();
   document.querySelectorAll("[data-imptab]").forEach(b=>b.onclick=()=>switchImptab(b.dataset.imptab));
+  document.querySelectorAll("[data-cabtab]").forEach(b=>b.onclick=()=>switchCabtab(b.dataset.cabtab));
+  document.querySelectorAll("[data-pf]").forEach(b=>b.onclick=()=>{cabProjFilter=b.dataset.pf;document.querySelectorAll("[data-pf]").forEach(x=>x.classList.toggle("active",x===b));render();});
 if($("markersBtn"))$("markersBtn").onclick=()=>{showMarkers=!showMarkers;$("markersBtn").textContent=showMarkers?"Скрыть метки":"Показать метки";updateMarkersSafe();};
 if($("sheetApply"))$("sheetApply").onclick=()=>$("applyBtn").click();
 if($("sheetReset"))$("sheetReset").onclick=()=>$("resetBtn").click();
@@ -1294,7 +1302,7 @@ function docIdFromUrl(url){
     notify("Не хватает: "+(miss.length?miss.join(", "):"данные")+". Напишите это в чат — заполню сам.");
   }
 async function submitForm(auto,opts){
-    if(!curProfile()){notify("Сначала выберите или создайте профиль");switchView("profile");return false;}
+    if(!curProfile()){notify("Сначала выберите или создайте профиль");switchView("profile");switchCabtab("profile");return false;}
     const title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
     if(!title&&auto){$("nlTitle").value=agentComposeTitle();}
     const finalTitle=$("nlTitle").value.trim();

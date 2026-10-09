@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="78">
+<meta name="app-build" content="79">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=78">
+<link rel="stylesheet" href="css/style.css?v=79">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -153,7 +153,12 @@
   <section id="view-profile" class="hidden">
     <h2>Личный кабинет</h2>
     <p class="muted" style="font-size:12px">Без входа · гость <b id="guestId">…</b> · данные только на этом устройстве · <b id="storeMode">Браузер</b></p>
-    <div class="profile-card card">
+    <div class="imp-tabs" role="tablist" style="margin-bottom:10px">
+      <button data-cabtab="profile" class="active">Профиль</button>
+      <button data-cabtab="projects">Мои проекты</button>
+      <button data-cabtab="add">Добавить проект</button>
+    </div>
+    <div class="profile-card card" data-cabpanel="profile">
       <img src="https://i.pravatar.cc/120?img=12" alt="avatar" class="avatar" id="pfAvatar">
       <div style="flex:1;display:grid;gap:8px">
         <div class="filter-group"><label>Имя</label><input id="pfName" placeholder="Как к вам обращаться"></div>
@@ -165,20 +170,22 @@
         <div class="imp-row"><input id="pfNewName" placeholder="Имя нового профиля"><button id="pfCreate" class="btn-ghost" type="button">+ Новый</button></div>
       </div>
     </div>
-    <div class="card cab-form" style="margin-bottom:10px">
-      <h3>Мои данные</h3>
+    <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px">
+      <summary style="cursor:pointer;font-weight:700">Мои данные (копия кабинета)</summary>
+      <div style="margin-top:10px">
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button id="cabExport" class="btn-ghost">Скачать копию</button>
         <button id="cabImportBtn" class="btn-ghost">Загрузить копию</button>
         <input type="file" id="cabImport" accept="application/json" class="hidden">
         <button id="cabWipe" class="btn-text">Стереть мои данные</button>
       </div>
-      <p class="hint">Копия — это JSON с профилем, объявлениями и избранным. Перенесите файл на другое устройство, чтобы забрать кабинет с собой.</p>
-    </div>
-    <div class="my-head"><h3>Мои объявления</h3></div>
-    <div class="card cab-form">
+      <p class="hint">Копия — это JSON с профилем, проектами и избранным. Перенесите файл на другое устройство, чтобы забрать кабинет с собой.</p>
+      </div>
+    </details>
+    <div class="my-head hidden" data-cabpanel="projects"><h3>Мои проекты</h3><div style="display:flex;gap:6px"><button type="button" class="chip active" data-pf="all">Все</button><button type="button" class="chip" data-pf="offer">Предлагаю</button><button type="button" class="chip" data-pf="request">Ищу</button></div></div>
+    <div class="card cab-form hidden" data-cabpanel="add">
     <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px">
-    <h3 style="margin:0">Новое объявление</h3>
+    <h3 style="margin:0">Новый проект</h3>
     <button id="impAiTop" class="btn-ai-red">Заполнить через нейросеть</button>
     </div>
     <div class="imp-tabs" role="tablist">
@@ -240,7 +247,7 @@
     <button id="nlSave" class="btn-primary block">Опубликовать</button>
     </div>
     </div>
-    <div id="myGrid" class="grid"></div>
+    <div id="myGrid" class="grid hidden" data-cabpanel="projects"></div>
   </section>
 
   <section id="view-detail" class="hidden">
@@ -285,6 +292,6 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="map">◎<span data-i18n="nav_map">Карта</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=78"></script>
+<script src="js/app.js?v=79"></script>
 </body>
 </html>
