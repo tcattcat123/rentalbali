@@ -74,6 +74,8 @@ fetch("api/ping",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
     if(!d||!d.ok||!Array.isArray(d.items))return;
     for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
     d.items.forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true,phone:""},o,{mine:true,user:true,phone:"",owner:o.owner||getGuestId()}));});
+    LISTINGS.forEach(o=>{if(o.user&&!o.code)o.code=nextObjectId(o.propertyType,o.locationEn);});
+    syncIdSeq();
     render();
   }).catch(()=>{});
 }).catch(()=>{});
@@ -153,6 +155,19 @@ const DIST_TREE=[
  {key:"Sidemen",ru:"Сидемен",kids:[]},
  {key:"NusaPenida",ru:"Нуса-Пенида",kids:[["NusaLembongan","Нуса-Лембонган"]]}
 ];
+/* ===== Object ID: 2 letters (type+region) + 5-digit sequence, e.g. vb00001.
+   Letter codes are changeable here as needed. Counter resets via setIdSeq(0). ===== */
+const ID_TYPE={villa:"v",house:"r",apartment:"a",homestay:"h",land:"l",townhouse:"t",boarding:"k",commercial:"c"};
+const ID_REGION={Canggu:"c",Berawa:"c",BatuBolong:"c",TumbakBayuh:"c",Pererenan:"c",Umalas:"c",Kerobokan:"c",Seseh:"c",Buduk:"c",Seminyak:"s",BeachsideCenter:"s",ResidentialSide:"s",Oberoi:"s",Legian:"s",Petitenget:"s",Kuta:"s",TanahLot:"w",Kedungu:"w",Cemagi:"w",Uluwatu:"b",Bingin:"b",Balangan:"b",Jimbaran:"b",NusaDua:"b",Ungasan:"b",Pecatu:"b",Ubud:"u",Mas:"u",Payangan:"u",Denpasar:"d",Sanur:"d",Gianyar:"u",Sukawati:"u",Tabanan:"w",Mengwi:"w",Lovina:"n",Singaraja:"n",Pemuteran:"n",Amed:"e",Candidasa:"e",Sidemen:"e",NusaPenida:"e",NusaLembongan:"e"};
+function maxIdSeq(){let m=0;for(const x of LISTINGS){const mt=/^[a-z]{2}(\d{5,})$/.exec(x.code||"");if(mt)m=Math.max(m,+mt[1]);}return m;}
+function getIdSeq(){try{return parseInt(localStorage.getItem("rh_idseq")||"0",10)||0;}catch(e){return 0;}}
+function setIdSeq(n){try{localStorage.setItem("rh_idseq",String(n));}catch(e){}}
+function syncIdSeq(){setIdSeq(Math.max(getIdSeq(),maxIdSeq()));}
+function nextObjectId(pt,dk){
+  const n=Math.max(getIdSeq(),maxIdSeq())+1;
+  setIdSeq(n);
+  return (ID_TYPE[pt]||"x")+(ID_REGION[dk]||"x")+String(n).padStart(5,"0");
+}
 let locNoRebuild=false;
 function paintIndeterminate(){
   const dd=$("locDropdown");if(!dd)return;
@@ -248,7 +263,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.35";const APP_BUILD="80";
+const APP_V="2.36";const APP_BUILD="81";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -328,6 +343,7 @@ function cardHTML(it,i){
       <div class="photo-titles"><div class="pt-title">${it.title||pTypeLabel(it.propertyType)}</div>${sub?`<div class="pt-sub">${sub}</div>`:""}</div></div>
     <div class="card-body"><div class="price">${fmtPrice(it)}</div>
       <div class="location-sm">${locLabel(it)}, Бали</div>
+      ${it.code?`<div class="location-sm" style="opacity:.65">ID объекта: ${it.code}</div>`:""}
       ${specs}
       ${agentRow}
       ${extra}</div></div>`;
@@ -903,6 +919,7 @@ function openDetail(id){
   const term=it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term"));
   const dep=it.dealType==="rent"?(it.category==="yearly"?Math.round(it.price/12):it.price):0;
   const rows=[
+    [state.lang==="ru"?"ID объекта":"Object ID",it.code||"—"],
     [state.lang==="ru"?"Тип":"Type",pTypeLabel(it.propertyType)],
     [state.lang==="ru"?"Спальни":"Bedrooms",it.bedrooms||"—"],
     [state.lang==="ru"?"Площадь":"Area",(it.area>0?it.area+" м²":"—")],
@@ -1336,7 +1353,7 @@ async function submitForm(auto,opts){
       area:num("nlArea",old?old.area||0:0),landArea:num("nlLand",old?old.landArea||0:0),floors:0,
       yearBuilt:0,furnished:true,
       location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim()||(old?old.addr||"":""),geoAcc:acc,
-      phone:"",owner:getGuestId(),status:"published",ai:!!(opts&&opts.via==="ai"),
+      phone:"",owner:getGuestId(),status:"published",ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
       images:allPhotos.length?allPhotos:[pool[0]],fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
@@ -1378,6 +1395,8 @@ async function submitForm(auto,opts){
         const clean=d.items.filter(o=>o&&o.title).slice(0,100).map(o=>Object.assign({},o,{mine:true,user:true,owner:getGuestId(),images:(o.images||[]).slice(0,6)}));
         for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
         clean.forEach(o=>LISTINGS.unshift(o));
+        LISTINGS.forEach(o=>{if(o.user&&!o.code)o.code=nextObjectId(o.propertyType,o.locationEn);});
+        syncIdSeq();
         persistMy();
       }
       render();notify("Копия загружена");
@@ -1391,6 +1410,11 @@ async function submitForm(auto,opts){
     try{localStorage.removeItem(myKey());localStorage.removeItem(favKey());}catch(_){}
     for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
     state.fav.clear();resetNlForm();render();notify("Готово: данные стерты");
+  };
+  if($("cabSeqReset"))$("cabSeqReset").onclick=()=>{
+    const b=$("cabSeqReset");
+    if(!b.dataset.armed){b.dataset.armed="1";b.textContent="Точно сбросить? Нажмите ещё раз";notify("Повторное нажатие обнулит счётчик ID");setTimeout(()=>{delete b.dataset.armed;b.textContent="Сбросить счётчик ID";},5000);return;}
+    delete b.dataset.armed;b.textContent="Сбросить счётчик ID";setIdSeq(0);notify("Счётчик ID обнулён — следующий объект получит …00001");
   };
 })();
 /* ===== On-site AI agent: chat + auto card fill (each field separately) ===== */
