@@ -265,7 +265,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.38";const APP_BUILD="83";
+const APP_V="2.39";const APP_BUILD="84";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1047,6 +1047,7 @@ function calcCredit(){
 
 $("applyBtn").onclick=()=>{state.page=1;render();if(state.view!=="list")switchView("list");syncDealTabs();updateMarkersSafe();closeSheet();};
 $("resetBtn").onclick=()=>{resetFilters();state.rentCat="";closeSheet();render();};
+if($("mapBtn"))$("mapBtn").onclick=()=>setDeal("map");
 $("advBtn").onclick=()=>$("advPanel").classList.toggle("hidden");
 $("sortSelect").onchange=e=>{state.sort=e.target.value;state.page=1;render();};
 document.querySelectorAll("[data-deal]").forEach(b=>b.onclick=()=>setDeal(b.dataset.deal));
