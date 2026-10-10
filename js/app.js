@@ -158,6 +158,8 @@ const DIST_TREE=[
 /* ===== Object ID: 2 letters (type+region) + 5-digit sequence, e.g. vb00001.
    Letter codes are changeable here as needed. Counter resets via setIdSeq(0). ===== */
 const ID_TYPE={villa:"v",house:"r",apartment:"a",homestay:"h",land:"l",townhouse:"t",boarding:"k",commercial:"c"};
+const ID_SHORT={villa:"V",house:"H",apartment:"A",land:"L",townhouse:"T",boarding:"K",commercial:"C",homestay:"P"};
+function shortId(it){const m=/^[a-z]{2}(\d+)$/.exec((it&&it.code)||"");if(!m)return "—";return (ID_SHORT[it.propertyType]||"X")+(+m[1]);}
 const ID_REGION={Canggu:"c",Berawa:"c",BatuBolong:"c",TumbakBayuh:"c",Pererenan:"c",Umalas:"c",Kerobokan:"c",Seseh:"c",Buduk:"c",Seminyak:"s",BeachsideCenter:"s",ResidentialSide:"s",Oberoi:"s",Legian:"s",Petitenget:"s",Kuta:"s",TanahLot:"w",Kedungu:"w",Cemagi:"w",Uluwatu:"b",Bingin:"b",Balangan:"b",Jimbaran:"b",NusaDua:"b",Ungasan:"b",Pecatu:"b",Ubud:"u",Mas:"u",Payangan:"u",Denpasar:"d",Sanur:"d",Gianyar:"u",Sukawati:"u",Tabanan:"w",Mengwi:"w",Lovina:"n",Singaraja:"n",Pemuteran:"n",Amed:"e",Candidasa:"e",Sidemen:"e",NusaPenida:"e",NusaLembongan:"e"};
 function maxIdSeq(){let m=0;for(const x of LISTINGS){const mt=/^[a-z]{2}(\d{5,})$/.exec(x.code||"");if(mt)m=Math.max(m,+mt[1]);}return m;}
 function getIdSeq(){try{return parseInt(localStorage.getItem("rh_idseq")||"0",10)||0;}catch(e){return 0;}}
@@ -263,7 +265,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.37";const APP_BUILD="82";
+const APP_V="2.38";const APP_BUILD="83";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -343,7 +345,7 @@ function cardHTML(it,i){
       <div class="photo-titles"><div class="pt-title">${it.title||pTypeLabel(it.propertyType)}</div>${sub?`<div class="pt-sub">${sub}</div>`:""}</div></div>
     <div class="card-body"><div class="price">${fmtPrice(it)}</div>
       <div class="location-sm">${locLabel(it)}, Бали</div>
-      ${it.code?`<div class="location-sm" style="opacity:.65">ID объекта: ${it.code}</div>`:""}
+      ${it.code?`<div class="location-sm" style="opacity:.65">ID объекта: ${it.code} / ${shortId(it)}</div>`:""}
       ${specs}
       ${agentRow}
       ${extra}</div></div>`;
@@ -919,7 +921,7 @@ function openDetail(id){
   const term=it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term"));
   const dep=it.dealType==="rent"?(it.category==="yearly"?Math.round(it.price/12):it.price):0;
   const rows=[
-    [state.lang==="ru"?"ID объекта":"Object ID",it.code||"—"],
+    [state.lang==="ru"?"ID объекта":"Object ID",(it.code?it.code+" / "+shortId(it):"—")],
     [state.lang==="ru"?"Тип":"Type",pTypeLabel(it.propertyType)],
     [state.lang==="ru"?"Спальни":"Bedrooms",it.bedrooms||"—"],
     [state.lang==="ru"?"Площадь":"Area",(it.area>0?it.area+" м²":"—")],
