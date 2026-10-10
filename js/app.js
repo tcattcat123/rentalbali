@@ -248,7 +248,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.34";const APP_BUILD="79";
+const APP_V="2.35";const APP_BUILD="80";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -561,6 +561,9 @@ function fillEditForm(id){
   if($("nlLease"))$("nlLease").value=it.leaseYears||"";
   $("nlLiving").value=it.living||0;$("nlPark").value=it.parking||0;
   $("nlAvail").value=it.available?it.available.slice(0,7):"";
+  if($("nlAddr"))$("nlAddr").value=it.addr||"";
+  if($("nlAcc"))$("nlAcc").value=it.geoAcc||"exact";
+  if($("nlCur"))$("nlCur").value="IDR";
   paintNlAmen(it.amenities||[]);syncNlDeal();
   nlPartyList=(it.parties||[]).filter(p=>p&&p.name).map(p=>({name:String(p.name).slice(0,60),role:PARTY_ROLES[p.role]?p.role:"viewer"}));paintNlParties();
   switchImptab("manual");
@@ -866,7 +869,7 @@ async function aiCreateFromText(txt,btn){
   }
   done();
 }
-const DIST_CENTER={Canggu:[-8.6478,115.1385],Seminyak:[-8.6905,115.1665],Ubud:[-8.5069,115.2625],Uluwatu:[-8.815,115.1725],Sanur:[-8.693,115.2628],Denpasar:[-8.6705,115.2126],Jimbaran:[-8.7775,115.1637],NusaDua:[-8.7962,115.2229],Kuta:[-8.7184,115.1686],Pererenan:[-8.657,115.128],Umalas:[-8.62,115.15],Kerobokan:[-8.66,115.16],Tabanan:[-8.5416,115.1247],Legian:[-8.706,115.168],Lovina:[-8.16,115.03],Amed:[-8.33,115.66]};
+const DIST_CENTER={Canggu:[-8.6478,115.1385],Seminyak:[-8.6905,115.1665],Ubud:[-8.5069,115.2625],Uluwatu:[-8.815,115.1725],Sanur:[-8.693,115.2628],Denpasar:[-8.6705,115.2126],Jimbaran:[-8.7775,115.1637],NusaDua:[-8.7962,115.2229],Kuta:[-8.7184,115.1686],Pererenan:[-8.657,115.128],Umalas:[-8.62,115.15],Kerobokan:[-8.66,115.16],Tabanan:[-8.5416,115.1247],Legian:[-8.706,115.168],Lovina:[-8.16,115.03],Amed:[-8.33,115.66],Berawa:[-8.648,115.151],BatuBolong:[-8.6485,115.1365],TumbakBayuh:[-8.639,115.123],Mas:[-8.517,115.247],Payangan:[-8.43,115.27],BeachsideCenter:[-8.69,115.16],ResidentialSide:[-8.694,115.172],Oberoi:[-8.684,115.161],Petitenget:[-8.677,115.155],Kedungu:[-8.6047,115.1039],Cemagi:[-8.62,115.115],Bingin:[-8.8106,115.1727],Balangan:[-8.7936,115.1668],Pecatu:[-8.8137,115.1513],Sukawati:[-8.61,115.29],Mengwi:[-8.55,115.17],Singaraja:[-8.115,115.09],Pemuteran:[-8.14,114.66],Candidasa:[-8.51,115.56],Sidemen:[-8.49,115.44],NusaLembongan:[-8.68,115.45]};
 function parseGeoUrl(url){
   if(!url)return null;
   let m=url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)||url.match(/query=(-?\d+\.\d+),(-?\d+\.\d+)/);
@@ -1303,14 +1306,15 @@ function docIdFromUrl(url){
   }
 async function submitForm(auto,opts){
     if(!curProfile()){notify("Сначала выберите или создайте профиль");switchView("profile");switchCabtab("profile");return false;}
-    const title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
-    if(!title&&auto){$("nlTitle").value=agentComposeTitle();}
-    const finalTitle=$("nlTitle").value.trim();
-    if(!finalTitle){if(!auto)notify("Укажите заголовок");return false;}
+    const old=editingId?LISTINGS.find(x=>x.id===editingId):null;
+    let title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
+    if(old){if(!title)title=old.title||"";if(isNaN(price))price=old.price||0;}
+    if(!title&&auto){$("nlTitle").value=agentComposeTitle();title=$("nlTitle").value.trim();}
+    if(!title){if(!auto)notify("Укажите заголовок");return false;}
     if(!(price>0)){if(auto){price=0;}else{notify("Укажите цену");return false;}}
     if($("nlCur")&&$("nlCur").value==="USD")price=Math.round(price*RATE);
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
-    const dk=$("nlDistrict").value||"";
+    const dk=$("nlDistrict").value||(old?old.locationEn||"":"");
     const rl=dk?locName(dk):"Бали";
     let lat=null,lng=null;
     let g=null;
@@ -1318,25 +1322,27 @@ async function submitForm(auto,opts){
       try{g=await Promise.race([resolveGeo($("nlGeo").value.trim()),new Promise(resolve=>setTimeout(()=>resolve(null),5000))]);}catch(_){g=null;}
     }
     if(g){lat=g.lat;lng=g.lng;}
+    else if(old&&dk===(old.locationEn||"")&&old.lat&&old.lng){lat=old.lat;lng=old.lng;}
     else{const c=DIST_CENTER[dk]||[-8.65,115.17];lat=c[0];lng=c[1];}
     const acc=$("nlAcc").value||"exact";
     if(acc==="approx"){lat=+(lat+(Math.random()-.5)*0.006).toFixed(5);lng=+(lng+(Math.random()-.5)*0.006).toFixed(5);}
     const pool=POOL[pt]||POOL.villa;
     const allPhotos=[...nlRemote,...nlPhotos,...((opts&&opts.photos)||[])];
     const amen=[...document.querySelectorAll("#nlAmen input:checked")].map(c=>c.value);
-    const leaseY=+$("nlLease").value||0;
+    const num=(id,fb)=>{const v=$(id)?$(id).value:"";return(v===""&&old)?fb:(parseFloat(v)||0);};
+    const leaseY=num("nlLease",old?old.leaseYears||0:0);
     const it={id:editingId||Date.now(),type:role,dealType:deal,category:$("nlCat").value,title,price,currency:"IDR",
-      propertyType:pt,bedrooms:+$("nlBed").value||0,bathrooms:+$("nlBath").value||0,
-      area:+$("nlArea").value||0,landArea:+$("nlLand").value||0,floors:0,
+      propertyType:pt,bedrooms:num("nlBed",old?old.bedrooms||0:0),bathrooms:num("nlBath",old?old.bathrooms||0:0),
+      area:num("nlArea",old?old.area||0:0),landArea:num("nlLand",old?old.landArea||0:0),floors:0,
       yearBuilt:0,furnished:true,
-      location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim(),geoAcc:acc,
+      location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim()||(old?old.addr||"":""),geoAcc:acc,
       phone:"",owner:getGuestId(),status:"published",ai:!!(opts&&opts.via==="ai"),
       images:allPhotos.length?allPhotos:[pool[0]],fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
-      living:+$("nlLiving").value||0,parking:+$("nlPark").value||0,leaseYears:leaseY,
-      available:$("nlAvail").value?$("nlAvail").value+"-01":null,
-      amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:null,desc:$("nlDesc").value.trim(),parties:buildParties()};
+      living:num("nlLiving",old?old.living||0:0),parking:num("nlPark",old?old.parking||0:0),leaseYears:leaseY,
+      available:$("nlAvail").value?$("nlAvail").value+"-01":(old?old.available||null:null),
+      amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:old?old.moveIn||null:null,desc:$("nlDesc").value.trim()||(old?old.desc||"":""),parties:buildParties()};
     let backendSaved=true;
     if(editingId){
       const ix=LISTINGS.findIndex(x=>x.id===editingId);
