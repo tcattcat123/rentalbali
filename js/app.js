@@ -122,6 +122,7 @@ LISTINGS.forEach(it=>{it.living=(it.propertyType==="land"||it.propertyType==="co
 const AVAIL={6:"2026-12-04",9:"2026-12-01",13:"2026-11-01",23:"2026-10-15"};
 LISTINGS.forEach(it=>{it.available=AVAIL[it.id]||null;});
 function fmtDate(iso){const[a,b,c]=iso.split("-");return`${c}.${b}.${a}`;}
+function fmtDT(ts){try{return new Date(ts).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});}catch(e){return"";}}
 let detailId=null,detailIdx=0;
 
 const I18N = {
@@ -265,7 +266,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.39";const APP_BUILD="84";
+const APP_V="2.40";const APP_BUILD="85";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -282,12 +283,20 @@ const isNew = it=>(Date.now()-it.createdAt)<24*H;
 function convertPrice(v){return state.currency==="USD"?Math.round(v/RATE):v;}
 function fmtNum(v){return state.currency==="USD"?convertPrice(v).toLocaleString("en-US"):v.toLocaleString("ru-RU");}
 function curSuffix(){return state.currency;}
+function fmtMoney(v){return `${state.currency==="USD"?"$ ":""}${fmtNum(v)} ${curSuffix()}`;}
 function fmtPrice(it){
+  if(it.type==="request"){
+    const lo=it.priceMin||0,hi=it.price||0;
+    const tail=it.dealType==="sale"?" "+t("total"):(it.dealType==="rent"?" "+(it.category==="yearly"?t("year_per"):t("month")):"");
+    if(lo>0&&hi>0)return state.lang==="ru"?`от ${fmtMoney(lo)} до ${fmtMoney(hi)}${tail}`:`${fmtMoney(lo)} – ${fmtMoney(hi)}${tail}`;
+    if(hi>0)return state.lang==="ru"?`до ${fmtMoney(hi)}${tail}`:`up to ${fmtMoney(hi)}${tail}`;
+    if(lo>0)return state.lang==="ru"?`от ${fmtMoney(lo)}${tail}`:`from ${fmtMoney(lo)}${tail}`;
+    return "Цена по запросу";
+  }
   if(!(it.price>0))return "Цена по запросу";
-  const prefix = it.type==="request"?(state.lang==="ru"?"до ":"up to "):"";
-  if(it.dealType==="sale")return `${prefix}${state.currency==="USD"?"$ ":""}${fmtNum(it.price)} ${curSuffix()}${state.lang==="ru"?" "+t("total"):" "+t("total")}`;
+  if(it.dealType==="sale")return `${state.currency==="USD"?"$ ":""}${fmtNum(it.price)} ${curSuffix()}${state.lang==="ru"?" "+t("total"):" "+t("total")}`;
   const per = it.category==="yearly"?t("year_per"):t("month");
-  return `${prefix}${state.currency==="USD"?"$ ":""}${fmtNum(it.price)} ${curSuffix()} ${per}`;
+  return `${state.currency==="USD"?"$ ":""}${fmtNum(it.price)} ${curSuffix()} ${per}`;
 }
 function timeAgo(ts){
   const d=Date.now()-ts, m=Math.floor(d/M), h=Math.floor(d/H), days=Math.floor(h/24);
@@ -371,7 +380,12 @@ function getFiltered(){
   if(!isNaN(pMax))arr=arr.filter(x=>x.price<=pMax);
   if(fT)arr=arr.filter(x=>x.propertyType===fT);
   if(fR)arr=arr.filter(x=>fR==="5"?x.bedrooms>=5:x.bedrooms==+fR);
-  if(state.districts.size)arr=arr.filter(x=>{const a=x.locationEn||x.location;return [...state.districts].some(d=>d===a||PARENT[d]===a);});
+  if(state.districts.size)arr=arr.filter(x=>{
+    const a=x.locationEn||"";
+    if(a)return [...state.districts].some(d=>d===a||PARENT[d]===a);
+    const t=((x.location||"")+" "+(x.title||"")).toLowerCase();
+    return [...state.districts].some(d=>{const n=DIST_TREE.find(n=>n.key===d);const names=[d,n?n.ru:"",...((n&&n.kids)||[]).flatMap(k=>k)].join(" ").toLowerCase();return names.split(/\s+/).some(w=>w.length>2&&t.includes(w));});
+  });
   if(!isNaN(lMin))arr=arr.filter(x=>(x.landArea||0)>=lMin);
   if(!isNaN(lMax))arr=arr.filter(x=>(x.landArea||0)<=lMax);
   if(!isNaN(aMin))arr=arr.filter(x=>(x.area||0)>=aMin);
@@ -435,7 +449,7 @@ function render(){
   const favs=LISTINGS.filter(x=>state.fav.has(x.id));
   $("favGrid").innerHTML=favs.map(cardHTML).join("");
   $("favEmpty").style.display=favs.length?"none":"block";
-  $("myGrid").innerHTML=LISTINGS.filter(x=>x.mine&&(cabProjFilter==="all"||x.type===cabProjFilter)).map(it=>`<div>${cardHTML(it)}${it.user?`<div class="my-actions"><button class="edit-btn" data-edit="${it.id}">✎ Редактировать</button><button class="del-btn" data-del="${it.id}">✕ Удалить</button></div>`:""}</div>`).join("");
+  $("myGrid").innerHTML=[...LISTINGS.filter(x=>x.mine&&(cabProjFilter==="all"||x.type===cabProjFilter)),...memberItems().filter(x=>cabProjFilter==="all"||x.type===cabProjFilter)].map(it=>`<div>${cardHTML(it)}${it.user?`<div class="my-actions"><button class="edit-btn" data-edit="${it.id}">✎ Редактировать</button><button class="del-btn" data-del="${it.id}">✕ Удалить</button></div>`:(it._member?`<div class="my-actions"><span class="param-chip">Участник</span><button class="btn-text" data-leave="${it.id}">Покинуть проект</button></div>`:"")}</div>`).join("");
   $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini" data-card="${x.id}"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>${locLabel(x)}</div>`).join("");
 }
 
@@ -517,6 +531,62 @@ function buildParties(){
   if(!list.some(p=>p.role==="admin"))list.unshift({name:me,role:"admin"});
   return list.slice(0,8);
 }
+function mergeHistory(oldH,oldP,newP){
+  const h=[...(oldH||[])];
+  const norm=a=>(a||[]).filter(p=>p&&p.name).map(p=>String(p.name).trim().toLowerCase());
+  const o=norm(oldP),n=norm(newP),now=Date.now();
+  const nameOf=l=>{const f=(newP.find(p=>String(p.name).trim().toLowerCase()===l)||oldP.find(p=>String(p.name).trim().toLowerCase()===l)||{});return f.name||l;};
+  n.forEach(l=>{if(!o.includes(l))h.push({name:nameOf(l),action:"join",at:now});});
+  o.forEach(l=>{if(!n.includes(l))h.push({name:nameOf(l),action:"leave",at:now});});
+  return h.slice(-100);
+}
+function memberItems(){
+  const me=((curProfile()||{}).name||"").trim().toLowerCase();
+  if(!me||!curPid())return[];
+  const seen=new Set(LISTINGS.filter(x=>x.mine).map(x=>x.id));
+  const out=[];
+  for(const p of loadProfiles()){
+    if(p.id===curPid())continue;
+    let arr=[];try{arr=JSON.parse(localStorage.getItem("rh_my_"+p.id)||"[]")||[];}catch(e){arr=[];}
+    for(const o of arr){
+      if(!o||!o.id||seen.has(o.id))continue;
+      if((o.parties||[]).some(q=>q&&String(q.name||"").trim().toLowerCase()===me)){
+        out.push(Object.assign({},o,{mine:false,user:false,_member:true,_ownerProfile:p.id}));
+        seen.add(o.id);
+      }
+    }
+  }
+  return out;
+}
+function leaveProject(id){
+  const me=((curProfile()||{}).name||"").trim();
+  if(!me){notify("Сначала выберите профиль");return;}
+  const low=me.toLowerCase();
+  for(const p of loadProfiles()){
+    if(p.id===curPid())continue;
+    let arr=[];try{arr=JSON.parse(localStorage.getItem("rh_my_"+p.id)||"[]")||[];}catch(e){arr=[];}
+    const o=arr.find(x=>x&&x.id===id);
+    if(o){
+      o.parties=(o.parties||[]).filter(q=>String(q.name||"").trim().toLowerCase()!==low);
+      o.history=o.history||[];o.history.push({name:me,action:"leave",at:Date.now()});
+      try{localStorage.setItem("rh_my_"+p.id,JSON.stringify(arr));}catch(e){}
+      render();notify("Вы покинули проект");return;
+    }
+  }
+  notify("Проект не найден");
+}
+function isCurrentAdmin(it){
+  const me=((curProfile()||{}).name||"").trim().toLowerCase();
+  if(!me)return false;
+  return (it.parties||[]).some(p=>p&&p.role==="admin"&&String(p.name||"").trim().toLowerCase()===me);
+}
+function syncNlRoleView(){
+  const isReq=$("nlRole")&&$("nlRole").value==="request";
+  if($("nlPriceToWrap"))$("nlPriceToWrap").style.display=isReq?"":"none";
+  if($("nlLocCustomWrap"))$("nlLocCustomWrap").style.display=isReq?"":"none";
+  if($("nlPriceLabel"))$("nlPriceLabel").textContent=isReq?"Бюджет от":"Цена";
+  if($("nlPhotosLabel"))$("nlPhotosLabel").textContent=isReq?"Фото (до 6, необязательно)":"Фото (до 6)";
+}
 function syncNlDeal(){
   const sale=$("nlDeal").value==="sale";
   if($("nlTenureWrap"))$("nlTenureWrap").style.display=sale?"":"none";
@@ -547,13 +617,13 @@ function updateMarkersSafe(){if(map)updateMarkers();}
 let editingId=null;
 function resetNlForm(){
   editingId=null;
-  ["nlTitle","nlPrice","nlArea","nlLand","impUrls","impUrls2","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
+  ["nlTitle","nlPrice","nlPriceTo","nlLocCustom","nlArea","nlLand","impUrls","impUrls2","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
   ["nlBed","nlLiving"].forEach(k=>{if($(k))$(k).value=1;});
   if($("nlBath"))$("nlBath").value=1;
   if($("nlPark"))$("nlPark").value=0;
   if($("nlAvail"))$("nlAvail").value="";
   if($("nlPhotos"))$("nlPhotos").value="";
-  nlPhotos=[];nlRemote=[];paintNlPreview();nlPartyList=[];paintNlParties();
+  nlPhotos=[];nlRemote=[];paintNlPreview();nlPartyList=[];paintNlParties();syncNlRoleView();
   if($("nlSave"))$("nlSave").textContent="Опубликовать";
   const c=$("nlCancel");if(c)c.remove();
 }
@@ -571,7 +641,11 @@ function fillEditForm(id){
   const it=LISTINGS.find(x=>x.id===id&&x.user);if(!it)return;
   editingId=id;
   $("nlDeal").value=it.dealType;$("nlRole").value=it.type;$("nlType").value=it.propertyType;
-  $("nlDistrict").value=it.locationEn;$("nlTitle").value=it.title;$("nlPrice").value=it.price;
+  $("nlDistrict").value=it.locationEn;$("nlTitle").value=it.title;
+  if(it.type==="request"){$("nlPrice").value=it.priceMin||"";if($("nlPriceTo"))$("nlPriceTo").value=it.price||"";}
+  else{$("nlPrice").value=it.price;if($("nlPriceTo"))$("nlPriceTo").value="";}
+  if($("nlLocCustom"))$("nlLocCustom").value=(!it.locationEn&&it.location&&it.location!=="Бали")?it.location:"";
+  syncNlRoleView();
   $("nlCat").value=it.category||"monthly";if($("nlTenure"))$("nlTenure").value=it.tenure||"freehold";
   if($("nlDesc"))$("nlDesc").value=it.desc||"";
   $("nlBed").value=it.bedrooms||0;$("nlBath").value=it.bathrooms||0;
@@ -960,6 +1034,8 @@ function openDetail(id){
       <div class="flex flex-wrap gap-2">${((it.amenities||[]).length?(it.amenities||[]):["—"]).map(a=>`<span class="rounded-full bg-brand-soft text-brand-dark text-[13px] font-semibold px-3.5 py-1">${a}</span>`).join("")}</div></div>
     ${((it.parties||[]).length)?`<div class="card d-card"><h3>${state.lang==="ru"?"Участники":"Parties"}</h3>
       <div class="flex flex-wrap gap-2">${it.parties.map(p=>`<span class="rounded-full text-[13px] font-semibold px-3.5 py-1"${p.role==="admin"?' style="background:#EB5757;color:#fff"':' style="background:var(--line-soft);color:var(--ink2)"'}>${String(p.name).replace(/</g,"&lt;")} · ${PARTY_ROLES[p.role]||p.role}</span>`).join("")}</div></div>`:""}
+    ${(isCurrentAdmin(it)&&(it.history||[]).length)?`<div class="card d-card"><h3>${state.lang==="ru"?"История участников":"Member history"}</h3>
+      <div class="grid grid-cols-1 gap-y-0.5">${it.history.slice().reverse().map(h=>`<div class="flex items-baseline justify-between py-1.5 border-b border-slate-100 px-2 -mx-2"><span class="text-[13px] text-slate-800">${String(h.name||"").replace(/</g,"&lt;")} — ${h.action==="join"?(state.lang==="ru"?"вступил":"joined"):(state.lang==="ru"?"вышел":"left")}</span><span class="text-[12px] text-slate-500">${fmtDT(h.at)}</span></div>`).join("")}</div><p class="hint">${state.lang==="ru"?"Видно только администратору проекта":"Visible to project admin only"}</p></div>`:""}
     <div class="card d-card"><h3>${state.lang==="ru"?"На карте":"On map"}</h3>
       <iframe title="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${it.lat},${it.lng}"></iframe>
       <div class="map-row"><span class="muted">${locLabel(it)}, Бали, Индонезия</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${state.lang==="ru"?"Построить маршрут":"Directions"} →</a></div></div>
@@ -986,6 +1062,8 @@ document.addEventListener("click",e=>{
   if(nd){e.stopPropagation();const k=nd.dataset.nldel;const i=+k.slice(1);if(k[0]==="r")nlRemote.splice(i,1);else nlPhotos.splice(i,1);paintNlPreview();return;}
   const ed=e.target.closest("[data-edit]");
   if(ed){e.stopPropagation();fillEditForm(+ed.dataset.edit);return;}
+  const lv=e.target.closest("[data-leave]");
+  if(lv){e.stopPropagation();leaveProject(+lv.dataset.leave);return;}
   const c=e.target.closest("[data-car]");
   if(c){e.stopPropagation();const id=+c.dataset.id;const it=LISTINGS.find(x=>x.id===id);let i=state.carIdx[id]||0;i=(i+(c.dataset.car==="next"?1:-1)+it.images.length)%it.images.length;state.carIdx[id]=i;render();return;}
   const o=e.target.closest("[data-offer]");
@@ -1100,6 +1178,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   paintNlAmen((AM[$("nlType").value]||[]).slice(0,4));syncNlDeal();
   if($("nlType"))$("nlType").addEventListener("change",()=>paintNlAmen((AM[$("nlType").value]||[]).slice(0,4)));
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
+  if($("nlRole"))$("nlRole").addEventListener("change",syncNlRoleView);syncNlRoleView();
   if($("nlTenure"))$("nlTenure").addEventListener("change",syncNlDeal);
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
   paintNlParties();
@@ -1331,15 +1410,23 @@ function docIdFromUrl(url){
 async function submitForm(auto,opts){
     if(!curProfile()){notify("Сначала выберите или создайте профиль");switchView("profile");switchCabtab("profile");return false;}
     const old=editingId?LISTINGS.find(x=>x.id===editingId):null;
-    let title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);
+    let title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);let priceMin=0;
     if(old){if(!title)title=old.title||"";if(isNaN(price))price=old.price||0;}
     if(!title&&auto){$("nlTitle").value=agentComposeTitle();title=$("nlTitle").value.trim();}
     if(!title){if(!auto)notify("Укажите заголовок");return false;}
-    if(!(price>0)){if(auto){price=0;}else{notify("Укажите цену");return false;}}
-    if($("nlCur")&&$("nlCur").value==="USD")price=Math.round(price*RATE);
+    const isReq=$("nlRole").value==="request";
+    if(isReq){
+      const rawMax=$("nlPriceTo")?$("nlPriceTo").value:"";
+      priceMin=(($("nlPrice").value===""&&old)?old.priceMin||0:(parseFloat($("nlPrice").value)||0));
+      if(rawMax==="")price=old?old.price||0:0;
+      else price=parseFloat(rawMax)||0;
+    }
+    if(!(price>0)&&!(isReq&&priceMin>0)){if(auto){price=0;}else if(!isReq){notify("Укажите цену");return false;}else{price=0;}}
+    if($("nlCur")&&$("nlCur").value==="USD"){price=Math.round(price*RATE);priceMin=Math.round(priceMin*RATE);}
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
-    const dk=$("nlDistrict").value||(old?old.locationEn||"":"");
-    const rl=dk?locName(dk):"Бали";
+    const customLoc=isReq&&$("nlLocCustom")?$("nlLocCustom").value.trim():"";
+    const dk=customLoc?"":($("nlDistrict").value||(old?old.locationEn||"":""));
+    const rl=customLoc?customLoc:(dk?locName(dk):"Бали");
     let lat=null,lng=null;
     let g=null;
     if(dk&&$("nlGeo").value.trim()){
@@ -1353,9 +1440,10 @@ async function submitForm(auto,opts){
     const pool=POOL[pt]||POOL.villa;
     const allPhotos=[...nlRemote,...nlPhotos,...((opts&&opts.photos)||[])];
     const amen=[...document.querySelectorAll("#nlAmen input:checked")].map(c=>c.value);
+    const partiesArr=buildParties();
     const num=(id,fb)=>{const v=$(id)?$(id).value:"";return(v===""&&old)?fb:(parseFloat(v)||0);};
     const leaseY=num("nlLease",old?old.leaseYears||0:0);
-    const it={id:editingId||Date.now(),type:role,dealType:deal,category:$("nlCat").value,title,price,currency:"IDR",
+    const it={id:editingId||Date.now(),type:role,dealType:deal,category:$("nlCat").value,title,price,priceMin:priceMin,currency:"IDR",
       propertyType:pt,bedrooms:num("nlBed",old?old.bedrooms||0:0),bathrooms:num("nlBath",old?old.bathrooms||0:0),
       area:num("nlArea",old?old.area||0:0),landArea:num("nlLand",old?old.landArea||0:0),floors:0,
       yearBuilt:0,furnished:true,
@@ -1366,7 +1454,7 @@ async function submitForm(auto,opts){
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
       living:num("nlLiving",old?old.living||0:0),parking:num("nlPark",old?old.parking||0:0),leaseYears:leaseY,
       available:$("nlAvail").value?$("nlAvail").value+"-01":(old?old.available||null:null),
-      amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:old?old.moveIn||null:null,desc:$("nlDesc").value.trim()||(old?old.desc||"":""),parties:buildParties()};
+      amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:old?old.moveIn||null:null,desc:$("nlDesc").value.trim()||(old?old.desc||"":""),parties:partiesArr,history:(editingId&&old?mergeHistory(old.history,old.parties,partiesArr):[{name:(partiesArr.find(p=>p.role==="admin")||{}).name||((curProfile()||{}).name||"Вы"),action:"join",at:Date.now()}])};
     let backendSaved=true;
     if(editingId){
       const ix=LISTINGS.findIndex(x=>x.id===editingId);

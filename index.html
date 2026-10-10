@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="84">
+<meta name="app-build" content="85">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=84">
+<link rel="stylesheet" href="css/style.css?v=85">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -225,11 +225,13 @@
     <div class="filter-group"><label>Тип заявки</label><select id="nlRole"><option value="offer">Предлагаю</option><option value="request">Ищу</option></select></div>
     <div class="filter-group"><label>Тип недвижимости</label><select id="nlType"><option value="villa">Вилла</option><option value="house">Дом</option><option value="apartment">Квартира</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="townhouse">Таунхаус</option><option value="boarding">Sewa Kos</option><option value="commercial">Коммерческая</option></select></div>
     <div class="filter-group"><label>Район *</label><select id="nlDistrict"></select></div>
+    <div class="filter-group" id="nlLocCustomWrap" style="display:none"><label>Своя локация (вручную)</label><input id="nlLocCustom" placeholder="Например: рядом с пляжем"></div>
     <div class="filter-group full"><label>Точный адрес объекта</label><input id="nlAddr" placeholder="Улица, номер дома, ориентир"></div>
     <div class="filter-group"><label>Ссылка Google Maps (точка на карте)</label><input id="nlGeo" placeholder="https://maps.app.goo.gl/..."></div>
     <div class="filter-group"><label>Точность локации *</label><select id="nlAcc"><option value="exact">Точная</option><option value="approx">Ориентировочная</option></select></div>
     <div class="filter-group full"><label>Заголовок</label><input id="nlTitle" placeholder="Например: Вилла с бассейном в Чангу"></div>
-    <div class="filter-group"><label>Цена</label><div class="imp-row"><input type="number" id="nlPrice" placeholder="10000000" min="0"><select id="nlCur" style="max-width:90px"><option value="IDR">IDR</option><option value="USD">USD</option></select></div></div>
+    <div class="filter-group"><label id="nlPriceLabel">Цена</label><div class="imp-row"><input type="number" id="nlPrice" placeholder="10000000" min="0"><select id="nlCur" style="max-width:90px"><option value="IDR">IDR</option><option value="USD">USD</option></select></div></div>
+    <div class="filter-group" id="nlPriceToWrap" style="display:none"><label>Бюджет до</label><input type="number" id="nlPriceTo" placeholder="12000000" min="0"></div>
     <div class="filter-group"><label>Срок аренды</label><select id="nlCat"><option value="monthly">Помесячно</option><option value="yearly">На год</option></select></div>
     <div class="filter-group" id="nlTenureWrap"><label>Владение (покупка)</label><select id="nlTenure"><option value="freehold">Freehold</option><option value="leasehold">Leasehold</option></select></div>
     <div class="filter-group" id="nlLeaseWrap" style="display:none"><label>Срок аренды, лет</label><input type="number" id="nlLease" placeholder="25" min="1" max="100"></div>
@@ -243,7 +245,7 @@
     <div class="filter-group full"><label>Удобства</label><div id="nlAmen" class="amen-boxes"></div></div>
     <div class="filter-group full"><label>Контрагенты (администратор раздаёт роли)</label><div id="nlParties" style="display:grid;gap:6px"></div><div class="imp-row" style="margin-top:6px"><input id="nlPartyName" placeholder="Имя"><select id="nlPartyRole"><option value="viewer">Наблюдатель</option><option value="agent">Агент</option><option value="owner">Собственник</option><option value="admin">Администратор</option></select><button id="nlPartyAdd" class="btn-ghost" type="button">+ Добавить</button></div></div>
     <div class="filter-group full"><label>Описание (покажется в «Подробнее» на странице объекта)</label><textarea id="nlDesc" rows="3" placeholder="Панорамный вид, бассейн 12х4, до центра 7 минут..."></textarea></div>
-    <div class="filter-group full"><label>Фото (до 6)</label><input type="file" id="nlPhotos" accept="image/*" multiple><div id="nlPreview" class="nl-preview"></div></div>
+    <div class="filter-group full"><label id="nlPhotosLabel">Фото (до 6)</label><input type="file" id="nlPhotos" accept="image/*" multiple><div id="nlPreview" class="nl-preview"></div></div>
     <div class="filter-group full"><label>Фото по ссылкам — вставьте сюда</label><div class="imp-row"><input id="impUrls2" placeholder="Ссылка Drive или ID, через запятую"><button id="impPhotos2" class="btn-primary">Загрузить фото</button></div></div>
     </div>
     <button id="nlSave" class="btn-primary block">Опубликовать</button>
@@ -294,6 +296,6 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=84"></script>
+<script src="js/app.js?v=85"></script>
 </body>
 </html>
