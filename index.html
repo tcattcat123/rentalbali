@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="85">
+<meta name="app-build" content="86">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=85">
+<link rel="stylesheet" href="css/style.css?v=86">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -160,7 +160,8 @@
       <button data-cabtab="add">Добавить проект</button>
     </div>
     <div class="profile-card card" data-cabpanel="profile">
-      <img src="https://i.pravatar.cc/120?img=12" alt="avatar" class="avatar" id="pfAvatar">
+      <img src="https://i.pravatar.cc/120?img=12" alt="avatar" class="avatar" id="pfAvatar" title="Нажмите, чтобы загрузить фото" style="cursor:pointer">
+      <input type="file" id="pfAvatarInput" accept="image/*" class="hidden">
       <div style="flex:1;display:grid;gap:8px">
         <div class="filter-group"><label>Имя</label><input id="pfName" placeholder="Как к вам обращаться"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -218,7 +219,9 @@
     <div class="imp-panel hidden" data-imppanel="manual">
     <div class="imp-block">
     <div class="filter-group"><label>Быстрый шаблон</label>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="impRoyal" class="btn-ghost">Импорт Royal Lotus (Убуд)</button></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="impRoyal" class="btn-ghost">Импорт Royal Lotus (Убуд)</button></div>
+    <div class="imp-row" style="margin-top:6px"><input id="nlTplName" placeholder="Название шаблона"><button id="nlTplSave" class="btn-ghost" type="button">📋 В шаблон</button></div>
+    <div class="imp-row" style="margin-top:6px"><select id="nlTplSel"></select><button id="nlTplLoad" class="btn-ghost" type="button">Заполнить</button></div></div>
     </div>
     <div class="calc-grid">
     <div class="filter-group"><label>Сделка</label><select id="nlDeal"><option value="rent">Аренда</option><option value="sale">Покупка</option></select></div>
@@ -243,15 +246,21 @@
     <div class="filter-group"><label>Парковка (мест)</label><input type="number" id="nlPark" value="0" min="0" max="10"></div>
     <div class="filter-group"><label>Доступно с</label><input type="month" id="nlAvail" min="2026-09" max="2028-12"></div>
     <div class="filter-group full"><label>Удобства</label><div id="nlAmen" class="amen-boxes"></div></div>
-    <div class="filter-group full"><label>Контрагенты (администратор раздаёт роли)</label><div id="nlParties" style="display:grid;gap:6px"></div><div class="imp-row" style="margin-top:6px"><input id="nlPartyName" placeholder="Имя"><select id="nlPartyRole"><option value="viewer">Наблюдатель</option><option value="agent">Агент</option><option value="owner">Собственник</option><option value="admin">Администратор</option></select><button id="nlPartyAdd" class="btn-ghost" type="button">+ Добавить</button></div></div>
+    <div class="filter-group full"><label>Контрагенты (администратор раздаёт роли)</label><div id="nlParties" style="display:grid;gap:6px"></div><div class="imp-row" style="margin-top:6px"><select id="nlPartyName"></select><select id="nlPartyRole"><option value="viewer">Наблюдатель</option><option value="agent">Агент</option><option value="owner">Собственник</option><option value="admin">Администратор</option></select><button id="nlPartyAdd" class="btn-ghost" type="button">+ Добавить</button></div></div>
     <div class="filter-group full"><label>Описание (покажется в «Подробнее» на странице объекта)</label><textarea id="nlDesc" rows="3" placeholder="Панорамный вид, бассейн 12х4, до центра 7 минут..."></textarea></div>
     <div class="filter-group full"><label id="nlPhotosLabel">Фото (до 6)</label><input type="file" id="nlPhotos" accept="image/*" multiple><div id="nlPreview" class="nl-preview"></div></div>
     <div class="filter-group full"><label>Фото по ссылкам — вставьте сюда</label><div class="imp-row"><input id="impUrls2" placeholder="Ссылка Drive или ID, через запятую"><button id="impPhotos2" class="btn-primary">Загрузить фото</button></div></div>
     </div>
     <button id="nlSave" class="btn-primary block">Опубликовать</button>
+    <div id="afterSave" class="hidden" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button id="asView" class="btn-primary" type="button">👁 Просмотреть</button>
+      <button id="asClear" class="btn-ghost" type="button">🧹 Очистить форму</button>
+      <button id="asTpl" class="btn-ghost" type="button">📋 В шаблон</button>
+    </div>
     </div>
     </div>
     <div id="myGrid" class="grid hidden" data-cabpanel="projects"></div>
+    <div class="card cab-form hidden" data-cabpanel="projects" style="margin-top:10px"><h3>Все участники</h3><div id="allParties" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
   </section>
 
   <section id="view-detail" class="hidden">
@@ -296,6 +305,6 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=85"></script>
+<script src="js/app.js?v=86"></script>
 </body>
 </html>

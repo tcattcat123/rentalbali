@@ -100,11 +100,25 @@ function getProfile(){const p=curProfile();return{name:(p&&p.name)||"",guestId:c
 function renderProfiles(){
   const box=$("profileList");if(!box)return;
   const list=loadProfiles(),cur=curPid();
-  box.innerHTML=list.length?list.map(p=>`<button type="button" class="chip${p.id===cur?" active":""}" data-profile="${p.id}">${(p.name||"Без имени").replace(/</g,"&lt;")}</button>`).join(""):`<span class="muted">Нет профилей — создайте ниже</span>`;
+  box.innerHTML=list.length?list.map(p=>`<span style="display:inline-flex;gap:2px;align-items:center"><button type="button" class="chip${p.id===cur?" active":""}" data-profile="${p.id}">${(p.name||"Без имени").replace(/</g,"&lt;")}</button><button type="button" class="btn-text" data-pdel="${p.id}" title="Удалить профиль">✕</button></span>`).join(""):`<span class="muted">Нет профилей — создайте ниже</span>`;
   box.querySelectorAll("[data-profile]").forEach(b=>b.onclick=()=>switchProfile(b.dataset.profile));
+  box.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>deleteProfile(b.dataset.pdel,b));
   const g=$("guestId");if(g)g.textContent=cur||"—";
   const p=curProfile();
   if($("pfName"))$("pfName").value=(p&&p.name)||"";
+  if($("pfAvatar"))$("pfAvatar").src=(p&&p.avatar)||"https://i.pravatar.cc/120?img=12";
+  paintNlPartyOpts();
+}
+function deleteProfile(id,btn){
+  if(!id)return;
+  if(!btn.dataset.armed){btn.dataset.armed="1";btn.textContent="Точно?";setTimeout(()=>{delete btn.dataset.armed;btn.textContent="✕";},5000);return;}
+  if(id===curPid()){
+    for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
+    state.fav=new Set();setCurPid("");
+  }
+  try{localStorage.removeItem("rh_my_"+id);localStorage.removeItem("rh_fav_"+id);}catch(e){}
+  saveProfiles(loadProfiles().filter(p=>p.id!==id));
+  resetNlForm();renderProfiles();render();notify("Профиль удалён");
 }
 async function switchProfile(id){
   if(!id||id===curPid())return;
@@ -266,7 +280,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.40";const APP_BUILD="85";
+const APP_V="2.41";const APP_BUILD="86";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -451,6 +465,13 @@ function render(){
   $("favEmpty").style.display=favs.length?"none":"block";
   $("myGrid").innerHTML=[...LISTINGS.filter(x=>x.mine&&(cabProjFilter==="all"||x.type===cabProjFilter)),...memberItems().filter(x=>cabProjFilter==="all"||x.type===cabProjFilter)].map(it=>`<div>${cardHTML(it)}${it.user?`<div class="my-actions"><button class="edit-btn" data-edit="${it.id}">✎ Редактировать</button><button class="del-btn" data-del="${it.id}">✕ Удалить</button></div>`:(it._member?`<div class="my-actions"><span class="param-chip">Участник</span><button class="btn-text" data-leave="${it.id}">Покинуть проект</button></div>`:"")}</div>`).join("");
   $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini" data-card="${x.id}"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>${locLabel(x)}</div>`).join("");
+  const ap=$("allParties");
+  if(ap){
+    const agg={};
+    LISTINGS.filter(x=>x.mine).forEach(it=>{(it.parties||[]).forEach(p=>{if(!p||!p.name)return;const k=String(p.name).trim().toLowerCase();agg[k]=agg[k]||{name:String(p.name).trim(),roles:{},n:0};agg[k].roles[p.role||"viewer"]=1;agg[k].n++;});});
+    const keys=Object.keys(agg).sort();
+    ap.innerHTML=keys.length?keys.map(k=>{const a=agg[k];return`<span class="param-chip">${a.name.replace(/</g,"&lt;")} · ${Object.keys(a.roles).map(r=>PARTY_ROLES[r]||r).join(", ")} · ${a.n}</span>`;}).join(""):`<span class="muted">Пока никого</span>`;
+  }
 }
 
 function switchView(v){
@@ -523,13 +544,20 @@ let nlPartyList=[];
 function paintNlParties(){
   const box=$("nlParties");if(!box)return;
   box.innerHTML=nlPartyList.length?nlPartyList.map((p,i)=>`<div class="imp-row"><span class="param-chip" style="flex:1">${String(p.name).replace(/</g,"&lt;")} · ${PARTY_ROLES[p.role]||p.role}</span><button type="button" class="btn-text" data-pdel="${i}">✕</button></div>`).join(""):`<span class="muted" style="font-size:12px">Пока никого — создатель станет администратором автоматически</span>`;
-  box.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>{nlPartyList.splice(+b.dataset.pdel,1);paintNlParties();});
+  box.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>{nlPartyList.splice(+b.dataset.pdel,1);paintNlParties();paintNlPartyOpts();});
 }
 function buildParties(){
-  const list=nlPartyList.filter(p=>p&&p.name).map(p=>({name:String(p.name).slice(0,60),role:PARTY_ROLES[p.role]?p.role:"viewer"}));
+  const list=nlPartyList.filter(p=>p&&p.name).map(p=>({pid:p.pid||"",name:String(p.name).slice(0,60),role:PARTY_ROLES[p.role]?p.role:"viewer"}));
   const me=((curProfile()||{}).name||"Вы").slice(0,60);
-  if(!list.some(p=>p.role==="admin"))list.unshift({name:me,role:"admin"});
+  if(!list.some(p=>p.role==="admin"))list.unshift({pid:curPid(),name:me,role:"admin"});
   return list.slice(0,8);
+}
+function paintNlPartyOpts(){
+  const s=$("nlPartyName");if(!s||s.tagName!=="SELECT")return;
+  const list=loadProfiles();
+  const taken=new Set(nlPartyList.map(p=>p.pid||("n:"+String(p.name||"").toLowerCase())));
+  const opts=list.filter(p=>!taken.has(p.id));
+  s.innerHTML=opts.length?opts.map(p=>`<option value="${p.id}">${String(p.name||"Без имени").replace(/</g,"&lt;")}</option>`).join(""):`<option value="">— нет свободных профилей —</option>`;
 }
 function mergeHistory(oldH,oldP,newP){
   const h=[...(oldH||[])];
@@ -550,7 +578,7 @@ function memberItems(){
     let arr=[];try{arr=JSON.parse(localStorage.getItem("rh_my_"+p.id)||"[]")||[];}catch(e){arr=[];}
     for(const o of arr){
       if(!o||!o.id||seen.has(o.id))continue;
-      if((o.parties||[]).some(q=>q&&String(q.name||"").trim().toLowerCase()===me)){
+      if((o.parties||[]).some(q=>q&&((q.pid&&q.pid===curPid())||String(q.name||"").trim().toLowerCase()===me))){
         out.push(Object.assign({},o,{mine:false,user:false,_member:true,_ownerProfile:p.id}));
         seen.add(o.id);
       }
@@ -567,7 +595,12 @@ function leaveProject(id){
     let arr=[];try{arr=JSON.parse(localStorage.getItem("rh_my_"+p.id)||"[]")||[];}catch(e){arr=[];}
     const o=arr.find(x=>x&&x.id===id);
     if(o){
-      o.parties=(o.parties||[]).filter(q=>String(q.name||"").trim().toLowerCase()!==low);
+      const myId=curPid();
+      o.parties=(o.parties||[]).filter(q=>{
+        if(!q)return false;
+        if(q.pid)return q.pid!==myId;
+        return String(q.name||"").trim().toLowerCase()!==low;
+      });
       o.history=o.history||[];o.history.push({name:me,action:"leave",at:Date.now()});
       try{localStorage.setItem("rh_my_"+p.id,JSON.stringify(arr));}catch(e){}
       render();notify("Вы покинули проект");return;
@@ -577,8 +610,8 @@ function leaveProject(id){
 }
 function isCurrentAdmin(it){
   const me=((curProfile()||{}).name||"").trim().toLowerCase();
-  if(!me)return false;
-  return (it.parties||[]).some(p=>p&&p.role==="admin"&&String(p.name||"").trim().toLowerCase()===me);
+  if(!me&&!curPid())return false;
+  return (it.parties||[]).some(p=>p&&p.role==="admin"&&((p.pid&&p.pid===curPid())||String(p.name||"").trim().toLowerCase()===me));
 }
 function syncNlRoleView(){
   const isReq=$("nlRole")&&$("nlRole").value==="request";
@@ -617,6 +650,7 @@ function updateMarkersSafe(){if(map)updateMarkers();}
 let editingId=null;
 function resetNlForm(){
   editingId=null;
+  const as=$("afterSave");if(as)as.classList.add("hidden");
   ["nlTitle","nlPrice","nlPriceTo","nlLocCustom","nlArea","nlLand","impUrls","impUrls2","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
   ["nlBed","nlLiving"].forEach(k=>{if($(k))$(k).value=1;});
   if($("nlBath"))$("nlBath").value=1;
@@ -657,7 +691,7 @@ function fillEditForm(id){
   if($("nlAcc"))$("nlAcc").value=it.geoAcc||"exact";
   if($("nlCur"))$("nlCur").value="IDR";
   paintNlAmen(it.amenities||[]);syncNlDeal();
-  nlPartyList=(it.parties||[]).filter(p=>p&&p.name).map(p=>({name:String(p.name).slice(0,60),role:PARTY_ROLES[p.role]?p.role:"viewer"}));paintNlParties();
+  nlPartyList=(it.parties||[]).filter(p=>p&&p.name).map(p=>({pid:p.pid||"",name:String(p.name).slice(0,60),role:PARTY_ROLES[p.role]?p.role:"viewer"}));paintNlParties();paintNlPartyOpts();
   switchImptab("manual");
   nlPhotos=[];nlRemote=[...(it.images||[])];paintNlPreview();
   $("nlSave").textContent="Сохранить изменения";
@@ -1175,14 +1209,16 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     state.fav=new Set();setCurPid("");
     resetNlForm();renderProfiles();render();notify("Вы вышли из профиля");
   };
+  if($("pfAvatar"))$("pfAvatar").onclick=()=>{if(!curProfile()){notify("Сначала выберите или создайте профиль");return;}const f=$("pfAvatarInput");if(f)f.click();};
+  if($("pfAvatarInput"))$("pfAvatarInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const url=await fileToPhoto(f);const list=loadProfiles();const p=list.find(x=>x.id===curPid());if(p){p.avatar=url;saveProfiles(list);renderProfiles();notify("Фото профиля обновлено");}}catch(_){notify("Не смог прочитать фото");}e.target.value="";});
   paintNlAmen((AM[$("nlType").value]||[]).slice(0,4));syncNlDeal();
   if($("nlType"))$("nlType").addEventListener("change",()=>paintNlAmen((AM[$("nlType").value]||[]).slice(0,4)));
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
   if($("nlRole"))$("nlRole").addEventListener("change",syncNlRoleView);syncNlRoleView();
   if($("nlTenure"))$("nlTenure").addEventListener("change",syncNlDeal);
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
-  paintNlParties();
-  if($("nlPartyAdd"))$("nlPartyAdd").onclick=()=>{const nm=(($("nlPartyName")||{}).value||"").trim().slice(0,60);if(!nm){notify("Укажите имя контрагента");return;}nlPartyList.push({name:nm,role:($("nlPartyRole")||{}).value||"viewer"});$("nlPartyName").value="";paintNlParties();};
+  paintNlParties();paintNlPartyOpts();
+  if($("nlPartyAdd"))$("nlPartyAdd").onclick=()=>{const id=(($("nlPartyName")||{}).value||"");const p=loadProfiles().find(x=>x.id===id);if(!p){notify("Выберите профиль из списка");return;}nlPartyList.push({pid:p.id,name:p.name||"Без имени",role:($("nlPartyRole")||{}).value||"viewer"});paintNlParties();paintNlPartyOpts();};
 function driveIdsFromText(t){return (t||"").split(/[\n,;]+/).map(driveIdFromUrl).filter(Boolean);}
 async function uploadBlobsToServer(files){
   const fd=new FormData();
@@ -1407,13 +1443,15 @@ function docIdFromUrl(url){
     const miss=missingFields();
     notify("Не хватает: "+(miss.length?miss.join(", "):"данные")+". Напишите это в чат — заполню сам.");
   }
+let submitBusy=false,lastCreatedId=0,lastTplSnap=null;
 async function submitForm(auto,opts){
     if(!curProfile()){notify("Сначала выберите или создайте профиль");switchView("profile");switchCabtab("profile");return false;}
+    if(submitBusy){notify("Уже сохраняю...");return false;}submitBusy=true;
     const old=editingId?LISTINGS.find(x=>x.id===editingId):null;
     let title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);let priceMin=0;
     if(old){if(!title)title=old.title||"";if(isNaN(price))price=old.price||0;}
     if(!title&&auto){$("nlTitle").value=agentComposeTitle();title=$("nlTitle").value.trim();}
-    if(!title){if(!auto)notify("Укажите заголовок");return false;}
+    if(!title){if(!auto)notify("Укажите заголовок");submitBusy=false;return false;}
     const isReq=$("nlRole").value==="request";
     if(isReq){
       const rawMax=$("nlPriceTo")?$("nlPriceTo").value:"";
@@ -1421,7 +1459,7 @@ async function submitForm(auto,opts){
       if(rawMax==="")price=old?old.price||0:0;
       else price=parseFloat(rawMax)||0;
     }
-    if(!(price>0)&&!(isReq&&priceMin>0)){if(auto){price=0;}else if(!isReq){notify("Укажите цену");return false;}else{price=0;}}
+    if(!(price>0)&&!(isReq&&priceMin>0)){if(auto){price=0;}else if(!isReq){notify("Укажите цену");submitBusy=false;return false;}else{price=0;}}
     if($("nlCur")&&$("nlCur").value==="USD"){price=Math.round(price*RATE);priceMin=Math.round(priceMin*RATE);}
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
     const customLoc=isReq&&$("nlLocCustom")?$("nlLocCustom").value.trim():"";
@@ -1461,14 +1499,49 @@ async function submitForm(auto,opts){
       if(ix>=0){const old=LISTINGS[ix];it.id=old.id;it.createdAt=old.createdAt;it.views=old.views;it.rating=old.rating;it.reviews=old.reviews;it.owner=old.owner||getGuestId();it.ai=old.ai||it.ai;LISTINGS[ix]=it;}
       backendSaved=await persistMy();resetNlForm();render();notify(backendSaved?"Изменения сохранены":"Изменения сохранены только в браузере");
     } else {
-      LISTINGS.unshift(it);backendSaved=await persistMy();resetNlForm();
+      LISTINGS.unshift(it);backendSaved=await persistMy();const tplSnap=snapForm();resetNlForm();
       state.deal=deal;state.role=role;state.page=1;syncRoleTabs();syncDealTabs();render();
-      document.getElementById("cardsGrid").scrollIntoView({behavior:"smooth"});
+      showAfterSave(it.id,tplSnap);
       notify(backendSaved?"Опубликовано! Показываю его в ленте.":"Карточка сохранена в этом браузере.");
     }
+    submitBusy=false;
     return true;
   }
+function showAfterSave(id,snap){
+  lastCreatedId=id;lastTplSnap=snap||null;
+  const bar=$("afterSave");if(!bar)return;
+  bar.classList.remove("hidden");
+  bar.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function loadTpls(){try{const t=JSON.parse(localStorage.getItem("rh_tpls")||"[]");return Array.isArray(t)?t:[];}catch(e){return[];}}
+function saveTpls(l){try{localStorage.setItem("rh_tpls",JSON.stringify(l||[]));}catch(e){}}
+const TPL_FIELDS=["nlDeal","nlRole","nlType","nlDistrict","nlLocCustom","nlAddr","nlGeo","nlAcc","nlTitle","nlPrice","nlPriceTo","nlCur","nlCat","nlTenure","nlLease","nlBed","nlBath","nlArea","nlLand","nlLiving","nlPark","nlAvail","nlDesc","nlPartyRole"];
+function snapForm(){const d={};TPL_FIELDS.forEach(k=>{const el=$(k);if(el)d[k]=el.value;});d.amen=[...document.querySelectorAll("#nlAmen input:checked")].map(c=>c.value);d.parties=nlPartyList.map(p=>({pid:p.pid||"",name:p.name,role:p.role}));return d;}
+function fillFormData(d){
+  resetNlForm();
+  TPL_FIELDS.forEach(k=>{if(d[k]!==undefined&&$(k))$(k).value=d[k];});
+  paintNlAmen(d.amen||[]);syncNlDeal();syncNlRoleView();
+  nlPartyList=(d.parties||[]).map(p=>({pid:p.pid||"",name:p.name,role:p.role}));paintNlParties();paintNlPartyOpts();
+  switchImptab("manual");
+}
+function paintTplSel(){
+  const s=$("nlTplSel");if(!s)return;
+  const t=loadTpls();
+  s.innerHTML=t.length?t.map((x,i)=>`<option value="${i}">${String(x.name||("Шаблон "+(i+1))).replace(/</g,"&lt;")}</option>`).join(""):`<option value="">— нет шаблонов —</option>`;
+}
+function saveTpl(name,data){
+  name=(name||"").trim().slice(0,60)||("Шаблон "+new Date().toLocaleDateString("ru-RU"));
+  const t=loadTpls();t.push({name,data:data||snapForm()});const slim=t.slice(-20);saveTpls(slim);paintTplSel();
+  const s=$("nlTplSel");if(s)s.value=String(slim.length-1);
+  notify("Шаблон «"+name+"» сохранён");
+}
   if($("nlSave"))$("nlSave").onclick=()=>submitForm(false);
+  if($("asView"))$("asView").onclick=()=>{if(lastCreatedId)openDetail(lastCreatedId);};
+  if($("asClear"))$("asClear").onclick=()=>{resetNlForm();notify("Форма очищена");};
+  if($("asTpl"))$("asTpl").onclick=()=>{const it=LISTINGS.find(x=>x.id===lastCreatedId);saveTpl((it&&it.title)||("Шаблон "+new Date().toLocaleDateString("ru-RU")),lastTplSnap);};
+  paintTplSel();
+  if($("nlTplSave"))$("nlTplSave").onclick=()=>saveTpl(($("nlTplName")||{}).value||"");
+  if($("nlTplLoad"))$("nlTplLoad").onclick=()=>{const t=loadTpls();const d=t[+((($("nlTplSel")||{}).value)||"")];if(!d){notify("Нет шаблона");return;}fillFormData(d.data||{});switchImptab("manual");notify("Шаблон применён — проверьте и публикуйте");};
   window.__cab={submitForm:submitForm};
   if($("guestId"))$("guestId").textContent=curPid()||"—";
   if($("cabExport"))$("cabExport").onclick=()=>{
