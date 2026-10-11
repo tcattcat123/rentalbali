@@ -3,17 +3,17 @@ const RATE = 16000;
 const now = Date.now();
 const H = 3600e3, M = 60e3;
 const LISTINGS = [
-{id:1,type:"offer",dealType:"rent",category:"monthly",title:"Вилла с бассейном в Чангу",price:25000000,currency:"IDR",propertyType:"villa",bedrooms:3,bathrooms:2,area:180,landArea:250,floors:2,yearBuilt:2021,furnished:true,parking:1,location:"Чангу",locationEn:"Canggu",lat:-8.6478,lng:115.1385,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali1-${i}/640/360`),createdAt:now-4*M,isVerified:true,isAgent:true,agentName:"Иван",isTop:true,isUrgent:false,legal:true,rating:4.8,reviews:46,views:1240,mine:true,desc:"Просторная вилла с частным бассейном в самом сердце Чангу. Три спальни с кондиционерами, открытая гостиная с видом на сад, полностью оборудованная кухня. До пляжа Бату Болонг — 10 минут пешком, рядом кафе, йога-студии и супермаркет. Идеальна для семьи или удалённой работы."},
+{id:1,type:"offer",dealType:"rent",category:"monthly",title:"Вилла с бассейном в Чангу",price:25000000,currency:"IDR",propertyType:"villa",bedrooms:3,bathrooms:2,area:180,landArea:250,floors:2,yearBuilt:2021,furnished:true,parking:1,location:"Чангу",locationEn:"Canggu",lat:-8.6478,lng:115.1385,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali1-${i}/640/360`),createdAt:now-4*M,isVerified:true,isAgent:true,agentName:"Иван",isTop:true,isUrgent:false,legal:true,rating:4.8,reviews:46,views:1240,desc:"Просторная вилла с частным бассейном в самом сердце Чангу. Три спальни с кондиционерами, открытая гостиная с видом на сад, полностью оборудованная кухня. До пляжа Бату Болонг — 10 минут пешком, рядом кафе, йога-студии и супермаркет. Идеальна для семьи или удалённой работы."},
 {id:2,type:"offer",dealType:"rent",category:"monthly",title:"Квартира 1BR в Семиньяке",price:7500000,currency:"IDR",propertyType:"apartment",bedrooms:1,bathrooms:1,area:35,landArea:0,floors:5,yearBuilt:2022,furnished:true,parking:0,location:"Семиньяк",locationEn:"Seminyak",lat:-8.6905,lng:115.1665,images:[1,2].map(i=>`https://picsum.photos/seed/bali2-${i}/640/360`),createdAt:now-4*M,isVerified:true,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.6,reviews:46,views:860,mine:false,desc:"Светлая квартира с одной спальней в тихом переулке Семиньяка. Кондиционер, быстрый Wi-Fi, кухня с техникой, балкон с видом на пальмы. Пляж и вся инфраструктура — в 5 минутах на байке."},
 {id:3,type:"offer",dealType:"rent",category:"monthly",title:"Дом 2 спальни в Убуде",price:12000000,currency:"IDR",propertyType:"house",bedrooms:2,bathrooms:2,area:95,landArea:150,floors:1,yearBuilt:2019,furnished:true,parking:1,location:"Убуд",locationEn:"Ubud",lat:-8.5069,lng:115.2625,images:[1,2,3,4].map(i=>`https://picsum.photos/seed/bali3-${i}/640/360`),createdAt:now-2*H,isVerified:false,isAgent:true,agentName:"Made",isTop:false,isUrgent:true,legal:true,rating:4.9,reviews:21,views:540,mine:false},
 {id:4,type:"offer",dealType:"rent",category:"monthly",title:"Sewa Kos в Улувату у океана",price:3500000,currency:"IDR",propertyType:"boarding",bedrooms:1,bathrooms:1,area:20,landArea:0,floors:2,yearBuilt:2020,furnished:true,parking:0,location:"Улувату",locationEn:"Uluwatu",lat:-8.8150,lng:115.1725,images:[`https://picsum.photos/seed/bali4-1/640/360`],createdAt:now-26*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.2,reviews:8,views:210,mine:false},
-{id:5,type:"offer",dealType:"rent",category:"yearly",title:"Таунхаус в Сануре (год)",price:180000000,currency:"IDR",propertyType:"townhouse",bedrooms:3,bathrooms:2,area:120,landArea:110,floors:2,yearBuilt:2021,furnished:false,parking:1,location:"Санур",locationEn:"Sanur",lat:-8.6930,lng:115.2628,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali5-${i}/640/360`),createdAt:now-5*H,isVerified:true,isAgent:false,isTop:true,isUrgent:false,legal:true,rating:4.7,reviews:33,views:980,mine:true},
+{id:5,type:"offer",dealType:"rent",category:"yearly",title:"Таунхаус в Сануре (год)",price:180000000,currency:"IDR",propertyType:"townhouse",bedrooms:3,bathrooms:2,area:120,landArea:110,floors:2,yearBuilt:2021,furnished:false,parking:1,location:"Санур",locationEn:"Sanur",lat:-8.6930,lng:115.2628,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali5-${i}/640/360`),createdAt:now-5*H,isVerified:true,isAgent:false,isTop:true,isUrgent:false,legal:true,rating:4.7,reviews:33,views:980},
 {id:6,type:"offer",dealType:"rent",category:"monthly",title:"Вилла в Нуса-Дуа",price:45000000,currency:"IDR",propertyType:"villa",bedrooms:4,bathrooms:3,area:250,landArea:400,floors:2,yearBuilt:2023,furnished:true,parking:2,location:"Нуса-Дуа",locationEn:"Nusa Dua",lat:-8.7962,lng:115.2229,images:[1,2].map(i=>`https://picsum.photos/seed/bali6-${i}/640/360`),createdAt:now-50*M,isVerified:true,isAgent:true,agentName:"Ketut",isTop:false,isUrgent:false,legal:true,rating:5.0,reviews:12,views:430,mine:false},
 {id:7,type:"offer",dealType:"rent",category:"monthly",title:"Дом в Денпасаре для семьи",price:9000000,currency:"IDR",propertyType:"house",bedrooms:3,bathrooms:1,area:110,landArea:140,floors:1,yearBuilt:2018,furnished:false,parking:1,location:"Денпасар",locationEn:"Denpasar",lat:-8.6705,lng:115.2126,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali7-${i}/640/360`),createdAt:now-3*24*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.3,reviews:15,views:300,mine:false},
 {id:8,type:"offer",dealType:"rent",category:"monthly",title:"Пентхаус в Семиньяке",price:30000000,currency:"IDR",propertyType:"apartment",bedrooms:2,bathrooms:2,area:85,landArea:0,floors:8,yearBuilt:2022,furnished:true,parking:1,location:"Семиньяк",locationEn:"Seminyak",lat:-8.6871,lng:115.1674,images:[1,2,3].map(i=>`https://picsum.photos/seed/bali8-${i}/640/360`),createdAt:now-10*H,isVerified:true,isAgent:true,agentName:"Anna",isTop:true,isUrgent:false,legal:true,rating:4.9,reviews:58,views:2100,mine:false},
 {id:9,type:"offer",dealType:"rent",category:"yearly",title:"Вилла в Джимбаране (год)",price:240000000,currency:"IDR",propertyType:"villa",bedrooms:5,bathrooms:4,area:300,landArea:500,floors:3,yearBuilt:2020,furnished:true,parking:2,location:"Джимбаран",locationEn:"Jimbaran",lat:-8.7775,lng:115.1637,images:[1,2].map(i=>`https://picsum.photos/seed/bali9-${i}/640/360`),createdAt:now-30*H,isVerified:false,isAgent:false,isTop:false,isUrgent:false,legal:false,rating:4.5,reviews:19,views:670,mine:false},
 {id:10,type:"offer",dealType:"rent",category:"monthly",title:"Студия в Чангу",price:6000000,currency:"IDR",propertyType:"apartment",bedrooms:1,bathrooms:1,area:28,landArea:0,floors:3,yearBuilt:2023,furnished:true,parking:0,location:"Чангу",locationEn:"Canggu",lat:-8.6499,lng:115.1339,images:[1,2].map(i=>`https://picsum.photos/seed/bali10-${i}/640/360`),createdAt:now-20*M,isVerified:false,isAgent:false,isTop:false,isUrgent:true,legal:false,rating:4.4,reviews:9,views:390,mine:false},
-{id:17,type:"offer",dealType:"sale",title:"Вилла с бассейном в Убуде — продажа",price:4500000000,currency:"IDR",propertyType:"villa",bedrooms:3,bathrooms:3,area:200,landArea:300,floors:2,yearBuilt:2021,furnished:true,parking:2,location:"Убуд",locationEn:"Ubud",lat:-8.5120,lng:115.2700,images:[1,2,3].map(i=>`https://picsum.photos/seed/sale17-${i}/640/360`),createdAt:now-6*H,isVerified:true,isAgent:true,agentName:"Wayan",isTop:true,isUrgent:false,legal:true,rating:4.9,reviews:27,views:1500,mine:true},
+{id:17,type:"offer",dealType:"sale",title:"Вилла с бассейном в Убуде — продажа",price:4500000000,currency:"IDR",propertyType:"villa",bedrooms:3,bathrooms:3,area:200,landArea:300,floors:2,yearBuilt:2021,furnished:true,parking:2,location:"Убуд",locationEn:"Ubud",lat:-8.5120,lng:115.2700,images:[1,2,3].map(i=>`https://picsum.photos/seed/sale17-${i}/640/360`),createdAt:now-6*H,isVerified:true,isAgent:true,agentName:"Wayan",isTop:true,isUrgent:false,legal:true,rating:4.9,reviews:27,views:1500},
 {id:18,type:"offer",dealType:"sale",title:"Земля 10 соток в Улувату",price:2800000000,currency:"IDR",propertyType:"land",bedrooms:0,bathrooms:0,area:0,landArea:1000,floors:0,yearBuilt:0,furnished:false,parking:0,location:"Улувату",locationEn:"Uluwatu",lat:-8.8200,lng:115.1750,images:[1,2].map(i=>`https://picsum.photos/seed/sale18-${i}/640/360`),createdAt:now-14*H,isVerified:true,isAgent:false,isTop:false,isUrgent:false,legal:true,rating:4.7,reviews:11,views:620,mine:false},
 {id:19,type:"offer",dealType:"sale",title:"Коммерческое помещение в Куте",price:5200000000,currency:"IDR",propertyType:"commercial",bedrooms:0,bathrooms:2,area:150,landArea:120,floors:2,yearBuilt:2019,furnished:false,parking:3,location:"Кута",locationEn:"Kuta",lat:-8.7184,lng:115.1686,images:[1,2].map(i=>`https://picsum.photos/seed/sale19-${i}/640/360`),createdAt:now-2*24*H,isVerified:false,isAgent:true,agentName:"Made",isTop:false,isUrgent:false,legal:true,rating:4.5,reviews:7,views:410,mine:false},
 {id:20,type:"offer",dealType:"sale",title:"Квартира 2BR в Денпасаре",price:1800000000,currency:"IDR",propertyType:"apartment",bedrooms:2,bathrooms:1,area:60,landArea:0,floors:10,yearBuilt:2022,furnished:true,parking:1,location:"Денпасар",locationEn:"Denpasar",lat:-8.6720,lng:115.2150,images:[1,2].map(i=>`https://picsum.photos/seed/sale20-${i}/640/360`),createdAt:now-1*H,isVerified:true,isAgent:false,isTop:false,isUrgent:true,legal:false,rating:4.6,reviews:14,views:530,mine:false},
@@ -280,7 +280,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.41";const APP_BUILD="86";
+const APP_V="2.42";const APP_BUILD="87";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -334,6 +334,24 @@ const SVG_SHIELD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const SVG_CUP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H4a3 3 0 003 5M17 5h3a3 3 0 01-3 5M12 14v4M8 21h8"/></svg>';
 function plural(n,f){n=Math.abs(n)%100;const d=n%10;if(n>10&&n<20)return f[2];if(d>1&&d<5)return f[1];if(d===1)return f[0];return f[2];}
 
+let listMode=false;
+try{listMode=localStorage.getItem("rh_listmode")==="1";}catch(e){}
+function paintListModeBtn(){
+  const b=$("listModeBtn");if(!b)return;
+  b.textContent=listMode?(state.lang==="ru"?"🖼 Показать фото":"🖼 Photos"):(state.lang==="ru"?"☰ Списком":"☰ List");
+}
+function rowHTML(it,i){
+  i=i||0;
+  const fav=state.fav.has(it.id);
+  const p1=[pTypeLabel(it.propertyType),it.bedrooms>0?it.bedrooms+" "+plural(it.bedrooms,["спальня","спальни","спален"]):"",it.area>0?it.area+" м²":""].filter(Boolean).join(" · ");
+  const p2=[locLabel(it)+", Бали",it.code?("ID: "+it.code):""].filter(Boolean).join(" · ");
+  return `<div class="lrow${it.ai?" ai":""}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
+    <div class="lrow-main"><div class="lrow-title">${it.title||pTypeLabel(it.propertyType)}</div>
+    ${p1?`<div class="lrow-sub">${p1}</div>`:""}
+    ${p2?`<div class="lrow-sub muted">${p2}</div>`:""}</div>
+    <div class="lrow-side"><div class="price">${fmtPrice(it)}</div>
+    <button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav" style="position:static;width:30px;height:30px">${fav?"♥":"♡"}</button></div></div>`;
+}
 function cardHTML(it,i){
   i=i||0;
   const idx=state.carIdx[it.id]||0;
@@ -358,15 +376,16 @@ function cardHTML(it,i){
     <div class="spec">${SVG_POOL}<b>${am[0]}</b><span>${am[1]}</span></div></div>`;
   const agentRow=it.type==="request"?"":`<div class="agent-row"><div class="who"><b>${it.isAgent?"Агент "+agent:agent}</b><small>На связи · 10:00–20:00</small></div><button class="btn-ghost sm" data-contact="${it.id}">Связаться</button></div>`;
   const extra=it.type==="request"?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`:"";
-  return `<div class="property-card${it.ai?" ai":""}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
-    <div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="Фото объекта">
+  const hasPhoto=it.images&&it.images.length>0;
+  return `<div class="property-card${it.ai?" ai":""}${hasPhoto?"":" no-photo"}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
+    ${hasPhoto?`<div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="Фото объекта">
       ${it.images.length>1?`<button class="car-btn prev" data-car="prev" data-id="${it.id}" aria-label="prev">‹</button><button class="car-btn next" data-car="next" data-id="${it.id}" aria-label="next">›</button>`:""}
       <span class="photo-counter">${(idx%it.images.length)+1}/${it.images.length}</span>
       <div class="badges">${badges}</div>
       <button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav">${heart}</button>
       ${it.bedrooms>0?`<span class="bed-badge">${SVG_BED} ${it.bedrooms}</span>`:""}
-      <div class="photo-titles"><div class="pt-title">${it.title||pTypeLabel(it.propertyType)}</div>${sub?`<div class="pt-sub">${sub}</div>`:""}</div></div>
-    <div class="card-body"><div class="price">${fmtPrice(it)}</div>
+      <div class="photo-titles"><div class="pt-title">${it.title||pTypeLabel(it.propertyType)}</div>${sub?`<div class="pt-sub">${sub}</div>`:""}</div></div>`:`<div style="position:relative;display:flex;gap:4px;flex-wrap:wrap;align-items:center;padding:8px 10px 0">${badges}<button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav" style="position:static;width:30px;height:30px">${heart}</button></div>`}
+    <div class="card-body">${hasPhoto?"":`<div class="title">${it.title||pTypeLabel(it.propertyType)}</div>`}<div class="price">${fmtPrice(it)}</div>
       <div class="location-sm">${locLabel(it)}, Бали</div>
       ${it.code?`<div class="location-sm" style="opacity:.65">ID объекта: ${it.code} / ${shortId(it)}</div>`:""}
       ${specs}
@@ -457,7 +476,9 @@ function render(){
   const pages=Math.max(1,Math.ceil(arr.length/state.perPage));
   if(state.page>pages)state.page=pages;
   const slice=arr.slice((state.page-1)*state.perPage,state.page*state.perPage);
-  $("cardsGrid").innerHTML=slice.map((it,i)=>cardHTML(it,i)).join("");
+  $("cardsGrid").classList.toggle("list-rows",listMode);
+  $("cardsGrid").innerHTML=slice.map((it,i)=>listMode?rowHTML(it,i):cardHTML(it,i)).join("");
+  paintListModeBtn();
   $("emptyState").classList.toggle("hidden",slice.length>0);
   $("pagination").innerHTML=Array.from({length:pages},(_,i)=>`<button class="${state.page===i+1?"active":""}" data-page="${i+1}">${i+1}</button>`).join("");
   const favs=LISTINGS.filter(x=>state.fav.has(x.id));
@@ -474,11 +495,19 @@ function render(){
   }
 }
 
-function switchView(v){
+let viewHist=[];
+function switchView(v,noHist){
+  if(!noHist&&state.view&&state.view!==v){viewHist.push(state.view);if(viewHist.length>20)viewHist.shift();}
   state.view=v;
   ["list","map","fav","profile","detail"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
   document.querySelectorAll(".bn-item").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   if(v==="map")setTimeout(initMap,50);
+}
+function goBack(){
+  const prev=viewHist.pop();
+  if(prev&&$("view-"+prev)){switchView(prev,true);if(prev==="profile")switchCabtab("profile");syncDealTabs();}
+  else{switchView("list",true);syncDealTabs();}
+  window.scrollTo({top:0});
 }
 function setDeal(d){
   if(d==="map"){switchView("map");syncDealTabs();return;}
@@ -538,6 +567,7 @@ function paintNlAmen(def){
   const box=$("nlAmen");if(!box)return;
   const cur=new Set(def||[...box.querySelectorAll("input:checked")].map(c=>c.value));
   box.innerHTML=AMEN_ALL.map(a=>`<label><input type="checkbox" value="${a}"${cur.has(a)?" checked":""}> ${a}</label>`).join("");
+  const cc=$("nlAmenCount");if(cc)cc.textContent=cur.size;
 }
 const PARTY_ROLES={admin:"Администратор",agent:"Агент",owner:"Собственник",viewer:"Наблюдатель"};
 let nlPartyList=[];
@@ -1046,9 +1076,9 @@ function openDetail(id){
   chips.push(`<span class="param-chip">${term}</span>`);
   $("detailContent").innerHTML=`
   <div class="d-layout"><div class="d-left">
-    <div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
+    ${(it.images&&it.images.length)?`<div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
       ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
-      <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>
+      <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>`:`<div class="main-photo no-photo-ph">📷 Фото скоро появятся</div>`}
     <div class="d-price-row"><div class="price">${fmtPrice(it)}</div>
       <div class="d-icons"><button id="dShare" title="Поделиться"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M7 8l5-5 5 5"/><path d="M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg></button>
       <button id="dFav" class="${fav?"on":""}" title="В избранное">${fav?"♥":"♡"}</button></div></div>
@@ -1160,6 +1190,7 @@ function calcCredit(){
 $("applyBtn").onclick=()=>{state.page=1;render();if(state.view!=="list")switchView("list");syncDealTabs();updateMarkersSafe();closeSheet();};
 $("resetBtn").onclick=()=>{resetFilters();state.rentCat="";closeSheet();render();};
 if($("mapBtn"))$("mapBtn").onclick=()=>setDeal("map");
+if($("listModeBtn"))$("listModeBtn").onclick=()=>{listMode=!listMode;try{localStorage.setItem("rh_listmode",listMode?"1":"0");}catch(e){}state.page=1;render();};
 $("advBtn").onclick=()=>$("advPanel").classList.toggle("hidden");
 $("sortSelect").onchange=e=>{state.sort=e.target.value;state.page=1;render();};
 document.querySelectorAll("[data-deal]").forEach(b=>b.onclick=()=>setDeal(b.dataset.deal));
@@ -1217,8 +1248,14 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("nlRole"))$("nlRole").addEventListener("change",syncNlRoleView);syncNlRoleView();
   if($("nlTenure"))$("nlTenure").addEventListener("change",syncNlDeal);
   if($("nlPhotos"))$("nlPhotos").addEventListener("change",e=>readPhotos(e.target));
+  if($("nlPhotosCam"))$("nlPhotosCam").addEventListener("change",e=>{if(e.target.files&&e.target.files.length)readPhotos(e.target);e.target.value="";});
+  if($("nlPhotosGallery"))$("nlPhotosGallery").onclick=()=>{const f=$("nlPhotos");if(f)f.click();};
+  if($("nlPhotosCamBtn"))$("nlPhotosCamBtn").onclick=()=>{const f=$("nlPhotosCam");if(f)f.click();};
+  if($("nlGenPhoto"))$("nlGenPhoto").onclick=function(){aiGenPhoto(this);};
   paintNlParties();paintNlPartyOpts();
   if($("nlPartyAdd"))$("nlPartyAdd").onclick=()=>{const id=(($("nlPartyName")||{}).value||"");const p=loadProfiles().find(x=>x.id===id);if(!p){notify("Выберите профиль из списка");return;}nlPartyList.push({pid:p.id,name:p.name||"Без имени",role:($("nlPartyRole")||{}).value||"viewer"});paintNlParties();paintNlPartyOpts();};
+  if($("nlAmenToggle"))$("nlAmenToggle").onclick=()=>{const b=$("nlAmen");if(!b)return;b.classList.toggle("hidden");};
+  if($("nlAmen"))$("nlAmen").addEventListener("change",()=>{const cc=$("nlAmenCount");if(cc)cc.textContent=$("nlAmen").querySelectorAll("input:checked").length;});
 function driveIdsFromText(t){return (t||"").split(/[\n,;]+/).map(driveIdFromUrl).filter(Boolean);}
 async function uploadBlobsToServer(files){
   const fd=new FormData();
@@ -1487,7 +1524,7 @@ async function submitForm(auto,opts){
       yearBuilt:0,furnished:true,
       location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim()||(old?old.addr||"":""),geoAcc:acc,
       phone:"",owner:getGuestId(),status:"published",ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
-      images:allPhotos.length?allPhotos:[pool[0]],fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
+      images:allPhotos,fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
       living:num("nlLiving",old?old.living||0:0),parking:num("nlPark",old?old.parking||0:0),leaseYears:leaseY,
@@ -1510,6 +1547,7 @@ async function submitForm(auto,opts){
 function showAfterSave(id,snap){
   lastCreatedId=id;lastTplSnap=snap||null;
   const bar=$("afterSave");if(!bar)return;
+  if(state.view==="profile")switchCabtab("add");
   bar.classList.remove("hidden");
   bar.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
@@ -1781,6 +1819,7 @@ function agentQr(btns){
 function agentQrTap(b){
   if(!b)return;if(agent.busy){notify("Секунду, обрабатываю предыдущее...");return;}
   if(b.act==="publish"){agentPush("user",b.label);agentPublish();return;}
+  if(b.act==="view-last"){agentPush("user",b.label);if(lastCreatedId)openDetail(lastCreatedId);return;}
   if(b.act==="confirm-publish"){agentPush("user",b.label);agentQr(null);agentPublish();return;}
   if(b.act==="confirm-add"){agentPush("user",b.label);agentQr(null);agent.mode="collect";agentPush("bot","Напишите, что добавить — объединю с карточкой и размещу.");return;}
   if(b.act==="skip-price"){agentPush("user",b.label);agent.data.price=0;agent.data._pq=true;delete agent.data._numBase;agent.field=null;agentFillForm();agentPublish();return;}
@@ -1914,6 +1953,25 @@ async function agentAddPhotos(files){
   agentPhotosPreview();
   agentPush("bot","Принял "+cur.length+" фото — размещу их в карточке."+(agent.mode!=="collect"?" Опишите объект одним сообщением.":""));
 }
+let aiGenBusy=false;
+async function aiGenPhoto(btn){
+  if(aiGenBusy)return;aiGenBusy=true;
+  const done=(t)=>{if(btn){btn.disabled=false;btn.textContent=t||"✨ Сгенерировать фото";}aiGenBusy=false;};
+  if(btn){btn.disabled=true;btn.textContent="Рисую...";}
+  try{
+    const ptype=$("nlType")?$("nlType").value:"villa";
+    const dk=$("nlDistrict")?$("nlDistrict").value:"";
+    const title=$("nlTitle")?$("nlTitle").value.trim():"";
+    const prompt=`Photorealistic exterior photo of a Balinese ${ptype}${dk?", "+dk:""}${title?", "+title:""}, tropical garden, swimming pool, sunny day, real estate listing photo, no text, no watermark`;
+    const j=await aiServer({image:{prompt}});
+    const imgs=((j&&j.images)||[]).slice(0,6);
+    if(!imgs.length)throw new Error("empty");
+    let n=0;
+    imgs.forEach(u=>{if(u&&!nlRemote.includes(u)&&(nlRemote.length+nlPhotos.length)<6){nlRemote.push(u);n++;}});
+    paintNlPreview();notify(n?("Сгенерировано фото: "+n):"Такое фото уже есть");
+  }catch(e){notify("Не смог сгенерировать: "+String((e&&e.message)||e).slice(0,120));}
+  done();
+}
 async function agentPublish(){
   if(agent.busy){notify("Секунду, уже публикую...");return;}
   agent.busy=true;
@@ -1933,6 +1991,7 @@ async function agentPublish(){
     const phN=((agent.data.photos||[]).length)||0;
     agentPush("bot",(API?"Карточка опубликована ✅":"Черновик добавлен в каталог этого браузера ✅")+"\n• "+(d.title||"Без названия")+"\n• "+deal+" · "+(d.pt?pTypeLabel(d.pt):"—")+(d.district?", "+locName(d.district):", Бали")+"\n• "+(d.price>0?(d._priceLabel||d.price.toLocaleString("ru-RU")+" IDR"):"Цена по запросу")+(phN?"\n• 📷 Фото: "+phN:""));
     agent.data={};agentPhotosPreview();
+    agentQr([{label:"👁 Просмотреть карточку",act:"view-last"}]);
     switchView("list");syncDealTabs();
     setTimeout(()=>{const g=$("cardsGrid");if(g)g.scrollIntoView({behavior:"smooth"});},100);
   }else{
@@ -1996,13 +2055,24 @@ function agentSend(){
   else agentFreeChat(txt);
 }
 if($("aiAttach"))$("aiAttach").onclick=()=>{const f=$("aiFiles");if(f)f.click();};
+if($("aiCam"))$("aiCam").onclick=()=>{const f=$("aiCamFiles");if(f)f.click();};
 if($("aiFiles"))$("aiFiles").addEventListener("change",e=>{if(e.target.files&&e.target.files.length)agentAddPhotos(e.target.files);e.target.value="";});
+if($("aiCamFiles"))$("aiCamFiles").addEventListener("change",e=>{if(e.target.files&&e.target.files.length)agentAddPhotos(e.target.files);e.target.value="";});
 if($("aiPhotos"))$("aiPhotos").addEventListener("click",e=>{
   const b=e.target.closest("[data-aiphot]");if(!b)return;
   (agent.data.photos||[]).splice(+b.dataset.aiphot,1);agentPhotosPreview();
 });
-if($("aiFab"))$("aiFab").onclick=()=>agentToggle();
-if($("aiClose"))$("aiClose").onclick=()=>agentToggle(false);
+let aiFabDragAt=0;
+if($("aiFab")){
+  const fab=$("aiFab");
+  let sx,sy,ox,oy,moved=false;
+  fab.addEventListener("pointerdown",e=>{moved=false;sx=e.clientX;sy=e.clientY;const r=fab.getBoundingClientRect();ox=r.left;oy=r.top;try{fab.setPointerCapture(e.pointerId);}catch(_){}});
+  fab.addEventListener("pointermove",e=>{if(sx===undefined)return;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)+Math.abs(dy)>8)moved=true;if(moved){fab.style.left=Math.min(innerWidth-56,Math.max(8,ox+dx))+"px";fab.style.top=Math.min(innerHeight-56,Math.max(8,oy+dy))+"px";fab.style.right="auto";fab.style.bottom="auto";}});
+  fab.addEventListener("pointerup",()=>{if(moved)aiFabDragAt=Date.now();sx=undefined;});
+  fab.addEventListener("pointercancel",()=>{sx=undefined;});
+  fab.onclick=()=>{if(Date.now()-aiFabDragAt<300)return;agentToggle();};
+}
+if($("aiBack"))$("aiBack").onclick=()=>{agentToggle(false);goBack();};
 if($("aiSend"))$("aiSend").onclick=agentSend;
 if($("aiText"))$("aiText").addEventListener("keydown",e=>{if(e.key==="Enter")agentSend();});
 document.querySelectorAll("[data-aiq]").forEach(b=>b.onclick=()=>{if(b.dataset.aiq==="listing")agentStart();});

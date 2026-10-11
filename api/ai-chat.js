@@ -3,6 +3,7 @@
 // in Vercel dashboard -> Settings -> Environment Variables.
 const ENDPOINT = (process.env.AI_ENDPOINT || "https://anymodel.org/v1").replace(/\/+$/, "");
 const MODEL = process.env.AI_MODEL || "ag/gemini-2.5-flash-lite";
+const IMAGE_MODEL = process.env.AI_IMAGE_MODEL || "am/flux.2-klein-4b";
 const DISTRICTS = "Canggu,Berawa,BatuBolong,TumbakBayuh,Pererenan,Umalas,Kerobokan,Seseh,Buduk,Seminyak,BeachsideCenter,ResidentialSide,Oberoi,Legian,Petitenget,Kuta,TanahLot,Kedungu,Cemagi,Uluwatu,Bingin,Balangan,Jimbaran,NusaDua,Ungasan,Pecatu,Ubud,Mas,Payangan,Denpasar,Sanur,Gianyar,Sukawati,Tabanan,Mengwi,Lovina,Singaraja,Pemuteran,Amed,Candidasa,Sidemen,NusaPenida,NusaLembongan";
 const EXTRACT_SYSTEM = "Ты парсер объявлений недвижимости Бали. Ответь СТРОГО одним JSON-объектом без пояснений. Схема: {\"deal\":\"rent|sale\",\"role\":\"offer|request\",\"price\":число в IDR (B/miliar=1e9, млн=1e6; USD переведи по 16000; 0 если нет цены),\"category\":\"monthly|yearly (только для rent; иначе monthly)\",\"ptype\":\"villa|house|apartment|homestay|land|townhouse|boarding|commercial\",\"district\":\"ключ района строго из списка\",\"area\":площадь строения м² числом,\"land\":участок м² числом (сотка/are=100),\"bedrooms\":число,\"bathrooms\":число,\"tenure\":\"freehold|leasehold (только для sale)\",\"furnished\":true|false,\"amenities\":[строки из: Бассейн,Wi-Fi,Кондиционер,Кухня,Парковка,Сад,Холодильник,Телевизор,Стиральная машина,Плита,Завтраки,Общая кухня,Электричество,Вода],\"title\":краткий заголовок до 90 символов,\"desc\":сжатое описание до 600 символов}. Районы: " + DISTRICTS + ". Не выдумывай отсутствующие числа — ставь 0.";
 const ASSISTANT_SYSTEM = "Ты помощник аренды недвижимости на Бали (RentHome Bali). Отвечай кратко по-русски, максимум 3-4 предложения. Помогаешь снять, сдать или купить: виллы, дома, квартиры, землю. Контакты: WhatsApp +62813-3734-1275, Telegram @renthomebali. Если просят разместить объявление — скажи нажать кнопку чата «Разместить объявление» и описать объект одним сообщением.";
@@ -45,6 +46,22 @@ module.exports = async (req, res) => {
   if (typeof body === "string") { try { body = JSON.parse(body); } catch (e) { return res.status(400).json({ ok: false, error: "bad json" }); } }
   body = body || {};
   try {
+    if (body.image) {
+      const img = (typeof body.image === "object" && body.image) || { prompt: String(body.image) };
+      try {
+        const r = await fetch(ENDPOINT + "/images/generations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key, "User-Agent": UA, "Accept": "application/json" },
+          body: JSON.stringify({ model: body.model || img.model || IMAGE_MODEL, prompt: String(img.prompt || "").slice(0, 1000), n: 1, size: "1024x1024", response_format: "b64_json" }),
+        });
+        if (!r.ok) throw new Error("ai_http_" + r.status + " " + (await r.text().catch(() => "")).slice(0, 200));
+        const j = await r.json();
+        const imgs = ((j && j.data) || []).slice(0, 6).map((d) => d.url || (d.b64_json ? "data:image/png;base64," + d.b64_json : "")).filter(Boolean);
+        return res.status(200).json({ ok: true, images: imgs });
+      } catch (e) {
+        return res.status(502).json({ ok: false, error: "ai image failed: " + String((e && e.message) || e).slice(0, 200) });
+      }
+    }
     if (body.text && !body.messages) {
       const j = await chatCompletions(key, {
         _wantJson: true, model: body.model || MODEL, temperature: 0.1,

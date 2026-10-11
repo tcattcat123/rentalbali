@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="86">
+<meta name="app-build" content="87">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=86">
+<link rel="stylesheet" href="css/style.css?v=87">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -27,6 +27,7 @@
     </nav>
     <div class="header-actions">
       <select id="currencySelect" class="mini-select" title="Валюта"><option value="IDR">IDR</option><option value="USD">USD</option></select>
+      <div id="google_translate_element" class="gtrans" title="Перевод страницы"></div>
       <button id="themeBtn" class="icon-btn" title="Тема">○</button>
       <button id="favHeaderBtn" class="icon-btn" title="Избранное">♡ <span id="favCount" class="fav-count">0</span></button>
       <button id="profileBtn" class="icon-btn profile" title="Профиль"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></button>
@@ -116,6 +117,7 @@
         <div class="results-count" id="resultsCount">…</div>
         <div class="sort-wrap"><span class="sort-ic">⇅</span><span class="sort-label">Сортировка:</span>
           <select id="sortSelect" class="mini-select"><option value="date_desc">Сначала новые</option><option value="avail">Сначала доступные</option><option value="price_asc">Дешевле</option><option value="price_desc">Дороже</option><option value="popular">Популярные</option></select>
+          <button id="listModeBtn" class="btn-ghost" title="Вид списка">☰ Списком</button>
         </div>
       </div>
     </div>
@@ -245,11 +247,13 @@
     <div class="filter-group"><label>Гостиная (комнат)</label><input type="number" id="nlLiving" value="1" min="0" max="10"></div>
     <div class="filter-group"><label>Парковка (мест)</label><input type="number" id="nlPark" value="0" min="0" max="10"></div>
     <div class="filter-group"><label>Доступно с</label><input type="month" id="nlAvail" min="2026-09" max="2028-12"></div>
-    <div class="filter-group full"><label>Удобства</label><div id="nlAmen" class="amen-boxes"></div></div>
+    <div class="filter-group full"><button id="nlAmenToggle" class="btn-ghost" type="button" style="width:100%;justify-content:space-between">Удобства (<span id="nlAmenCount">0</span>) <span>▾</span></button><div id="nlAmen" class="amen-boxes hidden" style="margin-top:6px"></div></div>
     <div class="filter-group full"><label>Контрагенты (администратор раздаёт роли)</label><div id="nlParties" style="display:grid;gap:6px"></div><div class="imp-row" style="margin-top:6px"><select id="nlPartyName"></select><select id="nlPartyRole"><option value="viewer">Наблюдатель</option><option value="agent">Агент</option><option value="owner">Собственник</option><option value="admin">Администратор</option></select><button id="nlPartyAdd" class="btn-ghost" type="button">+ Добавить</button></div></div>
     <div class="filter-group full"><label>Описание (покажется в «Подробнее» на странице объекта)</label><textarea id="nlDesc" rows="3" placeholder="Панорамный вид, бассейн 12х4, до центра 7 минут..."></textarea></div>
-    <div class="filter-group full"><label id="nlPhotosLabel">Фото (до 6)</label><input type="file" id="nlPhotos" accept="image/*" multiple><div id="nlPreview" class="nl-preview"></div></div>
-    <div class="filter-group full"><label>Фото по ссылкам — вставьте сюда</label><div class="imp-row"><input id="impUrls2" placeholder="Ссылка Drive или ID, через запятую"><button id="impPhotos2" class="btn-primary">Загрузить фото</button></div></div>
+    <div class="filter-group full"><label id="nlPhotosLabel">Фото (до 6)</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><button id="nlPhotosGallery" class="btn-ghost" type="button">🖼 Галерея / файлы</button><button id="nlPhotosCamBtn" class="btn-ghost" type="button">📷 Камера</button><button id="nlGenPhoto" class="btn-ghost" type="button">✨ Сгенерировать фото</button></div>
+    <input type="file" id="nlPhotos" accept="image/*" multiple class="hidden"><input type="file" id="nlPhotosCam" accept="image/*" capture="environment" class="hidden"><div id="nlPreview" class="nl-preview"></div></div>
+    <div class="filter-group full"><label>Фото по ссылкам — вставьте сюда</label><input id="impUrls2" placeholder="Ссылка Drive или ID, через запятую" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:0 12px;height:40px;font-size:14px;background:var(--card);color:var(--ink);font-family:inherit;outline:none"><button id="impPhotos2" class="btn-primary block" style="margin-top:8px">Загрузить фото</button></div>
     </div>
     <button id="nlSave" class="btn-primary block">Опубликовать</button>
     <div id="afterSave" class="hidden" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
@@ -295,16 +299,18 @@
 
 <button id="aiFab" aria-label="Помощник" title="Помощник">💬</button>
 <div id="aiChat" class="hidden">
-  <div class="ai-head"><b>Помощник RentHome</b><button id="aiClose" aria-label="Закрыть">✕</button></div>
+  <div class="ai-head"><b>Помощник RentHome</b><button id="aiBack" aria-label="Назад" title="Назад">←</button></div>
   <div id="aiMsgs"></div>
   <div class="ai-qr hidden" id="aiQr"></div>
   <div class="ai-quick"><button data-aiq="listing">📝 Разместить объявление</button></div>
   <div class="ai-photos hidden" id="aiPhotos"></div>
-  <div class="ai-input"><button id="aiAttach" aria-label="Прикрепить фото" title="Прикрепить фото">📎</button><input type="file" id="aiFiles" accept="image/*" multiple class="hidden"><input id="aiText" placeholder="Напишите сообщение..." autocomplete="off"><button id="aiSend" class="btn-primary">➤</button></div>
+  <div class="ai-input"><button id="aiAttach" aria-label="Прикрепить фото" title="Прикрепить фото">📎</button><button id="aiCam" aria-label="Камера" title="Камера">📷</button><input type="file" id="aiFiles" accept="image/*" multiple class="hidden"><input type="file" id="aiCamFiles" accept="image/*" capture="environment" class="hidden"><input id="aiText" placeholder="Напишите сообщение..." autocomplete="off"><button id="aiSend" class="btn-primary">➤</button></div>
 </div>
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=86"></script>
+<script src="js/app.js?v=87"></script>
+<script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>

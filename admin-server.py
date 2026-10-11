@@ -30,6 +30,34 @@ MAX_IMG_BYTES = 8 * 1024 * 1024
 AI_ENDPOINT = os.environ.get("AI_ENDPOINT", "https://anymodel.org/v1").rstrip("/")
 AI_MODEL = os.environ.get("AI_MODEL", "ag/gemini-2.5-flash-lite")
 AI_KEY = os.environ.get("AI_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+AI_IMAGE_MODEL = os.environ.get("AI_IMAGE_MODEL", "am/flux.2-klein-4b")
+
+
+def ai_images(prompt, model):
+    url = AI_ENDPOINT + "/images/generations"
+    body = {"model": model or AI_IMAGE_MODEL, "prompt": (prompt or "")[:1000],
+            "n": 1, "size": "1024x1024", "response_format": "b64_json"}
+    req = urllib.request.Request(
+        url, data=json.dumps(body).encode("utf-8"),
+        headers={"Content-Type": "application/json",
+                 "Authorization": "Bearer " + AI_KEY,
+                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+                 "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        return json.load(resp)
+
+
+def ai_image_urls(resp):
+    out = []
+    for d in ((resp or {}).get("data") or [])[:6]:
+        u = d.get("url")
+        if u:
+            out.append(u)
+            continue
+        b = d.get("b64_json")
+        if b:
+            out.append("data:image/png;base64," + b)
+    return out
 AI_DISTRICTS = ("Canggu,Berawa,BatuBolong,TumbakBayuh,Pererenan,Umalas,Kerobokan,"
                 "Seseh,Buduk,Seminyak,BeachsideCenter,ResidentialSide,Oberoi,Legian,"
                 "Petitenget,Kuta,TanahLot,Kedungu,Cemagi,Uluwatu,Bingin,Balangan,"
@@ -384,6 +412,13 @@ class Handler(SimpleHTTPRequestHandler):
             except ValueError:
                 return self._send_json({"ok": False, "error": "bad json"}, 400)
             try:
+                if payload.get("image"):
+                    img = payload["image"] if isinstance(payload["image"], dict) else {"prompt": str(payload["image"])}
+                    try:
+                        resp = ai_images(img.get("prompt"), payload.get("model") or img.get("model"))
+                        return self._send_json({"ok": True, "images": ai_image_urls(resp)})
+                    except Exception as e:
+                        return self._send_json({"ok": False, "error": "ai image failed: %s" % e}, 502)
                 if payload.get("text") and not payload.get("messages"):
                     resp = ai_chat_completions((payload.get("text") or "").strip()[:4000], payload.get("model"))
                     return self._send_json({"ok": True, "listing": ai_extract_listing(resp)})
