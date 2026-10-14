@@ -280,7 +280,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.42";const APP_BUILD="87";
+const APP_V="2.43";const APP_BUILD="88";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -484,7 +484,7 @@ function render(){
   const favs=LISTINGS.filter(x=>state.fav.has(x.id));
   $("favGrid").innerHTML=favs.map(cardHTML).join("");
   $("favEmpty").style.display=favs.length?"none":"block";
-  $("myGrid").innerHTML=[...LISTINGS.filter(x=>x.mine&&(cabProjFilter==="all"||x.type===cabProjFilter)),...memberItems().filter(x=>cabProjFilter==="all"||x.type===cabProjFilter)].map(it=>`<div>${cardHTML(it)}${it.user?`<div class="my-actions"><button class="edit-btn" data-edit="${it.id}">✎ Редактировать</button><button class="del-btn" data-del="${it.id}">✕ Удалить</button></div>`:(it._member?`<div class="my-actions"><span class="param-chip">Участник</span><button class="btn-text" data-leave="${it.id}">Покинуть проект</button></div>`:"")}</div>`).join("");
+  $("myGrid").innerHTML=[...LISTINGS.filter(x=>x.mine&&(cabProjFilter==="all"||x.type===cabProjFilter)),...syncMemberCache()].map(it=>`<div>${cardHTML(it)}${it.user?`<div class="my-actions"><button class="edit-btn" data-edit="${it.id}">✎ Редактировать</button><button class="del-btn" data-del="${it.id}">✕ Удалить</button></div>`:(it._member?`<div class="my-actions"><span class="param-chip">Участник</span><button class="btn-ghost sm" data-open="${it.id}">👁 Смотреть</button><button class="btn-text" data-leave="${it.id}">Покинуть проект</button></div>`:"")}</div>`).join("");
   $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini" data-card="${x.id}"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>${locLabel(x)}</div>`).join("");
   const ap=$("allParties");
   if(ap){
@@ -616,6 +616,9 @@ function memberItems(){
   }
   return out;
 }
+let memberCache=[];
+function syncMemberCache(){memberCache=memberItems().filter(x=>cabProjFilter==="all"||x.type===cabProjFilter);return memberCache;}
+function findListing(id){const a=LISTINGS.find(x=>x.id==id);if(a)return a;syncMemberCache();return memberCache.find(x=>x.id==id);}
 function leaveProject(id){
   const me=((curProfile()||{}).name||"").trim();
   if(!me){notify("Сначала выберите профиль");return;}
@@ -659,10 +662,13 @@ function syncNlDeal(){
 }
 function paintNlPreview(){
   const all=[...nlRemote.map((s,i)=>({s,k:"r"+i})),...nlPhotos.map((s,i)=>({s,k:"p"+i}))];
-  $("nlPreview").innerHTML=all.map(o=>`<span class="nl-ph"><img src="${o.s}" loading="lazy"><button type="button" data-nldel="${o.k}">✕</button></span>`).join("");
+  $("nlPreview").innerHTML=all.map((o,idx)=>`<span class="nl-ph"><img src="${o.s}" loading="lazy"><span class="nl-tools"><button type="button" data-nlmove="${o.k}" data-nldir="-1"${idx===0?" disabled":""}>‹</button><button type="button" data-nldel="${o.k}">✕</button><button type="button" data-nlmove="${o.k}" data-nldir="1"${idx===all.length-1?" disabled":""}>›</button></span></span>`).join("");
 }
 async function readPhotos(input){
-  const files=[...input.files].slice(0,6);
+  const room=Math.max(0,6-nlRemote.length-nlPhotos.length);
+  if(!room){notify("Максимум 6 фото");return;}
+  const files=[...input.files].slice(0,room);
+  if(!files.length)return;
   if(API&&files.length){
     const fd=new FormData();
     for(const f of files){try{fd.append("photos",new Blob([await f.arrayBuffer()],{type:f.type||"image/jpeg"}),f.name||"photo.jpg");}catch(e){}}
@@ -672,8 +678,16 @@ async function readPhotos(input){
       if(j&&j.ok&&j.paths&&j.paths.length){j.paths.forEach(p=>{if(!nlRemote.includes(p))nlRemote.push(p);});paintNlPreview();return;}
     }catch(e){}
   }
-  nlPhotos=[];
   for(const f of files){try{nlPhotos.push(await fileToPhoto(f));}catch(e){}}
+  paintNlPreview();
+}
+function moveNlPhoto(key,dir){
+  const order=[...nlRemote.map((s,i)=>({a:nlRemote,i})),...nlPhotos.map((s,i)=>({a:nlPhotos,i}))];
+  const pos=order.findIndex(o=>((o.a===nlRemote)?"r":"p")+o.i===key);
+  const np=pos+dir;
+  if(pos<0||np<0||np>=order.length)return;
+  const A=order[pos],B=order[np],tmp=A.a[A.i];
+  A.a[A.i]=B.a[B.i];B.a[B.i]=tmp;
   paintNlPreview();
 }
 function updateMarkersSafe(){if(map)updateMarkers();}
@@ -1054,7 +1068,7 @@ function fillDistricts(){
 
 function moneyIDR(v){return state.currency==="USD"?"$ "+Math.round(v/RATE).toLocaleString("en-US"):Math.round(v).toLocaleString("ru-RU")+" IDR";}
 function openDetail(id){
-  const it=LISTINGS.find(x=>x.id==id);if(!it)return;
+  const it=findListing(id);if(!it)return;
   detailId=it.id;detailIdx=0;
   const term=it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term"));
   const dep=it.dealType==="rent"?(it.category==="yearly"?Math.round(it.price/12):it.price):0;
@@ -1112,7 +1126,7 @@ function openDetail(id){
 }
 function closeDetail(){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}switchView("list");syncDealTabs();}
 function refreshDetail(){
-  const it=LISTINGS.find(x=>x.id===detailId);if(!it||state.view!=="detail")return;
+  const it=findListing(detailId);if(!it||state.view!=="detail")return;
   const m=$("dMain");if(m){m.src=it.images[detailIdx%it.images.length];}
   const c=$("dCount");if(c)c.textContent=`${(detailIdx%it.images.length)+1}/${it.images.length}`;
 }
@@ -1124,10 +1138,14 @@ document.addEventListener("click",e=>{
   if(del){e.stopPropagation();const id=+del.dataset.del;const ix=LISTINGS.findIndex(x=>x.id===id);if(ix>=0)LISTINGS.splice(ix,1);persistMy();if(editingId===id)resetNlForm();render();return;}
   const nd=e.target.closest("[data-nldel]");
   if(nd){e.stopPropagation();const k=nd.dataset.nldel;const i=+k.slice(1);if(k[0]==="r")nlRemote.splice(i,1);else nlPhotos.splice(i,1);paintNlPreview();return;}
+  const mv=e.target.closest("[data-nlmove]");
+  if(mv){e.stopPropagation();moveNlPhoto(mv.dataset.nlmove,+mv.dataset.nldir||0);return;}
   const ed=e.target.closest("[data-edit]");
   if(ed){e.stopPropagation();fillEditForm(+ed.dataset.edit);return;}
   const lv=e.target.closest("[data-leave]");
   if(lv){e.stopPropagation();leaveProject(+lv.dataset.leave);return;}
+  const vw=e.target.closest("[data-open]");
+  if(vw){e.stopPropagation();openDetail(vw.dataset.open);return;}
   const c=e.target.closest("[data-car]");
   if(c){e.stopPropagation();const id=+c.dataset.id;const it=LISTINGS.find(x=>x.id===id);let i=state.carIdx[id]||0;i=(i+(c.dataset.car==="next"?1:-1)+it.images.length)%it.images.length;state.carIdx[id]=i;render();return;}
   const o=e.target.closest("[data-offer]");
@@ -1143,7 +1161,7 @@ document.addEventListener("click",e=>{
   const th=e.target.closest("[data-thumb]");
   if(th){detailIdx=+th.dataset.thumb;refreshDetail();return;}
   const dn=e.target.closest("[data-dnav]");
-  if(dn){const it=LISTINGS.find(x=>x.id===detailId);if(it){detailIdx=(detailIdx+(dn.dataset.dnav==="next"?1:-1)+it.images.length)%it.images.length;refreshDetail();}return;}
+  if(dn){const it=findListing(detailId);if(it){detailIdx=(detailIdx+(dn.dataset.dnav==="next"?1:-1)+it.images.length)%it.images.length;refreshDetail();}return;}
   const chip=e.target.closest("[data-chip]");
   if(chip){e.stopPropagation();if(chip.dataset.chip==="type")$("fType").value=chip.dataset.v;if(chip.dataset.chip==="bed")$("fRooms").value=chip.dataset.v;state.page=1;render();window.scrollTo({top:0,behavior:"smooth"});return;}
   const card=e.target.closest("[data-card]");
@@ -1488,7 +1506,8 @@ async function submitForm(auto,opts){
     let title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);let priceMin=0;
     if(old){if(!title)title=old.title||"";if(isNaN(price))price=old.price||0;}
     if(!title&&auto){$("nlTitle").value=agentComposeTitle();title=$("nlTitle").value.trim();}
-    if(!title){if(!auto)notify("Укажите заголовок");submitBusy=false;return false;}
+    if(!title&&old){$("nlTitle").value=agentComposeTitle({pt:$("nlType").value,rawName:"",district:$("nlDistrict").value||old.locationEn||"",bedrooms:+$("nlBed").value||0,role:$("nlRole").value,land:+$("nlLand").value||0,area:+$("nlArea").value||0,price:price});title=$("nlTitle").value.trim();}
+    if(!title){if(!auto&&!old)notify("Укажите заголовок");if(!auto&&!old){submitBusy=false;return false;}}
     const isReq=$("nlRole").value==="request";
     if(isReq){
       const rawMax=$("nlPriceTo")?$("nlPriceTo").value:"";
@@ -1496,7 +1515,7 @@ async function submitForm(auto,opts){
       if(rawMax==="")price=old?old.price||0:0;
       else price=parseFloat(rawMax)||0;
     }
-    if(!(price>0)&&!(isReq&&priceMin>0)){if(auto){price=0;}else if(!isReq){notify("Укажите цену");submitBusy=false;return false;}else{price=0;}}
+    if(!(price>0)&&!(isReq&&priceMin>0)){if(auto||old){price=0;}else if(!isReq){notify("Укажите цену");submitBusy=false;return false;}else{price=0;}}
     if($("nlCur")&&$("nlCur").value==="USD"){price=Math.round(price*RATE);priceMin=Math.round(priceMin*RATE);}
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
     const customLoc=isReq&&$("nlLocCustom")?$("nlLocCustom").value.trim():"";
@@ -1680,15 +1699,18 @@ function cleanName(s){
 function agentComposeTitle(d){
   d=d||agent.data;
   if(d.title&&!d._autoTitle)return d.title;
+  const req=d.role==="request";
   const t=[];
-  const ptName=d.pt?pTypeLabel(d.pt):"Объект";
-  t.push(ptName);
+  let ptName=d.pt?pTypeLabel(d.pt):"Объект";
+  if(req){const acc={villa:"виллу",house:"дом",apartment:"квартиру",land:"землю",townhouse:"таунхаус",boarding:"кос",homestay:"хомстей",commercial:"помещение"};t.push("Ищу "+(acc[d.pt]||ptName.charAt(0).toLowerCase()+ptName.slice(1)));}
+  else t.push(ptName);
   let nm=d.rawName||"";
   const nmLow=nm.toLowerCase();
-  if(nm&&(nmLow===ptName.toLowerCase()||(d.district&&(nmLow===locName(d.district).toLowerCase()||nmLow===d.district.toLowerCase()))))nm="";
+  if(nm&&(nmLow===ptName.toLowerCase()||nmLow===("ищу "+ptName).toLowerCase()||(d.district&&(nmLow===locName(d.district).toLowerCase()||nmLow===d.district.toLowerCase()))))nm="";
   if(nm)t.push(nm);
   let s=t.join(" ");
   if(d.district)s+=" "+locPrep(d.district);
+  if(d.land>0&&!(d.area>0))s+=", земля "+parseFloat((d.land/100).toFixed(2))+" "+plural(Math.round(d.land/100)||0,["сотка","сотки","соток"]);
   if(d.bedrooms>0)s+=" — "+d.bedrooms+" "+plural(d.bedrooms,["спальня","спальни","спален"]);
   return (s.slice(0,90)||"Объявление");
 }
@@ -1939,7 +1961,14 @@ function agentPhotosPreview(){
   const box=$("aiPhotos");if(!box)return;
   const ph=agent.data.photos||[];
   box.classList.toggle("hidden",!ph.length);
-  box.innerHTML=ph.map((s,i)=>`<span class="ai-ph"><img src="${s}" alt="фото ${i+1}"><button type="button" data-aiphot="${i}">✕</button></span>`).join("");
+  box.innerHTML=ph.map((s,i)=>`<span class="ai-ph"><img src="${s}" alt="фото ${i+1}"><span class="ai-tools"><button type="button" data-aimove="${i}" data-aidir="-1"${i===0?" disabled":""}>‹</button><button type="button" data-aiphot="${i}">✕</button><button type="button" data-aimove="${i}" data-aidir="1"${i===ph.length-1?" disabled":""}>›</button></span></span>`).join("");
+}
+function moveAgentPhoto(i,dir){
+  const ph=agent.data.photos||[];
+  const np=i+dir;
+  if(i<0||np<0||np>=ph.length)return;
+  const tmp=ph[i];ph[i]=ph[np];ph[np]=tmp;
+  agentPhotosPreview();
 }
 async function agentAddPhotos(files){
   const cur=agent.data.photos||[];
@@ -2059,6 +2088,8 @@ if($("aiCam"))$("aiCam").onclick=()=>{const f=$("aiCamFiles");if(f)f.click();};
 if($("aiFiles"))$("aiFiles").addEventListener("change",e=>{if(e.target.files&&e.target.files.length)agentAddPhotos(e.target.files);e.target.value="";});
 if($("aiCamFiles"))$("aiCamFiles").addEventListener("change",e=>{if(e.target.files&&e.target.files.length)agentAddPhotos(e.target.files);e.target.value="";});
 if($("aiPhotos"))$("aiPhotos").addEventListener("click",e=>{
+  const m=e.target.closest("[data-aimove]");
+  if(m){moveAgentPhoto(+m.dataset.aimove,+m.dataset.aidir||0);return;}
   const b=e.target.closest("[data-aiphot]");if(!b)return;
   (agent.data.photos||[]).splice(+b.dataset.aiphot,1);agentPhotosPreview();
 });
