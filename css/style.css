@@ -271,6 +271,7 @@ body:not([data-settled]) .property-card{animation:rise .5s both}
 .badge.agent{background:var(--acc-soft);color:var(--acc-dark)}
 .badge.urgent{background:var(--bad);color:#fff}
 .badge.want{background:#9B51E0;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;letter-spacing:.03em}
+.badge.partner{background:#27AE60;color:#fff;font-weight:700}
 .property-card.req .card-body{background:#FBF7FF}
 .lrow.req{border-color:#9B51E0;background:#FBF7FF}
 .want-banner{background:#9B51E0;color:#fff;font-weight:800;font-size:15px;text-align:center;border-radius:10px;padding:10px 12px;margin-bottom:10px;letter-spacing:.04em}

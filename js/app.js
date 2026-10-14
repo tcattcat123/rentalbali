@@ -45,7 +45,9 @@ LISTINGS.forEach((it,i)=>{if(it.user)return;const p=POOL[it.propertyType]||POOL.
 const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],house:["Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад","Телевизор"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
 LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
 /* ===== Local profiles: switch, logout, new (no backend, per-device) ===== */
-function loadProfiles(){try{const p=JSON.parse(localStorage.getItem("rh_profiles")||"[]");return Array.isArray(p)?p.filter(x=>x&&x.id):[];}catch(e){return[];}}
+function loadProfilesRaw(){try{const p=JSON.parse(localStorage.getItem("rh_profiles")||"[]");return Array.isArray(p)?p.filter(x=>x&&x.id):[];}catch(e){return[];}}
+function loadProfiles(){return loadProfilesRaw().map((p,i)=>Object.assign({num:i+1,username:"",email:"",phone:"",password:""},p));}
+function ensureProfileNums(){try{const l=JSON.parse(localStorage.getItem("rh_profiles")||"[]");if(Array.isArray(l)&&l.length&&l.some(p=>!p||!p.num)){l.forEach((p,i)=>{if(p&&!p.num)p.num=i+1;});localStorage.setItem("rh_profiles",JSON.stringify(l));}}catch(e){}}
 function saveProfiles(list){try{localStorage.setItem("rh_profiles",JSON.stringify(list||[]));}catch(e){}}
 function curPid(){try{return localStorage.getItem("rh_profile_current")||"";}catch(e){return"";}}
 function setCurPid(id){try{if(id)localStorage.setItem("rh_profile_current",id);else localStorage.removeItem("rh_profile_current");}catch(e){}}
@@ -106,6 +108,11 @@ function renderProfiles(){
   const g=$("guestId");if(g)g.textContent=cur||"—";
   const p=curProfile();
   if($("pfName"))$("pfName").value=(p&&p.name)||"";
+  if($("pfNum"))$("pfNum").textContent=(p&&p.num)?("№ "+p.num):"—";
+  if($("pfUsername"))$("pfUsername").value=(p&&p.username)||"";
+  if($("pfEmail"))$("pfEmail").value=(p&&p.email)||"";
+  if($("pfPhone"))$("pfPhone").value=(p&&p.phone)||"";
+  if($("pfPass"))$("pfPass").value=(p&&p.password)||"";
   if($("pfAvatar"))$("pfAvatar").src=(p&&p.avatar)||"https://i.pravatar.cc/120?img=12";
   paintNlPartyOpts();
 }
@@ -117,7 +124,7 @@ function deleteProfile(id,btn){
     state.fav=new Set();setCurPid("");
   }
   try{localStorage.removeItem("rh_my_"+id);localStorage.removeItem("rh_fav_"+id);}catch(e){}
-  saveProfiles(loadProfiles().filter(p=>p.id!==id));
+  saveProfiles(loadProfilesRaw().filter(p=>p.id!==id));
   resetNlForm();renderProfiles();render();notify("Профиль удалён");
 }
 async function switchProfile(id){
@@ -280,7 +287,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.44";const APP_BUILD="89";
+const APP_V="2.45";const APP_BUILD="90";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -487,6 +494,7 @@ function render(){
   $("favEmpty").style.display=favs.length?"none":"block";
   $("myGrid").innerHTML=[...LISTINGS.filter(x=>x.mine&&(cabProjFilter==="all"||x.type===cabProjFilter)),...syncMemberCache()].map(it=>`<div>${cardHTML(it)}${it.user?`<div class="my-actions"><button class="edit-btn" data-edit="${it.id}">✎ Редактировать</button><button class="del-btn" data-del="${it.id}">✕ Удалить</button></div>`:(it._member?`<div class="my-actions"><span class="param-chip">Участник</span><button class="btn-ghost sm" data-open="${it.id}">👁 Смотреть</button><button class="btn-text" data-leave="${it.id}">Покинуть проект</button></div>`:"")}</div>`).join("");
   $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini" data-card="${x.id}"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>${locLabel(x)}</div>`).join("");
+  paintUsers();
   const ap=$("allParties");
   if(ap){
     const agg={};
@@ -583,6 +591,45 @@ function buildParties(){
   if(!list.some(p=>p.role==="admin"))list.unshift({pid:curPid(),name:me,role:"admin"});
   return list.slice(0,8);
 }
+let userSort="partner";
+function profileItems(pid){let a=[];try{a=JSON.parse(localStorage.getItem("rh_my_"+pid)||"[]")||[];}catch(e){}return Array.isArray(a)?a.filter(o=>o&&o.id):[];}
+function isPartnerWith(meId,meName,u){
+  const meLow=String(meName||"").trim().toLowerCase(),uLow=String((u&&u.name)||"").trim().toLowerCase();
+  const mine=LISTINGS.filter(x=>x.mine);
+  if(mine.some(it=>(it.parties||[]).some(p=>p&&((p.pid&&p.pid===u.id)||String(p.name||"").trim().toLowerCase()===uLow))))return true;
+  return profileItems(u.id).some(it=>(it.parties||[]).some(p=>p&&((p.pid&&p.pid===meId)||String(p.name||"").trim().toLowerCase()===meLow)));
+}
+function paintUsers(){
+  const box=$("userList");if(!box)return;
+  const meId=curPid(),me=curProfile(),meName=me?me.name:"";
+  let list=loadProfiles().map(p=>({p,joint:!!meId&&p.id!==meId&&isPartnerWith(meId,meName,p)}));
+  if(userSort==="name")list.sort((a,b)=>String(a.p.name||"").localeCompare(String(b.p.name||""),"ru"));
+  else if(userSort==="num")list.sort((a,b)=>(a.p.num||0)-(b.p.num||0));
+  else list.sort((a,b)=>((b.joint?1:0)-(a.joint?1:0))||((a.p.num||0)-(b.p.num||0)));
+  box.innerHTML=list.length?list.map(({p,joint})=>`<button type="button" class="lrow${joint?" ai":""}" data-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer;color:var(--ink)"><div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${String(p.name||"Без имени").replace(/</g,"&lt;")}${p.username?` <span class="muted">@${String(p.username).replace(/</g,"&lt;")}</span>`:""}${joint?` <span class="badge partner">партнёр</span>`:""}${p.id===meId?` <span class="muted">(это вы)</span>`:""}</div></div></button>`).join(""):`<span class="muted">Пока никого</span>`;
+  box.querySelectorAll("[data-user]").forEach(b=>b.onclick=()=>openUser(b.dataset.user));
+  document.querySelectorAll("[data-usort]").forEach(b=>b.classList.toggle("active",b.dataset.usort===userSort));
+}
+function openUser(pid){
+  const u=loadProfiles().find(x=>x.id===pid);if(!u)return;
+  const meId=curPid(),meName=(curProfile()||{}).name||"";
+  const meLow=String(meName).trim().toLowerCase(),uLow=String(u.name||"").trim().toLowerCase();
+  const mine=LISTINGS.filter(x=>x.mine).map(it=>({it,joint:(it.parties||[]).some(p=>p&&((p.pid&&p.pid===pid)||String(p.name||"").trim().toLowerCase()===uLow))}));
+  const theirs=profileItems(pid).map(o=>({it:o,joint:(o.parties||[]).some(p=>p&&((p.pid&&p.pid===meId)||String(p.name||"").trim().toLowerCase()===meLow))}));
+  const rows=[...mine.filter(r=>r.joint).map(r=>({r,tag:"совместный"})),...theirs.filter(r=>r.joint).map(r=>({r,tag:"совместный"})),...mine.filter(r=>!r.joint).map(r=>({r,tag:""})),...theirs.filter(r=>!r.joint).map(r=>({r,tag:""}))];
+  const esc=s=>String(s||"").replace(/</g,"&lt;");
+  const contacts=[u.username?("Логин: @"+u.username):"",u.email?("Почта: "+u.email):"",u.phone?("Телефон: "+u.phone):""].filter(Boolean);
+  $("userContent").innerHTML=`<h3>#${u.num||"—"} ${esc(u.name||"Без имени")}</h3>
+    ${contacts.length?`<p class="muted" style="font-size:13px">${contacts.map(esc).join("<br>")}</p>`:`<p class="muted">Контактов нет</p>`}
+    <h3 style="margin-top:10px">Проекты (${rows.length})</h3>
+    ${rows.length?`<div style="display:grid;gap:6px">`+rows.map(({r,tag})=>`<button type="button" class="lrow" data-open="${r.it.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer;color:var(--ink)"><div class="lrow-main"><div class="lrow-title">${esc(r.it.title)||"Без названия"}${tag?` <span class="badge partner">совместный</span>`:""}</div><div class="lrow-sub muted">${esc(r.it.location||"")}${r.it.price>0?" · "+r.it.price.toLocaleString("ru-RU")+" IDR":""}</div></div></button>`).join("")+`</div>`:`<p class="muted">Проектов нет</p>`}`;
+  $("userModal").classList.remove("hidden");
+}
+function findAnywhere(id){
+  const a=findListing(id);if(a)return a;
+  for(const p of loadProfiles()){const o=profileItems(p.id).find(x=>x.id==id);if(o)return Object.assign({},o,{_member:true,_ownerProfile:p.id});}
+}
+function canEditListing(it){return !!(it&&it.user&&(!it.owner||it.owner===curPid()));}
 function paintNlPartyOpts(){
   const s=$("nlPartyName");if(!s||s.tagName!=="SELECT")return;
   const list=loadProfiles();
@@ -1069,7 +1116,7 @@ function fillDistricts(){
 
 function moneyIDR(v){return state.currency==="USD"?"$ "+Math.round(v/RATE).toLocaleString("en-US"):Math.round(v).toLocaleString("ru-RU")+" IDR";}
 function openDetail(id){
-  const it=findListing(id);if(!it)return;
+  const it=findAnywhere(id);if(!it)return;
   detailId=it.id;detailIdx=0;
   const term=it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term"));
   const dep=it.dealType==="rent"?(it.category==="yearly"?Math.round(it.price/12):it.price):0;
@@ -1097,7 +1144,7 @@ function openDetail(id){
       <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>`:`<div class="main-photo no-photo-ph">📷 Фото скоро появятся</div>`}
     <div class="d-price-row"><div class="price">${fmtPrice(it)}</div>
       <div class="d-icons"><button id="dShare" title="Поделиться"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M7 8l5-5 5 5"/><path d="M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg></button>
-      <button id="dFav" class="${fav?"on":""}" title="В избранное">${fav?"♥":"♡"}</button>${it.user?`<button id="dEdit" title="Редактировать">✎</button>`:""}</div></div>
+      <button id="dFav" class="${fav?"on":""}" title="В избранное">${fav?"♥":"♡"}</button>${canEditListing(it)?`<button id="dEdit" title="Редактировать">✎</button>`:""}</div></div>
     <div class="params">${chips.join("")}</div>
     <div class="d-locrow"><span class="d-loc">${SVG_PIN} ${locLabel(it)}, Бали</span>
       <span class="d-meta">${SVG_EYE} ${it.views} <span class="time-pill">${timeAgo(it.createdAt)}</span></span></div>
@@ -1237,6 +1284,10 @@ if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render()
   document.querySelectorAll("[data-imptab]").forEach(b=>b.onclick=()=>switchImptab(b.dataset.imptab));
   document.querySelectorAll("[data-cabtab]").forEach(b=>b.onclick=()=>switchCabtab(b.dataset.cabtab));
   document.querySelectorAll("[data-pf]").forEach(b=>b.onclick=()=>{cabProjFilter=b.dataset.pf;document.querySelectorAll("[data-pf]").forEach(x=>x.classList.toggle("active",x===b));render();});
+  document.querySelectorAll("[data-usort]").forEach(b=>b.onclick=()=>{userSort=b.dataset.usort;paintUsers();});
+  ensureProfileNums();
+  if($("userClose"))$("userClose").onclick=()=>$("userModal").classList.add("hidden");
+  if($("userModal"))$("userModal").addEventListener("click",e=>{if(e.target.id==="userModal")$("userModal").classList.add("hidden");});
 if($("markersBtn"))$("markersBtn").onclick=()=>{showMarkers=!showMarkers;$("markersBtn").textContent=showMarkers?"Скрыть метки":"Показать метки";updateMarkersSafe();};
 if($("sheetApply"))$("sheetApply").onclick=()=>$("applyBtn").click();
 if($("sheetReset"))$("sheetReset").onclick=()=>$("resetBtn").click();
@@ -1252,8 +1303,8 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
 (function initCabinetBoot(){
   fillDistricts();
   renderProfiles();
-  if($("pfSave"))$("pfSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfiles();const it=list.find(x=>x.id===p.id);if(it){it.name=($("pfName").value||"").trim().slice(0,60)||it.name;saveProfiles(list);}renderProfiles();notify("Профиль сохранён");};
-  if($("pfCreate"))$("pfCreate").onclick=async()=>{const nm=(($("pfNewName")||{}).value||"").trim().slice(0,60)||"Гость";const id="g-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);const list=loadProfiles();list.push({id,name:nm,createdAt:Date.now()});saveProfiles(list);if($("pfNewName"))$("pfNewName").value="";await switchProfile(id);};
+  if($("pfSave"))$("pfSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.name=(($("pfName")||{}).value||"").trim().slice(0,60)||it.name;it.username=(($("pfUsername")||{}).value||"").trim().slice(0,40);it.email=(($("pfEmail")||{}).value||"").trim().slice(0,80);it.phone=(($("pfPhone")||{}).value||"").trim().slice(0,30);it.password=(($("pfPass")||{}).value||"");saveProfiles(list);}renderProfiles();notify("Профиль сохранён");};
+  if($("pfCreate"))$("pfCreate").onclick=async()=>{const nm=(($("pfNewName")||{}).value||"").trim().slice(0,60)||"Гость";const id="g-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);const list=loadProfilesRaw();list.push({id,num:Math.max(0,...list.map(p=>p.num||0))+1,name:nm,createdAt:Date.now()});saveProfiles(list);if($("pfNewName"))$("pfNewName").value="";await switchProfile(id);};
   if($("pfLogout"))$("pfLogout").onclick=async()=>{
     await persistMy();
     try{localStorage.setItem(favKey(),JSON.stringify([...state.fav]));}catch(e){}
@@ -1262,7 +1313,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     resetNlForm();renderProfiles();render();notify("Вы вышли из профиля");
   };
   if($("pfAvatar"))$("pfAvatar").onclick=()=>{if(!curProfile()){notify("Сначала выберите или создайте профиль");return;}const f=$("pfAvatarInput");if(f)f.click();};
-  if($("pfAvatarInput"))$("pfAvatarInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const url=await fileToPhoto(f);const list=loadProfiles();const p=list.find(x=>x.id===curPid());if(p){p.avatar=url;saveProfiles(list);renderProfiles();notify("Фото профиля обновлено");}}catch(_){notify("Не смог прочитать фото");}e.target.value="";});
+  if($("pfAvatarInput"))$("pfAvatarInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const url=await fileToPhoto(f);const list=loadProfilesRaw();const p=list.find(x=>x.id===curPid());if(p){p.avatar=url;saveProfiles(list);renderProfiles();notify("Фото профиля обновлено");}}catch(_){notify("Не смог прочитать фото");}e.target.value="";});
   paintNlAmen((AM[$("nlType").value]||[]).slice(0,4));syncNlDeal();
   if($("nlType"))$("nlType").addEventListener("change",()=>paintNlAmen((AM[$("nlType").value]||[]).slice(0,4)));
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
@@ -1617,7 +1668,7 @@ function saveTpl(name,data){
     r.onload=()=>{try{
       if(!curProfile()){notify("Сначала выберите или создайте профиль");return;}
       const d=JSON.parse(r.result);
-      if(d.profile&&d.profile.name){const list=loadProfiles();const p=list.find(x=>x.id===curPid());if(p){p.name=String(d.profile.name).slice(0,60);saveProfiles(list);}renderProfiles();}
+      if(d.profile&&d.profile.name){const list=loadProfilesRaw();const p=list.find(x=>x.id===curPid());if(p){p.name=String(d.profile.name).slice(0,60);saveProfiles(list);}renderProfiles();}
       if(Array.isArray(d.fav)){state.fav=new Set(d.fav.filter(Number));try{localStorage.setItem(favKey(),JSON.stringify([...state.fav]));}catch(_){}}
       if(Array.isArray(d.items)){
         const clean=d.items.filter(o=>o&&o.title).slice(0,100).map(o=>Object.assign({},o,{mine:true,user:true,owner:getGuestId(),images:(o.images||[]).slice(0,6)}));
