@@ -280,7 +280,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.43";const APP_BUILD="88";
+const APP_V="2.44";const APP_BUILD="89";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -345,8 +345,8 @@ function rowHTML(it,i){
   const fav=state.fav.has(it.id);
   const p1=[pTypeLabel(it.propertyType),it.bedrooms>0?it.bedrooms+" "+plural(it.bedrooms,["спальня","спальни","спален"]):"",it.area>0?it.area+" м²":""].filter(Boolean).join(" · ");
   const p2=[locLabel(it)+", Бали",it.code?("ID: "+it.code):""].filter(Boolean).join(" · ");
-  return `<div class="lrow${it.ai?" ai":""}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
-    <div class="lrow-main"><div class="lrow-title">${it.title||pTypeLabel(it.propertyType)}</div>
+  return `<div class="lrow${it.ai?" ai":""}${it.type==="request"?" req":""}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
+    <div class="lrow-main"><div class="lrow-title">${it.type==="request"?`<span class="badge want">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"}</span> `:""}${it.title||pTypeLabel(it.propertyType)}</div>
     ${p1?`<div class="lrow-sub">${p1}</div>`:""}
     ${p2?`<div class="lrow-sub muted">${p2}</div>`:""}</div>
     <div class="lrow-side"><div class="price">${fmtPrice(it)}</div>
@@ -358,6 +358,7 @@ function cardHTML(it,i){
   const fav=state.fav.has(it.id);
   const heart=fav?"♥":"♡";
   let badges="";
+  if(it.type==="request")badges+=`<span class="badge want">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"}</span>`;
   if(it.dealType==="sale"&&it.tenure)badges+=`<span class="badge tenure">${it.tenure==="freehold"?"Hak Milik":"Hak Sewa"}</span>`;
   if(it.isVerified)badges+=`<span class="badge verified">${SVG_SHIELD} ${t("verified")}</span>`;
   if(it.isTop)badges+=`<span class="badge top">${SVG_CUP} ${t("top")}</span>`;
@@ -377,7 +378,7 @@ function cardHTML(it,i){
   const agentRow=it.type==="request"?"":`<div class="agent-row"><div class="who"><b>${it.isAgent?"Агент "+agent:agent}</b><small>На связи · 10:00–20:00</small></div><button class="btn-ghost sm" data-contact="${it.id}">Связаться</button></div>`;
   const extra=it.type==="request"?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`:"";
   const hasPhoto=it.images&&it.images.length>0;
-  return `<div class="property-card${it.ai?" ai":""}${hasPhoto?"":" no-photo"}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
+  return `<div class="property-card${it.ai?" ai":""}${it.type==="request"?" req":""}${hasPhoto?"":" no-photo"}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
     ${hasPhoto?`<div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="Фото объекта">
       ${it.images.length>1?`<button class="car-btn prev" data-car="prev" data-id="${it.id}" aria-label="prev">‹</button><button class="car-btn next" data-car="next" data-id="${it.id}" aria-label="next">›</button>`:""}
       <span class="photo-counter">${(idx%it.images.length)+1}/${it.images.length}</span>
@@ -1090,12 +1091,13 @@ function openDetail(id){
   chips.push(`<span class="param-chip">${term}</span>`);
   $("detailContent").innerHTML=`
   <div class="d-layout"><div class="d-left">
+    ${it.type==="request"?`<div class="want-banner">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"} · ${term}</div>`:""}
     ${(it.images&&it.images.length)?`<div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
       ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
       <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>`:`<div class="main-photo no-photo-ph">📷 Фото скоро появятся</div>`}
     <div class="d-price-row"><div class="price">${fmtPrice(it)}</div>
       <div class="d-icons"><button id="dShare" title="Поделиться"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M7 8l5-5 5 5"/><path d="M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg></button>
-      <button id="dFav" class="${fav?"on":""}" title="В избранное">${fav?"♥":"♡"}</button></div></div>
+      <button id="dFav" class="${fav?"on":""}" title="В избранное">${fav?"♥":"♡"}</button>${it.user?`<button id="dEdit" title="Редактировать">✎</button>`:""}</div></div>
     <div class="params">${chips.join("")}</div>
     <div class="d-locrow"><span class="d-loc">${SVG_PIN} ${locLabel(it)}, Бали</span>
       <span class="d-meta">${SVG_EYE} ${it.views} <span class="time-pill">${timeAgo(it.createdAt)}</span></span></div>
@@ -1123,6 +1125,7 @@ function openDetail(id){
   const dt=document.querySelector(".desc-text");if(dt)dt.textContent=it.desc||"";
   $("dShare").onclick=()=>{try{navigator.clipboard.writeText(location.href);}catch(e){}notify(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
   $("dFav").onclick=()=>{const on=!state.fav.has(it.id);on?state.fav.add(it.id):state.fav.delete(it.id);localStorage.setItem(favKey(),JSON.stringify([...state.fav]));const b=$("dFav");b.textContent=on?"♥":"♡";b.classList.toggle("on",on);render();};
+  if($("dEdit"))$("dEdit").onclick=()=>fillEditForm(it.id);
 }
 function closeDetail(){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}switchView("list");syncDealTabs();}
 function refreshDetail(){

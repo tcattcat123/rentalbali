@@ -270,6 +270,10 @@ body:not([data-settled]) .property-card{animation:rise .5s both}
 .badge.top{background:#F2994A;color:#fff}
 .badge.agent{background:var(--acc-soft);color:var(--acc-dark)}
 .badge.urgent{background:var(--bad);color:#fff}
+.badge.want{background:#9B51E0;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;letter-spacing:.03em}
+.property-card.req .card-body{background:#FBF7FF}
+.lrow.req{border-color:#9B51E0;background:#FBF7FF}
+.want-banner{background:#9B51E0;color:#fff;font-weight:800;font-size:15px;text-align:center;border-radius:10px;padding:10px 12px;margin-bottom:10px;letter-spacing:.04em}
 .badge.tenure{background:rgba(20,30,50,.65);color:#fff;font-weight:600}
 .favorite-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.85);border:0;border-radius:4px;width:34px;height:34px;font-size:17px;cursor:pointer;z-index:3;color:var(--ink);touch-action:manipulation}
 .favorite-btn.active{color:var(--acc)}
