@@ -287,7 +287,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.45";const APP_BUILD="90";
+const APP_V="2.46";const APP_BUILD="91";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1138,6 +1138,7 @@ function openDetail(id){
   chips.push(`<span class="param-chip">${term}</span>`);
   $("detailContent").innerHTML=`
   <div class="d-layout"><div class="d-left">
+    <div><button type="button" class="back-link" data-back style="border:0;background:none;cursor:pointer">← ${state.lang==="ru"?"Назад в ленту":"Back to feed"}</button></div>
     ${it.type==="request"?`<div class="want-banner">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"} · ${term}</div>`:""}
     ${(it.images&&it.images.length)?`<div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
       ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
@@ -1194,6 +1195,8 @@ document.addEventListener("click",e=>{
   if(ed){e.stopPropagation();fillEditForm(+ed.dataset.edit);return;}
   const lv=e.target.closest("[data-leave]");
   if(lv){e.stopPropagation();leaveProject(+lv.dataset.leave);return;}
+  const bk=e.target.closest("[data-back]");
+  if(bk){e.stopPropagation();goBack();return;}
   const vw=e.target.closest("[data-open]");
   if(vw){e.stopPropagation();openDetail(vw.dataset.open);return;}
   const c=e.target.closest("[data-car]");
@@ -2158,6 +2161,7 @@ if($("aiFab")){
   fab.onclick=()=>{if(Date.now()-aiFabDragAt<300)return;agentToggle();};
 }
 if($("aiBack"))$("aiBack").onclick=()=>{agentToggle(false);goBack();};
+if($("aiClose"))$("aiClose").onclick=()=>agentToggle(false);
 if($("aiSend"))$("aiSend").onclick=agentSend;
 if($("aiText"))$("aiText").addEventListener("keydown",e=>{if(e.key==="Enter")agentSend();});
 document.querySelectorAll("[data-aiq]").forEach(b=>b.onclick=()=>{if(b.dataset.aiq==="listing")agentStart();});
