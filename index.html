@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="91">
+<meta name="app-build" content="92">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=91">
+<link rel="stylesheet" href="css/style.css?v=92">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -51,8 +51,7 @@
     <section id="msearch" class="msearch">
       <div class="mseg"><button data-mdeal="rent" class="active">Аренда</button><button data-mdeal="sale">Купить</button></div>
       <div class="msearch-input"><span>⌕</span><input id="mquery" placeholder="Район, объект или бюджет" autocomplete="off"></div>
-      <div class="mchips">
-        <button data-mtype="villa"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z"/></svg> Виллы</button><button data-mtype="house"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="1"/><path d="M2 10l10-7 10 7"/><path d="M10 20v-5h4v5"/></svg> Дома</button><button data-mtype="apartment"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/></svg> Квартиры</button><button data-mtype="land"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19C5 9 13 5 20 4c0 8-4 15-13 15"/><path d="M5 19c3-5 7-9 11-11"/></svg> Земля</button>
+      <div class="mchips" id="mchips">
       </div>
       <button id="mshow" class="btn-primary">Показать варианты</button>
       <div class="mrow"><button id="mfilterBtn">☰ Фильтры <span id="fcount" class="fav-count hidden">0</span></button><button id="mreset" class="btn-text">Сбросить все</button></div>
@@ -71,7 +70,7 @@
       </div>
       <div class="filters" id="filtersBar">
         <div class="filter-group"><label>Тип недвижимости</label>
-          <select id="fType"><option value="">Все</option><option value="villa">Виллы</option><option value="house">Дома</option><option value="apartment">Квартиры</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="commercial">Коммерческая</option><option value="townhouse">Таунхаусы</option><option value="boarding">Sewa Kos</option></select></div>
+          <select id="fType"><option value="">Все</option><option value="villa">Виллы</option><option value="house">Дома</option><option value="apartment">Апарты</option><option value="room">Комнаты</option><option value="invest">Инвестпроекты</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="commercial">Коммерческая</option><option value="townhouse">Таунхаусы</option><option value="boarding">Sewa Kos</option></select></div>
         <div class="filter-group" id="rentCatWrap"><label>Срок</label>
           <div class="tipe-box"><div class="seg"><button class="seg-btn" data-cat="monthly" id="catMonthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly">год</button></div><span class="chev">▼</span></div></div>
         <div class="filter-group" id="tenureWrap"><label>Тип владения</label>
@@ -208,12 +207,12 @@
     <button id="impAiTop" class="btn-ai-red">Заполнить через нейросеть</button>
     </div>
     <div class="imp-tabs" role="tablist">
-      <button data-imptab="tg" class="active">Telegram-пост</button>
+      <button data-imptab="manual" class="active">Вручную</button>
+      <button data-imptab="tg">Telegram-пост</button>
       <button data-imptab="doc">Google Docs</button>
       <button data-imptab="folder">Папка Drive</button>
-      <button data-imptab="manual">Вручную</button>
     </div>
-    <div class="imp-panel" data-imppanel="tg">
+    <div class="imp-panel hidden" data-imppanel="tg">
       <div class="filter-group"><label>Ссылка на пост — текст, фото и параметры подтянутся сами</label>
       <div class="imp-row"><input id="impLink" placeholder="https://t.me/..."><button id="impLinkBtn" class="btn-primary">Парсинг</button></div>
       <p class="hint">Надёжнее всего работает при запуске через admin-server.py. Если ссылка не читается — вставьте текст поста ниже.</p></div>
@@ -232,17 +231,11 @@
       <div class="imp-row"><input id="impFolder" placeholder="https://drive.google.com/drive/folders/..."><button id="impFolderBtn" class="btn-primary">Создать из папки</button></div>
       <p class="hint" id="folderHint" style="display:none">Папки читаются только при запуске через <b>python admin-server.py</b> — на публичной ссылке работать не будет. Либо добавьте фото по ID вручную ниже.</p></div>
     </div>
-    <div class="imp-panel hidden" data-imppanel="manual">
-    <div class="imp-block">
-    <div class="filter-group"><label>Быстрый шаблон</label>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="impRoyal" class="btn-ghost">Импорт Royal Lotus (Убуд)</button></div>
-    <div class="imp-row" style="margin-top:6px"><input id="nlTplName" placeholder="Название шаблона"><button id="nlTplSave" class="btn-ghost" type="button">📋 В шаблон</button></div>
-    <div class="imp-row" style="margin-top:6px"><select id="nlTplSel"></select><button id="nlTplLoad" class="btn-ghost" type="button">Заполнить</button></div></div>
-    </div>
+    <div class="imp-panel" data-imppanel="manual">
     <div class="calc-grid">
     <div class="filter-group"><label>Сделка</label><select id="nlDeal"><option value="rent">Аренда</option><option value="sale">Покупка</option></select></div>
     <div class="filter-group"><label>Тип заявки</label><select id="nlRole"><option value="offer">Предлагаю</option><option value="request">Ищу</option></select></div>
-    <div class="filter-group"><label>Тип недвижимости</label><select id="nlType"><option value="villa">Вилла</option><option value="house">Дом</option><option value="apartment">Квартира</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="townhouse">Таунхаус</option><option value="boarding">Sewa Kos</option><option value="commercial">Коммерческая</option></select></div>
+    <div class="filter-group"><label>Тип недвижимости</label><select id="nlType"><option value="villa">Вилла</option><option value="house">Дом</option><option value="apartment">Апарт</option><option value="room">Комната</option><option value="invest">Инвестпроект</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="townhouse">Таунхаус</option><option value="boarding">Sewa Kos</option><option value="commercial">Коммерческая</option></select></div>
     <div class="filter-group"><label>Район *</label><select id="nlDistrict"></select></div>
     <div class="filter-group" id="nlLocCustomWrap" style="display:none"><label>Своя локация (вручную)</label><input id="nlLocCustom" placeholder="Например: рядом с пляжем"></div>
     <div class="filter-group full"><label>Точный адрес объекта</label><input id="nlAddr" placeholder="Улица, номер дома, ориентир"></div>
@@ -274,6 +267,12 @@
       <button id="asView" class="btn-primary" type="button">👁 Просмотреть</button>
       <button id="asClear" class="btn-ghost" type="button">🧹 Очистить форму</button>
       <button id="asTpl" class="btn-ghost" type="button">📋 В шаблон</button>
+    </div>
+    <div class="imp-block" style="margin-top:10px">
+    <div class="filter-group"><label>Быстрый шаблон</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="impRoyal" class="btn-ghost">Импорт Royal Lotus (Убуд)</button></div>
+    <div class="imp-row" style="margin-top:6px"><input id="nlTplName" placeholder="Название шаблона"><button id="nlTplSave" class="btn-ghost" type="button">📋 В шаблон</button></div>
+    <div class="imp-row" style="margin-top:6px"><select id="nlTplSel"></select><button id="nlTplLoad" class="btn-ghost" type="button">Заполнить</button></div></div>
     </div>
     </div>
     </div>
@@ -324,7 +323,7 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=91"></script>
+<script src="js/app.js?v=92"></script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

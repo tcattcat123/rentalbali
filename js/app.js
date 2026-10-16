@@ -39,10 +39,12 @@ apartment:[U("photo-1522708323590-d24dbb6b0267"),U("photo-1560448204-e02f11c3d0e
 homestay:[U("photo-1595526114035-0d45ed16cfbf"),U("photo-1554995207-c18c203602cb"),U("photo-1571896349842-33c89424de2d")],
 boarding:[U("photo-1595526114035-0d45ed16cfbf"),U("photo-1554995207-c18c203602cb")],
 townhouse:[U("photo-1570129477492-45c003edd2be"),U("photo-1580587771525-78b9dba3b914"),U("photo-1600047509807-ba8f99d2cdde")],
+room:[U("photo-1595526114035-0d45ed16cfbf"),U("photo-1554995207-c18c203602cb")],
+invest:[U("photo-1486406146926-c627a92ad1ab"),U("photo-1564013799919-ab600027ffc6d")],
 land:[U("photo-1500382017468-9049fed747ef"),U("photo-1472214103451-9374bd1c798e")],
 commercial:[U("photo-1486406146926-c627a92ad1ab"),U("photo-1564013799919-ab600027ffc6d")]};
 LISTINGS.forEach((it,i)=>{if(it.user)return;const p=POOL[it.propertyType]||POOL.villa;const n=it.type==="request"?1:(it.propertyType==="land"?2:3);it.images=Array.from({length:n},(_,k)=>p[(i+k)%p.length]);it.fb=`https://picsum.photos/seed/bali${it.id}/640/360`;});
-const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],house:["Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад","Телевизор"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
+const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],house:["Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад","Телевизор"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],room:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],invest:["Wi-Fi","Кондиционер","Парковка","Охрана"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
 LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
 /* ===== Local profiles: switch, logout, new (no backend, per-device) ===== */
 function loadProfilesRaw(){try{const p=JSON.parse(localStorage.getItem("rh_profiles")||"[]");return Array.isArray(p)?p.filter(x=>x&&x.id):[];}catch(e){return[];}}
@@ -147,8 +149,8 @@ function fmtDT(ts){try{return new Date(ts).toLocaleString("ru-RU",{day:"2-digit"
 let detailId=null,detailIdx=0;
 
 const I18N = {
-ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",sub_hint:"предлагаю / ищу",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",nav_want:"Ищу",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",t_villa:"Вилла",t_house:"Дом",t_apartment:"Квартиры",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
-en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",sub_hint:"offer / wanted",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",nav_want:"Wanted",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
+ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",sub_hint:"предлагаю / ищу",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",nav_want:"Ищу",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",t_villa:"Вилла",t_house:"Дом",t_apartment:"Апарты",t_room:"Комнаты",t_invest:"Инвестпроекты",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
+en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",sub_hint:"offer / wanted",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",nav_want:"Wanted",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_room:"Rooms",t_invest:"Investment projects",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
 };
 
 const state = {deal:"rent",role:"offer",rentCat:"",tenure:"",query:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem(favKey())||"[]")),carIdx:{},districts:new Set()};
@@ -179,8 +181,8 @@ const DIST_TREE=[
 ];
 /* ===== Object ID: 2 letters (type+region) + 5-digit sequence, e.g. vb00001.
    Letter codes are changeable here as needed. Counter resets via setIdSeq(0). ===== */
-const ID_TYPE={villa:"v",house:"r",apartment:"a",homestay:"h",land:"l",townhouse:"t",boarding:"k",commercial:"c"};
-const ID_SHORT={villa:"V",house:"H",apartment:"A",land:"L",townhouse:"T",boarding:"K",commercial:"C",homestay:"P"};
+const ID_TYPE={villa:"v",house:"r",apartment:"a",room:"o",invest:"i",homestay:"h",land:"l",townhouse:"t",boarding:"k",commercial:"c"};
+const ID_SHORT={villa:"V",house:"H",apartment:"A",room:"O",invest:"I",homestay:"P",land:"L",townhouse:"T",boarding:"K",commercial:"C"};
 function shortId(it){const m=/^[a-z]{2}(\d+)$/.exec((it&&it.code)||"");if(!m)return "—";return (ID_SHORT[it.propertyType]||"X")+(+m[1]);}
 const ID_REGION={Canggu:"c",Berawa:"c",BatuBolong:"c",TumbakBayuh:"c",Pererenan:"c",Umalas:"c",Kerobokan:"c",Seseh:"c",Buduk:"c",Seminyak:"s",BeachsideCenter:"s",ResidentialSide:"s",Oberoi:"s",Legian:"s",Petitenget:"s",Kuta:"s",TanahLot:"w",Kedungu:"w",Cemagi:"w",Uluwatu:"b",Bingin:"b",Balangan:"b",Jimbaran:"b",NusaDua:"b",Ungasan:"b",Pecatu:"b",Ubud:"u",Mas:"u",Payangan:"u",Denpasar:"d",Sanur:"d",Gianyar:"u",Sukawati:"u",Tabanan:"w",Mengwi:"w",Lovina:"n",Singaraja:"n",Pemuteran:"n",Amed:"e",Candidasa:"e",Sidemen:"e",NusaPenida:"e",NusaLembongan:"e"};
 function maxIdSeq(){let m=0;for(const x of LISTINGS){const mt=/^[a-z]{2}(\d{5,})$/.exec(x.code||"");if(mt)m=Math.max(m,+mt[1]);}return m;}
@@ -287,7 +289,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.46";const APP_BUILD="91";
+const APP_V="2.47";const APP_BUILD="92";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -997,7 +999,7 @@ function aiDistricts(){
   return out;
 }
 function buildAiPrompt(text){
-  const system="Ты парсер объявлений недвижимости Бали. Ответь СТРОГО одним JSON-объектом без пояснений. Схема: {\"deal\":\"rent|sale\",\"role\":\"offer|request\",\"price\":число в IDR (B/miliar=1e9, млн=1e6; USD переведи по 16000; 0 если нет цены),\"category\":\"monthly|yearly (только для rent; иначе monthly)\",\"ptype\":\"villa|house|apartment|homestay|land|townhouse|boarding|commercial\",\"district\":\"ключ района строго из списка\",\"area\":площадь строения м² числом,\"land\":участок м² числом (сотка/are=100)\",\"bedrooms\":число,\"bathrooms\":число,\"tenure\":\"freehold|leasehold (только для sale)\",\"furnished\":true|false,\"amenities\":[строки из: Бассейн,Wi-Fi,Кондиционер,Кухня,Парковка,Сад,Холодильник,Телевизор,Стиральная машина,Плита,Завтраки,Общая кухня,Электричество,Вода],\"title\":краткий заголовок до 90 символов,\"desc\":сжатое описание до 600 символов}. Районы: "+aiDistricts().join(",")+". Не выдумывай отсутствующие числа — ставь 0. Цена помесячной аренды — category monthly, годовой — yearly.";
+  const system="Ты парсер объявлений недвижимости Бали. Ответь СТРОГО одним JSON-объектом без пояснений. Схема: {\"deal\":\"rent|sale\",\"role\":\"offer|request\",\"price\":число в IDR (B/miliar=1e9, млн=1e6; USD переведи по 16000; 0 если нет цены),\"category\":\"monthly|yearly (только для rent; иначе monthly)\",\"ptype\":\"villa|house|apartment|room|invest|homestay|land|townhouse|boarding|commercial\",\"district\":\"ключ района строго из списка\",\"area\":площадь строения м² числом,\"land\":участок м² числом (сотка/are=100)\",\"bedrooms\":число,\"bathrooms\":число,\"tenure\":\"freehold|leasehold (только для sale)\",\"furnished\":true|false,\"amenities\":[строки из: Бассейн,Wi-Fi,Кондиционер,Кухня,Парковка,Сад,Холодильник,Телевизор,Стиральная машина,Плита,Завтраки,Общая кухня,Электричество,Вода],\"title\":краткий заголовок до 90 символов,\"desc\":сжатое описание до 600 символов}. Районы: "+aiDistricts().join(",")+". Не выдумывай отсутствующие числа — ставь 0. Цена помесячной аренды — category monthly, годовой — yearly.";
   return{system,user:"Текст задания:\n"+String(text||"").slice(0,4000)};
 }
 function extractJson(s){
@@ -1010,7 +1012,7 @@ function extractJson(s){
 }
 function normalizeAiListing(o,fallbackText){
   o=o||{};
-  const PT=["villa","house","apartment","homestay","land","townhouse","boarding","commercial"];
+  const PT=["villa","house","apartment","room","invest","homestay","land","townhouse","boarding","commercial"];
   const validDist=new Set(aiDistricts());
   const num=v=>{const n=Number(v);return isFinite(n)&&n>=0?Math.round(n):0;};
   const out={};
@@ -1276,6 +1278,28 @@ if($("fAvail"))enhanceMonth($("fAvail"));
 document.addEventListener("click",e=>{if(!e.target.closest(".dd"))closeAllDD();});
 let qTimer=null;
 document.querySelectorAll("[data-mdeal]").forEach(b=>b.onclick=()=>{state.deal=b.dataset.mdeal;state.role="offer";state.page=1;syncRoleTabs();switchView("list");syncDealTabs();render();updateMarkersSafe();});
+const MCHIP_TYPES=[
+ {t:"villa",label:"Виллы",svg:'<path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z"/>'},
+ {t:"house",label:"Дома",svg:'<rect x="4" y="10" width="16" height="10" rx="1"/><path d="M2 10l10-7 10 7"/><path d="M10 20v-5h4v5"/>'},
+ {t:"apartment",label:"Апарты",svg:'<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/>'},
+ {t:"room",label:"Комнаты",svg:'<path d="M2 20v-9a2 2 0 012-2h16a2 2 0 012 2v9"/><path d="M2 17h20"/><circle cx="12" cy="11" r="2"/>'},
+ {t:"land",label:"Земля",svg:'<path d="M5 19C5 9 13 5 20 4c0 8-4 15-13 15"/><path d="M5 19c3-5 7-9 11-11"/>'},
+ {t:"invest",label:"Инвест",svg:'<path d="M3 21h18"/><path d="M6 21v-7M12 21V8M18 21v-4"/>'},
+ {t:"homestay",label:"Homestay",svg:'<path d="M2 20v-9a2 2 0 012-2h16a2 2 0 012 2v9"/><path d="M2 17h20"/>'},
+ {t:"townhouse",label:"Таунхаусы",svg:'<rect x="3" y="10" width="8" height="10" rx="1"/><rect x="13" y="10" width="8" height="10" rx="1"/><path d="M1 10l6-6 6 6M11 10l6-6 6 6"/>'},
+ {t:"boarding",label:"Sewa Kos",svg:'<circle cx="12" cy="8" r="3"/><path d="M5 21c1-4 4-6 7-6s6 2 7 6"/>'},
+ {t:"commercial",label:"Бизнес",svg:'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4"/>'}
+];
+let mchipStart=0,mchipHoldUntil=0;
+function paintMchips(){
+  const box=$("mchips");if(!box)return;
+  const win=[];
+  for(let k=0;k<4;k++)win.push(MCHIP_TYPES[(mchipStart+k)%MCHIP_TYPES.length]);
+  box.innerHTML=win.map(o=>`<button data-mtype="${o.t}" class="${$("fType").value===o.t?"active":""}"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${o.svg}</svg> ${o.label}</button>`).join("");
+  box.querySelectorAll("[data-mtype]").forEach(b=>b.onclick=()=>{const cur=$("fType").value===b.dataset.mtype;$("fType").value=cur?"":b.dataset.mtype;state.page=1;mchipHoldUntil=Date.now()+12000;paintMchips();render();});
+}
+setInterval(()=>{if(Date.now()<mchipHoldUntil)return;if(document.hidden)return;mchipStart=(mchipStart+1)%MCHIP_TYPES.length;paintMchips();},4000);
+paintMchips();
 document.querySelectorAll("[data-mtype]").forEach(b=>b.onclick=()=>{const cur=$("fType").value===b.dataset.mtype;$("fType").value=cur?"":b.dataset.mtype;state.page=1;render();});
 if($("mquery"))$("mquery").addEventListener("input",e=>{clearTimeout(qTimer);qTimer=setTimeout(()=>{state.query=e.target.value;state.page=1;render();},250);});
 if($("dquery"))$("dquery").addEventListener("input",e=>{clearTimeout(qTimer);qTimer=setTimeout(()=>{state.query=e.target.value;state.page=1;render();},250);});
@@ -1562,9 +1586,13 @@ async function submitForm(auto,opts){
     const old=editingId?LISTINGS.find(x=>x.id===editingId):null;
     let title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);let priceMin=0;
     if(old){if(!title)title=old.title||"";if(isNaN(price))price=old.price||0;}
-    if(!title&&auto){$("nlTitle").value=agentComposeTitle();title=$("nlTitle").value.trim();}
-    if(!title&&old){$("nlTitle").value=agentComposeTitle({pt:$("nlType").value,rawName:"",district:$("nlDistrict").value||old.locationEn||"",bedrooms:+$("nlBed").value||0,role:$("nlRole").value,land:+$("nlLand").value||0,area:+$("nlArea").value||0,price:price});title=$("nlTitle").value.trim();}
-    if(!title){if(!auto&&!old)notify("Укажите заголовок");if(!auto&&!old){submitBusy=false;return false;}}
+    if(!title){
+      const _fd={pt:$("nlType").value,rawName:"",district:($("nlDistrict").value||((old&&old.locationEn)||"")),bedrooms:+$("nlBed").value||0,role:$("nlRole").value,land:+$("nlLand").value||0,area:+$("nlArea").value||0,price:price,deal:$("nlDeal").value,tenure:"",leaseYears:0,desc:""};
+      if($("nlTenure"))_fd.tenure=$("nlTenure").value;
+      if($("nlLease"))_fd.leaseYears=+$("nlLease").value||0;
+      if($("nlDesc"))_fd.desc=$("nlDesc").value.trim();
+      $("nlTitle").value=agentComposeTitle(_fd);title=$("nlTitle").value.trim();
+    }
     const isReq=$("nlRole").value==="request";
     if(isReq){
       const rawMax=$("nlPriceTo")?$("nlPriceTo").value:"";
@@ -1572,11 +1600,11 @@ async function submitForm(auto,opts){
       if(rawMax==="")price=old?old.price||0:0;
       else price=parseFloat(rawMax)||0;
     }
-    if(!(price>0)&&!(isReq&&priceMin>0)){if(auto||old){price=0;}else if(!isReq){notify("Укажите цену");submitBusy=false;return false;}else{price=0;}}
+    if(!(price>0)&&!(isReq&&priceMin>0)){price=0;}
     if($("nlCur")&&$("nlCur").value==="USD"){price=Math.round(price*RATE);priceMin=Math.round(priceMin*RATE);}
     const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
     const customLoc=isReq&&$("nlLocCustom")?$("nlLocCustom").value.trim():"";
-    const dk=customLoc?"":($("nlDistrict").value||(old?old.locationEn||"":""));
+    const dk=customLoc?"":($("nlDistrict").value||((old&&old.locationEn)||""));
     const rl=customLoc?customLoc:(dk?locName(dk):"Бали");
     let lat=null,lng=null;
     let g=null;
@@ -1735,6 +1763,8 @@ function guessPtype(txt){
   const t=String(txt||"").toLowerCase();
   if(/вилл|villa/.test(t))return "villa";
   if(/таунхаус|townhouse/.test(t))return "townhouse";
+  if(/комнат|комната|room\b/.test(t))return "room";
+  if(/инвест|invest/.test(t))return "invest";
   if(/квартир|апарт|студи|apartment|studio/.test(t))return "apartment";
   if(/homestay|хомстей|хоумстей/.test(t))return "homestay";
   if(/\bkos\b|sewa kos|кос\b|boarding/.test(t))return "boarding";
@@ -1753,13 +1783,21 @@ function cleanName(s){
   if(s.split(/\s+/).length>4)return "";
   return s.slice(0,60);
 }
+function titleFromDesc(desc){
+  const w=String(desc||"").replace(/\s+/g," ").trim().split(" ").filter(Boolean).slice(0,8).join(" ");
+  if(w.length<12)return "";
+  return w.slice(0,90);
+}
 function agentComposeTitle(d){
   d=d||agent.data;
   if(d.title&&!d._autoTitle)return d.title;
-  const req=d.role==="request";
+  const dw=titleFromDesc(d.desc);
+  if(dw)return dw;
+  const req=d.role==="request",sale=d.deal==="sale";
   const t=[];
   let ptName=d.pt?pTypeLabel(d.pt):"Объект";
-  if(req){const acc={villa:"виллу",house:"дом",apartment:"квартиру",land:"землю",townhouse:"таунхаус",boarding:"кос",homestay:"хомстей",commercial:"помещение"};t.push("Ищу "+(acc[d.pt]||ptName.charAt(0).toLowerCase()+ptName.slice(1)));}
+  if(req){const acc={villa:"виллу",house:"дом",apartment:"квартиру",room:"комнату",invest:"инвестпроект",land:"землю",townhouse:"таунхаус",boarding:"кос",homestay:"хомстей",commercial:"помещение"};t.push("Ищу "+(acc[d.pt]||ptName.charAt(0).toLowerCase()+ptName.slice(1)));}
+  else if(sale)t.push("Продается "+ptName.charAt(0).toLowerCase()+ptName.slice(1));
   else t.push(ptName);
   let nm=d.rawName||"";
   const nmLow=nm.toLowerCase();
@@ -1768,6 +1806,8 @@ function agentComposeTitle(d){
   let s=t.join(" ");
   if(d.district)s+=" "+locPrep(d.district);
   if(d.land>0&&!(d.area>0))s+=", земля "+parseFloat((d.land/100).toFixed(2))+" "+plural(Math.round(d.land/100)||0,["сотка","сотки","соток"]);
+  if(sale&&d.tenure==="freehold")s+=" фрихолд";
+  else if(sale&&d.tenure==="leasehold")s+=(d.leaseYears>0?(" аренда "+d.leaseYears+" лет"):" лизхолд");
   if(d.bedrooms>0)s+=" — "+d.bedrooms+" "+plural(d.bedrooms,["спальня","спальни","спален"]);
   return (s.slice(0,90)||"Объявление");
 }

@@ -68,7 +68,7 @@ AI_SYSTEM = ("Ты парсер объявлений недвижимости Б
              "Схема: {\"deal\":\"rent|sale\",\"role\":\"offer|request\",\"price\":число в IDR "
              "(B/miliar=1e9, млн=1e6; USD переведи по 16000; 0 если нет цены),"
              "\"category\":\"monthly|yearly (только для rent; иначе monthly)\","
-             "\"ptype\":\"villa|house|apartment|homestay|land|townhouse|boarding|commercial\","
+             "\"ptype\":\"villa|house|apartment|room|invest|homestay|land|townhouse|boarding|commercial\","
              "\"district\":\"ключ района строго из списка\",\"area\":площадь строения м² числом,"
              "\"land\":участок м² числом (сотка/are=100),\"bedrooms\":число,\"bathrooms\":число,"
              "\"tenure\":\"freehold|leasehold (только для sale)\",\"furnished\":true|false,"
