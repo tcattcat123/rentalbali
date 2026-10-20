@@ -289,7 +289,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.47";const APP_BUILD="92";
+const APP_V="2.48";const APP_BUILD="93";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -2190,7 +2190,21 @@ if($("aiPhotos"))$("aiPhotos").addEventListener("click",e=>{
   const b=e.target.closest("[data-aiphot]");if(!b)return;
   (agent.data.photos||[]).splice(+b.dataset.aiphot,1);agentPhotosPreview();
 });
+let aiFabHidden=false;try{aiFabHidden=localStorage.getItem("rh_aifab_hidden")==="1";}catch(e){}
+function setAiFabHidden(v){
+  aiFabHidden=!!v;
+  try{localStorage.setItem("rh_aifab_hidden",aiFabHidden?"1":"0");}catch(e){}
+  const f=$("aiFab");if(f)f.classList.toggle("hidden",aiFabHidden);
+  const chat=$("aiChat");if(chat&&!aiFabHidden)chat.classList.add("hidden");
+  updateFabClose();
+}
+function updateFabClose(){
+  const b=$("aiFabClose");if(!b)return;
+  b.textContent=aiFabHidden?"💬":"✕";
+  b.title=aiFabHidden?"Показать помощника":"Скрыть помощника";
+}
 let aiFabDragAt=0;
+setAiFabHidden(aiFabHidden);
 if($("aiFab")){
   const fab=$("aiFab");
   let sx,sy,ox,oy,moved=false;
@@ -2200,6 +2214,7 @@ if($("aiFab")){
   fab.addEventListener("pointercancel",()=>{sx=undefined;});
   fab.onclick=()=>{if(Date.now()-aiFabDragAt<300)return;agentToggle();};
 }
+if($("aiFabClose"))$("aiFabClose").onclick=()=>setAiFabHidden(!aiFabHidden);
 if($("aiBack"))$("aiBack").onclick=()=>{agentToggle(false);goBack();};
 if($("aiClose"))$("aiClose").onclick=()=>agentToggle(false);
 if($("aiSend"))$("aiSend").onclick=agentSend;

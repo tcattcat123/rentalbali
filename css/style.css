@@ -135,6 +135,9 @@ a{-webkit-tap-highlight-color:transparent}
 .ai-input input:focus{border-color:var(--acc)}
 .ai-input .btn-primary{height:38px}
 @media(max-width:767px){#aiFab{bottom:76px}#aiChat{bottom:138px}}
+#aiFabClose{position:fixed;right:6px;bottom:62px;z-index:91;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:13px;cursor:pointer;box-shadow:var(--sh);touch-action:manipulation}
+#aiFabClose:hover{color:var(--bad);border-color:var(--bad)}
+@media(max-width:767px){#aiFabClose{bottom:128px}}
 #aiFab::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(235,87,87,.5);animation:fabPulse 2s ease-out infinite}
 @keyframes fabPulse{0%{transform:scale(.85);opacity:1}100%{transform:scale(1.25);opacity:0}}
 #aiChat{animation:aiUp .25s ease}
