@@ -48,7 +48,7 @@ const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня",
 LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
 /* ===== Local profiles: switch, logout, new (no backend, per-device) ===== */
 function loadProfilesRaw(){try{const p=JSON.parse(localStorage.getItem("rh_profiles")||"[]");return Array.isArray(p)?p.filter(x=>x&&x.id):[];}catch(e){return[];}}
-function loadProfiles(){return loadProfilesRaw().map((p,i)=>Object.assign({num:i+1,username:"",email:"",phone:"",password:""},p));}
+function loadProfiles(){return loadProfilesRaw().map((p,i)=>Object.assign({num:i+1,username:"",email:"",phone:"",password:"",role:"owner",city:"",bio:"",public:false},p));}
 function ensureProfileNums(){try{const l=JSON.parse(localStorage.getItem("rh_profiles")||"[]");if(Array.isArray(l)&&l.length&&l.some(p=>!p||!p.num)){l.forEach((p,i)=>{if(p&&!p.num)p.num=i+1;});localStorage.setItem("rh_profiles",JSON.stringify(l));}}catch(e){}}
 function saveProfiles(list){try{localStorage.setItem("rh_profiles",JSON.stringify(list||[]));}catch(e){}}
 function curPid(){try{return localStorage.getItem("rh_profile_current")||"";}catch(e){return"";}}
@@ -289,7 +289,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.48";const APP_BUILD="93";
+const APP_V="2.49";const APP_BUILD="94";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -696,6 +696,44 @@ function isCurrentAdmin(it){
   if(!me&&!curPid())return false;
   return (it.parties||[]).some(p=>p&&p.role==="admin"&&((p.pid&&p.pid===curPid())||String(p.name||"").trim().toLowerCase()===me));
 }
+function loadContracts(){try{return JSON.parse(localStorage.getItem("rh_contracts")||"[]");}catch(e){return[];}}
+function saveContracts(l){try{localStorage.setItem("rh_contracts",JSON.stringify(l||[]));}catch(e){}}
+function contractParties(meId,themId,projectId){
+  const contracts=loadContracts();
+  let c=contracts.find(c=>c.parties.some(p=>p.pid===meId)&&c.parties.some(p=>p.pid===themId));
+  if(!c){c={id:"c"+Date.now(),parties:[{pid:meId,name:curProfile().name,role:curProfile().role},{pid:themId,name:"",role:""}],projects:[],createdAt:Date.now(),status:"active"};contracts.push(c);}
+  if(!c.projects.includes(projectId))c.projects.push(projectId);
+  const them=loadProfiles().find(x=>x.id===themId);
+  if(them){const pp=c.parties.find(p=>p.pid===themId);if(pp){pp.name=them.name;pp.role=them.role;}}
+  saveContracts(contracts);
+  return c;
+}
+function paintPeople(){
+  const box=$("peopleList");if(!box)return;
+  const meId=curPid(),me=curProfile(),meName=me?me.name:"";
+  const list=loadProfiles().filter(p=>p.public||p.id===meId);
+  const contracts=loadContracts();
+  const partnerIds=new Set(contracts.filter(c=>c.parties.some(p=>p.pid===meId)).flatMap(c=>c.parties.map(p=>p.pid)).filter(pid=>pid!==meId));
+  list.sort((a,b)=>{const aP=partnerIds.has(a.id)?0:1;const bP=partnerIds.has(b.id)?0:1;if(aP!==bP)return aP-bP;return (a.num||0)-(b.num||0);});
+  box.innerHTML=list.length?list.map(p=>`<button type="button" class="lrow" data-open-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${esc(p.name||"Без имени")}${p.username?' <span class="muted">@'+esc(p.username)+'</span>':""}${p.id===meId?' <span class="badge partner">Вы</span>':''}${partnerIds.has(p.id)?' <span class="badge partner">Партнёр</span>':''}</div><div class="lrow-sub muted">${esc(p.role||"")}${p.city?", "+esc(p.city):""}${p.bio?" · "+esc(p.bio):""}</div></div></button>`).join(""):`<span class="muted">Публичных профилей нет</span>`;
+  box.querySelectorAll("[data-open-user]").forEach(b=>b.onclick=()=>openUser(b.dataset.openUser));
+}
+function openUser(pid){
+  const u=loadProfiles().find(x=>x.id===pid);if(!u)return;
+  const meId=curPid(),meName=(curProfile()||{}).name||"";
+  const contracts=loadContracts();
+  const myContracts=contracts.filter(c=>c.parties.some(p=>p.pid===pid)&&c.parties.some(p=>p.pid===meId));
+  const projects=[];
+  myContracts.forEach(c=>{c.projects.forEach(id=>{if(!projects.includes(id))projects.push(id);});});
+  const projectCards=projects.map(id=>{
+    const it=findListing(id);
+    if(!it)return `<button type="button" class="lrow" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">Удалённый проект #${id}</div></div></button>`;
+    return `<button type="button" class="lrow" data-open="${it.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">${esc(it.title||"Без названия")}</div><div class="lrow-sub muted">${esc(it.location||"")}${it.price>0?" · "+it.price.toLocaleString("ru-RU")+" IDR":""}</div></div></button>`;
+  }).join("");
+  const contacts=[u.username?("Логин: @"+u.username):"",u.email?("Почта: "+u.email):"",u.phone?("Телефон: "+u.phone):""].filter(Boolean);
+  $("userContent").innerHTML=`<h3>#${u.num||"—"} ${esc(u.name||"Без имени")}</h3>${contacts.length?`<p class="muted" style="font-size:13px">${contacts.map(esc).join("<br>")}</p>`:`<p class="muted">Контактов нет</p>`}<h3 style="margin-top:10px">Проекты (${projects.length})</h3>${projects.length?`<div style="display:grid;gap:6px">`+projectCards.join("")+`</div>`:`<p class="muted">Проектов нет</p>`}`;
+  $("userModal").classList.remove("hidden");
+}
 function syncNlRoleView(){
   const isReq=$("nlRole")&&$("nlRole").value==="request";
   if($("nlPriceToWrap"))$("nlPriceToWrap").style.display=isReq?"":"none";
@@ -760,6 +798,7 @@ function switchCabtab(name){
   cabTab=name;
   document.querySelectorAll("#view-profile [data-cabtab]").forEach(b=>b.classList.toggle("active",b.dataset.cabtab===name));
   document.querySelectorAll("#view-profile [data-cabpanel]").forEach(p=>p.classList.toggle("hidden",p.dataset.cabpanel!==name));
+  if(name==="people")paintPeople();
 }
 function switchImptab(name){
   document.querySelectorAll("[data-imptab]").forEach(b=>b.classList.toggle("active",b.dataset.imptab===name));
@@ -1330,7 +1369,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
 (function initCabinetBoot(){
   fillDistricts();
   renderProfiles();
-  if($("pfSave"))$("pfSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.name=(($("pfName")||{}).value||"").trim().slice(0,60)||it.name;it.username=(($("pfUsername")||{}).value||"").trim().slice(0,40);it.email=(($("pfEmail")||{}).value||"").trim().slice(0,80);it.phone=(($("pfPhone")||{}).value||"").trim().slice(0,30);it.password=(($("pfPass")||{}).value||"");saveProfiles(list);}renderProfiles();notify("Профиль сохранён");};
+  if($("pfSave"))$("pfSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.name=(($("pfName")||{}).value||"").trim().slice(0,60)||it.name;it.username=(($("pfUsername")||{}).value||"").trim().slice(0,40);it.email=(($("pfEmail")||{}).value||"").trim().slice(0,80);it.phone=(($("pfPhone")||{}).value||"").trim().slice(0,30);it.city=(($("pfCity")||{}).value||"").trim();it.role=(($("pfRole")||{}).value||"owner");it.bio=(($("pfBio")||{}).value||"").trim().slice(0,200);it.public=!!$("pfPublic").checked;saveProfiles(list);}renderProfiles();notify("Профиль сохранён");};
   if($("pfCreate"))$("pfCreate").onclick=async()=>{const nm=(($("pfNewName")||{}).value||"").trim().slice(0,60)||"Гость";const id="g-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);const list=loadProfilesRaw();list.push({id,num:Math.max(0,...list.map(p=>p.num||0))+1,name:nm,createdAt:Date.now()});saveProfiles(list);if($("pfNewName"))$("pfNewName").value="";await switchProfile(id);};
   if($("pfLogout"))$("pfLogout").onclick=async()=>{
     await persistMy();
@@ -1642,6 +1681,8 @@ async function submitForm(auto,opts){
     } else {
       LISTINGS.unshift(it);backendSaved=await persistMy();const tplSnap=snapForm();resetNlForm();
       state.deal=deal;state.role=role;state.page=1;syncRoleTabs();syncDealTabs();render();
+      const meId=curPid();
+      partiesArr.forEach(p=>{if(p.pid&&p.pid!==meId)contractParties(meId,p.pid,it.id);});
       showAfterSave(it.id,tplSnap);
       notify(backendSaved?"Опубликовано! Показываю его в ленте.":"Карточка сохранена в этом браузере.");
     }

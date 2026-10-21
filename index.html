@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="93">
+<meta name="app-build" content="94">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=93">
+<link rel="stylesheet" href="css/style.css?v=94">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -159,6 +159,7 @@
       <button data-cabtab="profile" class="active">Профиль</button>
       <button data-cabtab="projects">Мои проекты</button>
       <button data-cabtab="add">Добавить проект</button>
+      <button data-cabtab="people">Участники рынка</button>
     </div>
     <div class="profile-card card" data-cabpanel="profile">
       <img src="https://i.pravatar.cc/120?img=12" alt="avatar" class="avatar" id="pfAvatar" title="Нажмите, чтобы загрузить фото" style="cursor:pointer">
@@ -170,6 +171,10 @@
         <div class="filter-group"><label>Почта</label><input id="pfEmail" type="email" placeholder="mail@example.com" autocomplete="off"></div>
         <div class="filter-group"><label>Телефон</label><input id="pfPhone" placeholder="+62 ..." autocomplete="off"></div>
         <div class="filter-group"><label>Пароль</label><input id="pfPass" type="password" placeholder="••••••" autocomplete="new-password"></div>
+        <div class="filter-group"><label>Город</label><input id="pfCity" placeholder="Например: Чангу"></div>
+        <div class="filter-group"><label>Роль на рынке</label><select id="pfRole"><option value="owner">Владелец</option><option value="agent">Агент</option><option value="notary">Нотариус</option><option value="consultant">Консультант</option><option value="admin">Администратор</option><option value="buyer">Покупатель</option></select></div>
+        <div class="filter-group"><label>Описание</label><textarea id="pfBio" rows="2" placeholder="Кем вы работаете на рынке недвижимости?"></textarea></div>
+        <div class="filter-group"><label>Публичный профиль</label><input type="checkbox" id="pfPublic"> Видимость в общем списке участников рынка</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button id="pfSave" class="btn-primary">Сохранить</button>
           <button id="pfLogout" class="btn-ghost">Выйти</button>
@@ -278,6 +283,18 @@
     </div>
     <div id="myGrid" class="grid hidden" data-cabpanel="projects"></div>
     <div class="card cab-form hidden" data-cabpanel="projects" style="margin-top:10px"><h3>Все участники</h3><div id="allParties" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+    <div class="card cab-form hidden" data-cabpanel="people" style="margin-top:10px">
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="chip active" data-psort="all">Все</button>
+        <button type="button" class="chip" data-psort="agent">Агенты</button>
+        <button type="button" class="chip" data-psort="notary">Нотариусы</button>
+        <button type="button" class="chip" data-psort="consultant">Консультанты</button>
+        <button type="button" class="chip" data-psort="admin">Администраторы</button>
+        <button type="button" class="chip" data-psort="owner">Владельцы</button>
+        <button type="button" class="chip" data-psort="buyer">Покупатели</button>
+      </div>
+      <div id="peopleList" style="margin-top:10px;display:grid;gap:8px"></div>
+    </div>
   </section>
 
   <section id="view-detail" class="hidden">
@@ -324,7 +341,7 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="fav">♡<span data-i18n="nav_fav">Сохранённое</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=93"></script>
+<script src="js/app.js?v=94"></script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
