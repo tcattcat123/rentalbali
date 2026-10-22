@@ -293,7 +293,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.54";const APP_BUILD="99";
+const APP_V="2.55";const APP_BUILD="100";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -522,10 +522,18 @@ function requireAgreement(){
   m.classList.remove("hidden");
 }
 function paintPeopleTab(){
-  const box=$("peopleList");if(!box)return;
+  const box=$("partnersList");if(!box)return;
   const meId=curPid(),me=curProfile(),meName=me?me.name:"";
-  const list=loadProfiles().filter(p=>p.id!==meId&&isPartnerWith?isPartnerWith(meId,meName,p):false);
-  box.innerHTML=list.length?list.map(p=>`<button type="button" class="lrow" data-open-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${esc(p.name||"Без имени")}${p.username?' <span class="muted">@'+esc(p.username)+'</span>':""} <span class="badge partner">Партнёр</span></div><div class="lrow-sub muted">${esc(p.role||"")}${p.city?", "+esc(p.city):""}</div></div></button>`).join(""):`<span class="muted">Партнёров пока нет</span>`;
+  const list=loadProfiles().filter(p=>p.id!==meId&&isPartnerWith(meId,meName,p));
+  const empty=$("partnersEmpty");
+  if(empty)empty.classList.toggle("hidden",list.length>0);
+  box.innerHTML=list.map(p=>{
+    const c=[];
+    if(p.username)c.push("@"+p.username);
+    if(p.phone)c.push(p.phone);
+    if(p.email)c.push(p.email);
+    return `<button type="button" class="lrow" data-open-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${esc(p.name||"Без имени")}${p.username?' <span class="muted">@'+esc(p.username)+'</span>':""} <span class="badge partner">Партнёр</span></div><div class="lrow-sub muted">${esc(p.role||"")}${p.city?", "+esc(p.city):""}</div>${c.length?`<div class="lrow-sub">${c.map(esc).join(" · ")}</div>`:""}</div></button>`;
+  }).join("");
   box.querySelectorAll("[data-open-user]").forEach(b=>b.onclick=()=>openUser(b.dataset.openUser));
 }
 function switchView(v,noHist){
@@ -618,7 +626,17 @@ function buildParties(){
 }
 let userSort="partner";
 function profileItems(pid){let a=[];try{a=JSON.parse(localStorage.getItem("rh_my_"+pid)||"[]")||[];}catch(e){}return Array.isArray(a)?a.filter(o=>o&&o.id):[];}
+function contractPartnerIds(meId){
+  const ids=new Set();
+  loadContracts().forEach(c=>{
+    if(!c.parties.some(p=>p.pid===meId))return;
+    c.parties.forEach(p=>{if(p.pid&&p.pid!==meId)ids.add(p.pid);});
+  });
+  return ids;
+}
 function isPartnerWith(meId,meName,u){
+  if(!meId||!u||u.id===meId)return false;
+  if(contractPartnerIds(meId).has(u.id))return true;
   const meLow=String(meName||"").trim().toLowerCase(),uLow=String((u&&u.name)||"").trim().toLowerCase();
   const mine=LISTINGS.filter(x=>x.mine);
   if(mine.some(it=>(it.parties||[]).some(p=>p&&((p.pid&&p.pid===u.id)||String(p.name||"").trim().toLowerCase()===uLow))))return true;
@@ -756,8 +774,11 @@ function openUser(pid){
     if(!it)return `<button type="button" class="lrow" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">Удалённый проект #${id}</div></div></button>`;
     return `<button type="button" class="lrow" data-open="${it.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">${esc(it.title||"Без названия")}</div><div class="lrow-sub muted">${esc(it.location||"")}${it.price>0?" · "+it.price.toLocaleString("ru-RU")+" IDR":""}</div></div></button>`;
   }).join("");
-  const contacts=[u.username?("Логин: @"+u.username):"",u.email?("Почта: "+u.email):"",u.phone?("Телефон: "+u.phone):""].filter(Boolean);
-  $("userContent").innerHTML=`<h3>#${u.num||"—"} ${esc(u.name||"Без имени")}</h3>${contacts.length?`<p class="muted" style="font-size:13px">${contacts.map(esc).join("<br>")}</p>`:`<p class="muted">Контактов нет</p>`}<h3 style="margin-top:10px">Проекты (${projects.length})</h3>${projects.length?`<div style="display:grid;gap:6px">`+projectCards.join("")+`</div>`:`<p class="muted">Проектов нет</p>`}`;
+  const isPartner=isPartnerWith(meId,meName,u);
+  const canSeeContacts=!!u.public||isPartner;
+  const contacts=canSeeContacts?[u.username?("Логин: @"+u.username):"",u.email?("Почта: "+u.email):"",u.phone?("Телефон: "+u.phone):""].filter(Boolean):[];
+  const hiddenNote=canSeeContacts?"":`<p class="muted" style="font-size:12px">Профиль не публичный. Контакты откроются, когда вы заключите договор.</p>`;
+  $("userContent").innerHTML=`<h3>#${u.num||"—"} ${esc(u.name||"Без имени")}${isPartner?' <span class="badge partner">Партнёр</span>':(u.public?' <span class="badge verified">Публичный</span>':'')}</h3>${hiddenNote}${contacts.length?`<p class="muted" style="font-size:13px">${contacts.map(esc).join("<br>")}</p>`:(canSeeContacts?`<p class="muted">Контактов нет</p>`:"")}${u.bio?`<p style="font-size:13px">${esc(u.bio)}</p>`:""}<h3 style="margin-top:10px">Проекты (${projects.length})</h3>${projects.length?`<div style="display:grid;gap:6px">`+projectCards.join("")+`</div>`:`<p class="muted">Проектов нет</p>`}`;
   $("userModal").classList.remove("hidden");
 }
 function syncNlRoleView(){
