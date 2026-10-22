@@ -293,7 +293,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.51";const APP_BUILD="96";
+const APP_V="2.52";const APP_BUILD="97";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1759,6 +1759,35 @@ function saveTpl(name,data){
         persistMy();
       }
       render();notify("Копия загружена");
+    }catch(_){notify("Не смог прочитать файл");}};
+    r.readAsText(f);e.target.value="";
+  };
+  if($("profExport"))$("profExport").onclick=()=>{
+    const p=curProfile();if(!p){notify("Сначала выберите профиль");return;}
+    const data={app:"renthome-bali-profile",v:1,exportedAt:new Date().toISOString(),profile:{name:p.name,username:p.username,email:p.email,phone:p.phone,city:p.city,role:p.role,bio:p.bio,public:p.public}};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="renthome-profile.json";a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  };
+  if($("profImportBtn"))$("profImportBtn").onclick=()=>{const f=$("profImport");if(f)f.click();};
+  if($("profImport"))$("profImport").onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{try{
+      const p=curProfile();if(!p){notify("Сначала выберите профиль");return;}
+      let raw=r.result;let d;
+      try{d=JSON.parse(raw);}catch(_){d=null;}
+      if(!d||!d.profile){
+        // попытка разобрать текстовый формат "ключ: значение"
+        d={profile:{}};
+        String(raw).split(/\r?\n/).forEach(line=>{
+          const m=line.match(/^\s*([A-Za-zА-Яа-яЁё]+)\s*:\s*(.+?)\s*$/);
+          if(m){const k=m[1].toLowerCase();const v=m[2];if(k==="имя"||k==="name")d.profile.name=v;else if(k==="логин"||k==="username")d.profile.username=v;else if(k==="почта"||k==="email")d.profile.email=v;else if(k==="телефон"||k==="phone")d.profile.phone=v;else if(k==="город"||k==="city")d.profile.city=v;else if(k==="роль"||k==="role")d.profile.role=v;else if(k==="описание"||k==="bio")d.profile.bio=v;else if(k==="публичный"||k==="public")d.profile.public=(v==="да"||v==="true"||v==="1");}
+        });
+      }
+      const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);
+      if(it){const pr=d.profile;if(pr.name)it.name=String(pr.name).slice(0,60);if(pr.username!==undefined)it.username=String(pr.username).slice(0,40);if(pr.email!==undefined)it.email=String(pr.email).slice(0,80);if(pr.phone!==undefined)it.phone=String(pr.phone).slice(0,30);if(pr.city!==undefined)it.city=String(pr.city).trim();if(pr.role!==undefined)it.role=String(pr.role);if(pr.bio!==undefined)it.bio=String(pr.bio).slice(0,200);if(pr.public!==undefined)it.public=!!pr.public;saveProfiles(list);}
+      renderProfiles();notify("Настройки профиля загружены");
     }catch(_){notify("Не смог прочитать файл");}};
     r.readAsText(f);e.target.value="";
   };
