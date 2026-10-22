@@ -289,7 +289,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.49";const APP_BUILD="94";
+const APP_V="2.50";const APP_BUILD="95";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -708,10 +708,12 @@ function contractParties(meId,themId,projectId){
   saveContracts(contracts);
   return c;
 }
+let peopleFilter="all";
 function paintPeople(){
   const box=$("peopleList");if(!box)return;
   const meId=curPid(),me=curProfile(),meName=me?me.name:"";
-  const list=loadProfiles().filter(p=>p.public||p.id===meId);
+  let list=loadProfiles().filter(p=>p.public||p.id===meId);
+  if(peopleFilter!=="all")list=list.filter(p=>p.role===peopleFilter);
   const contracts=loadContracts();
   const partnerIds=new Set(contracts.filter(c=>c.parties.some(p=>p.pid===meId)).flatMap(c=>c.parties.map(p=>p.pid)).filter(pid=>pid!==meId));
   list.sort((a,b)=>{const aP=partnerIds.has(a.id)?0:1;const bP=partnerIds.has(b.id)?0:1;if(aP!==bP)return aP-bP;return (a.num||0)-(b.num||0);});
@@ -1351,6 +1353,7 @@ if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render()
   document.querySelectorAll("[data-cabtab]").forEach(b=>b.onclick=()=>switchCabtab(b.dataset.cabtab));
   document.querySelectorAll("[data-pf]").forEach(b=>b.onclick=()=>{cabProjFilter=b.dataset.pf;document.querySelectorAll("[data-pf]").forEach(x=>x.classList.toggle("active",x===b));render();});
   document.querySelectorAll("[data-usort]").forEach(b=>b.onclick=()=>{userSort=b.dataset.usort;paintUsers();});
+  document.querySelectorAll("[data-psort]").forEach(b=>b.onclick=()=>{peopleFilter=b.dataset.psort;document.querySelectorAll("[data-psort]").forEach(x=>x.classList.toggle("active",x===b));paintPeople();});
   ensureProfileNums();
   if($("userClose"))$("userClose").onclick=()=>$("userModal").classList.add("hidden");
   if($("userModal"))$("userModal").addEventListener("click",e=>{if(e.target.id==="userModal")$("userModal").classList.add("hidden");});
