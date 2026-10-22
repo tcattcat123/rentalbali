@@ -115,6 +115,10 @@ function renderProfiles(){
   if($("pfEmail"))$("pfEmail").value=(p&&p.email)||"";
   if($("pfPhone"))$("pfPhone").value=(p&&p.phone)||"";
   if($("pfPass"))$("pfPass").value=(p&&p.password)||"";
+  if($("pfCity"))$("pfCity").value=(p&&p.city)||"";
+  if($("pfRole"))$("pfRole").value=(p&&p.role)||"owner";
+  if($("pfBio"))$("pfBio").value=(p&&p.bio)||"";
+  if($("pfPublic"))$("pfPublic").checked=!!(p&&p.public);
   if($("pfAvatar"))$("pfAvatar").src=(p&&p.avatar)||"https://i.pravatar.cc/120?img=12";
   paintNlPartyOpts();
 }
@@ -289,7 +293,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.50";const APP_BUILD="95";
+const APP_V="2.51";const APP_BUILD="96";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -696,6 +700,7 @@ function isCurrentAdmin(it){
   if(!me&&!curPid())return false;
   return (it.parties||[]).some(p=>p&&p.role==="admin"&&((p.pid&&p.pid===curPid())||String(p.name||"").trim().toLowerCase()===me));
 }
+function esc(s){return String(s||"").replace(/</g,"&lt;");}
 function loadContracts(){try{return JSON.parse(localStorage.getItem("rh_contracts")||"[]");}catch(e){return[];}}
 function saveContracts(l){try{localStorage.setItem("rh_contracts",JSON.stringify(l||[]));}catch(e){}}
 function contractParties(meId,themId,projectId){
