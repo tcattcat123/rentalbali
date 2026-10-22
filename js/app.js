@@ -293,7 +293,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.52";const APP_BUILD="97";
+const APP_V="2.53";const APP_BUILD="98";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -511,12 +511,23 @@ function render(){
 }
 
 let viewHist=[];
+function requireAgreement(){
+  const id=curPid();if(!id)return;
+  try{if(localStorage.getItem("rh_agree_"+id)==="1")return;}catch(e){}
+  const m=$("agreeModal");if(!m)return;
+  const cb=$("agreeCheck"),btn=$("agreeBtn");
+  if(cb)cb.checked=false;
+  if(btn){btn.disabled=true;btn.onclick=()=>{try{localStorage.setItem("rh_agree_"+id,"1");}catch(e){}m.classList.add("hidden");};}
+  if(cb)cb.onchange=()=>{if(btn)btn.disabled=!cb.checked;};
+  m.classList.remove("hidden");
+}
 function switchView(v,noHist){
   if(!noHist&&state.view&&state.view!==v){viewHist.push(state.view);if(viewHist.length>20)viewHist.shift();}
   state.view=v;
   ["list","map","fav","profile","detail"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
   document.querySelectorAll(".bn-item").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   if(v==="map")setTimeout(initMap,50);
+  if(v==="profile")setTimeout(requireAgreement,50);
 }
 function goBack(){
   const prev=viewHist.pop();
@@ -1361,6 +1372,7 @@ if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render()
   document.querySelectorAll("[data-psort]").forEach(b=>b.onclick=()=>{peopleFilter=b.dataset.psort;document.querySelectorAll("[data-psort]").forEach(x=>x.classList.toggle("active",x===b));paintPeople();});
   ensureProfileNums();
   if($("userClose"))$("userClose").onclick=()=>$("userModal").classList.add("hidden");
+  if($("agreeClose"))$("agreeClose").onclick=()=>{const id=curPid();try{if(localStorage.getItem("rh_agree_"+id)==="1")$("agreeModal").classList.add("hidden");else notify("Примите договор, чтобы войти в кабинет");}catch(e){$("agreeModal").classList.add("hidden");}};
   if($("userModal"))$("userModal").addEventListener("click",e=>{if(e.target.id==="userModal")$("userModal").classList.add("hidden");});
 if($("markersBtn"))$("markersBtn").onclick=()=>{showMarkers=!showMarkers;$("markersBtn").textContent=showMarkers?"Скрыть метки":"Показать метки";updateMarkersSafe();};
 if($("sheetApply"))$("sheetApply").onclick=()=>$("applyBtn").click();
