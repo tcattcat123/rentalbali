@@ -1,4 +1,4 @@
-/* RentHome Bali v2 — deal tabs + extended filters + characteristics */
+﻿/* RentHome Bali v2 — deal tabs + extended filters + characteristics */
 const RATE = 16000;
 const now = Date.now();
 const H = 3600e3, M = 60e3;
@@ -153,8 +153,8 @@ function fmtDT(ts){try{return new Date(ts).toLocaleString("ru-RU",{day:"2-digit"
 let detailId=null,detailIdx=0;
 
 const I18N = {
-ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",sub_hint:"предлагаю / ищу",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",nav_want:"Ищу",nav_partners:"Партнёры",nav_market:"Участники рынка",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",t_villa:"Вилла",t_house:"Дом",t_apartment:"Апарты",t_room:"Комнаты",t_invest:"Инвестпроекты",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
-en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",sub_hint:"offer / wanted",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",nav_want:"Wanted",nav_partners:"Partners",nav_market:"Market people",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_room:"Rooms",t_invest:"Investment projects",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
+ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",sub_hint:"предлагаю / ищу",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",nav_want:"Ищу",nav_partners:"Партнёры",nav_contracts:"Договора",nav_market:"Участники рынка",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",t_villa:"Вилла",t_house:"Дом",t_apartment:"Апарты",t_room:"Комнаты",t_invest:"Инвестпроекты",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
+en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",sub_hint:"offer / wanted",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",nav_want:"Wanted",nav_partners:"Partners",nav_contracts:"Contracts",nav_market:"Market people",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_room:"Rooms",t_invest:"Investment projects",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
 };
 
 const state = {deal:"rent",role:"offer",rentCat:"",tenure:"",query:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem(favKey())||"[]")),carIdx:{},districts:new Set()};
@@ -293,7 +293,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.56";const APP_BUILD="101";
+const APP_V="2.57";const APP_BUILD="102";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -513,22 +513,26 @@ function render(){
 let viewHist=[];
 function requireAgreement(){
   const id=curPid();if(!id)return;
-  try{if(localStorage.getItem("rh_agree_"+id)==="1")return;}catch(e){}
+  try{if(localStorage.getItem("rh_agree_ver2_"+id)==="1")return;}catch(e){}
   const m=$("agreeModal");if(!m)return;
-  const cb=$("agreeCheck"),btn=$("agreeBtn");
-  if(cb)cb.checked=false;
-  if(btn){btn.disabled=true;btn.onclick=()=>{try{localStorage.setItem("rh_agree_"+id,"1");}catch(e){}m.classList.add("hidden");};}
-  if(cb)cb.onchange=()=>{if(btn)btn.disabled=!cb.checked;};
+  const cb1=$("agreeCheck1"),cb2=$("agreeCheck2"),btn=$("agreeBtn");
+  if(cb1)cb1.checked=false;
+  if(cb2)cb2.checked=false;
+  const refresh=()=>{if(btn)btn.disabled=!((!cb1||cb1.checked)&&(!cb2||cb2.checked));};
+  if(btn){btn.disabled=true;btn.onclick=()=>{try{localStorage.setItem("rh_agree_ver2_"+id,"1");}catch(e){}m.classList.add("hidden");};}
+  if(cb1)cb1.onchange=refresh;
+  if(cb2)cb2.onchange=refresh;
   m.classList.remove("hidden");
 }
 function switchView(v,noHist){
   if(!noHist&&state.view&&state.view!==v){viewHist.push(state.view);if(viewHist.length>20)viewHist.shift();}
   state.view=v;
-  ["list","map","fav","profile","people","detail"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
+  ["list","map","fav","profile","people","contracts","detail"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
   document.querySelectorAll(".bn-item").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   if(v==="map")setTimeout(initMap,50);
   if(v==="profile")setTimeout(requireAgreement,50);
   if(v==="people")setTimeout(paintMarket,50);
+  if(v==="contracts")setTimeout(paintContracts,50);
 }
 function goBack(){
   const prev=viewHist.pop();
@@ -638,6 +642,93 @@ function paintUsers(){
   box.querySelectorAll("[data-user]").forEach(b=>b.onclick=()=>openUser(b.dataset.user));
   document.querySelectorAll("[data-usort]").forEach(b=>b.classList.toggle("active",b.dataset.usort===userSort));
 }
+
+function paintContracts(){
+  const box=$("contractsList");if(!box)return;
+  const meId=curPid();
+  let contracts=loadContracts().filter(c=>c.parties.some(p=>p.pid===meId));
+  if(contractFilter!=="all")contracts=contracts.filter(c=>c.status===contractFilter);
+  const profiles=loadProfiles();
+  const cards=contracts.map(c=>{
+    const other=c.parties.find(p=>p.pid!==meId)||{pid:"",name:"Неизвестный",role:""};
+    const p=profiles.find(x=>x.id===other.pid)||other;
+    const st=c.status==="pending"?"На согласовании":c.status==="active"?"Действующий":"Завершённый";
+    const stC=c.status==="pending"?"#ffa726":c.status==="active"?"#4caf50":"#9e9e9e";
+    const proj=c.projects.map(id=>{const l=findListing(id);return l?(l.title||"Без названия"):("Проект #"+id);}).join(", ");
+    return '<button type="button" class="lrow" data-open-contract="'+c.id+'" style="width:100%;text-align:left;font:inherit;cursor:pointer">'+
+      '<div class="lrow-main"><div class="lrow-title">'+esc(p.name||"Без имени")+' '+esc(p.role||"")+' <span class="badge" style="background:'+stC+';color:#fff">'+st+'</span></div>'+
+      '<div class="lrow-sub muted">'+(proj||"Нет объектов")+'</div></div>'+
+      '<div class="lrow-side"><button type="button" class="btn-ghost" data-view-contract="'+c.id+'">Открыть</button></div></button>';
+  });
+  box.innerHTML=cards.join("")||'<span class="muted">Договоров пока нет.</span>';
+  box.querySelectorAll("[data-open-contract]").forEach(b=>b.onclick=(()=>openContract(b.dataset.openContract)));
+  box.querySelectorAll("[data-view-contract]").forEach(b=>b.onclick=(()=>openContract(b.dataset.viewContract)));
+}
+function invitePartner(){
+  const meId=curPid(),me=curProfile();
+  const contracts=loadContracts();
+  const candidates=loadProfiles().filter(p=>p.id!==meId && !contracts.some(c=>c.parties.some(q=>q.pid===meId)&&c.parties.some(q=>q.pid===p.id)));
+  if(!candidates.length){notify("Нет подходящих пользователей для приглашения");return;}
+  const html='<div style="display:flex;flex-direction:column;gap:10px"><h3>Пригласить партнёра</h3><p class="muted">Выберите пользователя, с которым хотите заключить договор:</p><div style="display:flex;gap:8px;flex-wrap:wrap">'+
+    candidates.map(p=>'<button type="button" class="lrow" data-invite="'+p.id+'" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">'+esc(p.name||"Без имени")+'</div><div class="lrow-sub muted">'+esc(p.role||"")+(p.city?(", "+esc(p.city)):"")+'</div></div></button>').join("")+
+    '</div></div>';
+  $("userContent").innerHTML=html;
+  $("userModal").classList.remove("hidden");
+  $("userContent").querySelectorAll("[data-invite]").forEach(b=>b.onclick=()=>{
+    const targetId=b.dataset.invite;
+    const cs=loadContracts();
+    if(cs.some(c=>c.parties.some(q=>q.pid===meId)&&c.parties.some(q=>q.pid===targetId))){notify("Уже есть договор с этим пользователем");return;}
+    cs.push({id:"c"+Date.now(),parties:[{pid:meId,name:me.name,role:me.role},{pid:targetId,name:"",role:""}],projects:[],createdAt:Date.now(),status:"pending"});
+    saveContracts(cs);
+    notify("Приглашение отправлено");
+    $("userModal").classList.add("hidden");
+    paintContracts();
+  });
+}
+function contractProjects(c){
+  return (c.projects||[]).map(id=>findListing(id)).filter(Boolean);
+}
+function openContract(cid){
+  const contracts=loadContracts();
+  const c=contracts.find(c=>c.id===cid);if(!c)return;
+  const meId=curPid();
+  const projects=contractProjects(c);
+  const projCards=projects.map(it=>'<button type="button" class="lrow" data-open="'+it.id+'" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">'+esc(it.title||"Без названия")+'</div><div class="lrow-sub muted">'+esc(it.location||"")+(it.price>0?(" · "+it.price.toLocaleString("ru-RU")+" IDR"):"")+'</div></div></button>').join("");
+  const mine=LISTINGS.filter(x=>x.mine).filter(it=>!c.projects.includes(it.id));
+  const addBtn=mine.map(it=>'<button type="button" class="btn-ghost" data-add-project="'+it.id+'" style="white-space:nowrap">'+esc(it.title||"Без названия")+'</button>').join("");
+  const st=c.status==="pending"?"На согласовании":c.status==="active"?"Действующий":"Завершённый";
+  const stC=c.status==="pending"?"#ffa726":c.status==="active"?"#4caf50":"#9e9e9e";
+  const members=c.parties.map(p=>'<span class="badge" style="background:'+(p.pid===meId?"#4caf50":"#9e9e9e")+';color:#fff">'+esc(p.name||"Без имени")+' ('+(p.role||"участник")+')</span>').join("");
+  let html='<h3>Договор #'+esc(c.id)+'</h3>'+
+    '<p class="muted" style="font-size:12px">Статус: <span style="color:'+stC+';font-weight:700">'+st+'</span></p>'+
+    '<div style="margin:10px 0"><h4>Участники:</h4><div style="display:flex;gap:8px;flex-wrap:wrap">'+members+'</div></div>'+
+    '<h3 style="margin-top:12px">Проекты договора ('+projects.length+')</h3>'+
+    (projCards?'<div style="display:grid;gap:6px">'+projCards+'</div>':'<p class="muted">Проектов нет</p>')+
+    '<h3 style="margin-top:10px">Добавить проект в договор</h3>'+
+    (addBtn?'<div style="display:flex;gap:8px;flex-wrap:wrap">'+addBtn+'</div>':'<p class="muted">Нет доступных проектов</p>');
+  if(c.status==="pending" && c.parties.some(p=>p.pid===meId && p.role!=="admin")){
+    html+='<div style="margin-top:10px"><button type="button" class="btn-primary block" data-accept>Принять договор</button><button type="button" class="btn-ghost block" style="margin-top:4px" data-decline>Отклонить</button></div>';
+  }
+  html+='<div style="margin-top:10px"><button type="button" class="btn-ghost block" data-close>Закрыть</button></div>';
+  $("userContent").innerHTML=html;
+  $("userModal").classList.remove("hidden");
+  $("userContent").querySelectorAll("[data-add-project]").forEach(b=>b.onclick=()=>{
+    const pid=+b.dataset.addProject;
+    const cs=loadContracts();
+    const cc=cs.find(x=>x.id===cid);
+    if(cc&&!cc.projects.includes(pid)){cc.projects.push(pid);saveContracts(cs);notify("Проект добавлен");openContract(cid);}
+  });
+  $("userContent").querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{openDetail(b.dataset.open);});
+  $("userContent").querySelectorAll("[data-accept]").forEach(b=>b.onclick=()=>acceptContract(cid));
+  $("userContent").querySelectorAll("[data-decline]").forEach(b=>b.onclick=()=>{$("userModal").classList.add("hidden");});
+  $("userContent").querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{$("userModal").classList.add("hidden");});
+}
+function acceptContract(cid){
+  const cs=loadContracts();
+  const c=cs.find(x=>x.id===cid);
+  if(c){c.status="active";saveContracts(cs);notify("Договор заключён");openContract(cid);}
+}
+
 function openUser(pid){
   const u=loadProfiles().find(x=>x.id===pid);if(!u)return;
   const meId=curPid(),meName=(curProfile()||{}).name||"";
@@ -735,7 +826,7 @@ function contractParties(meId,themId,projectId){
   saveContracts(contracts);
   return c;
 }
-let peopleFilter="all",marketFilter="all";
+let peopleFilter="all",marketFilter="all",contractFilter="all";
 function paintMarket(){
   const box=$("marketList");if(!box)return;
   const meId=curPid(),me=curProfile(),meName=me?me.name:"";
@@ -1322,6 +1413,7 @@ document.addEventListener("click",e=>{
     if(bn.dataset.view==="want"){state.role="request";state.page=1;switchView("list");syncRoleTabs();syncDealTabs();render();updateMarkersSafe();document.querySelectorAll(".bn-item").forEach(b=>b.classList.toggle("active",b===bn));window.scrollTo({top:0,behavior:"smooth"});return;}
     if(bn.dataset.view==="list"){state.role="offer";state.page=1;switchView("list");syncRoleTabs();syncDealTabs();render();updateMarkersSafe();return;}
     if(bn.dataset.view==="market"){switchView("people");document.querySelectorAll(".bn-item").forEach(b=>b.classList.toggle("active",b===bn));return;}
+    if(bn.dataset.view==="contracts"){switchView("contracts");document.querySelectorAll(".bn-item").forEach(b=>b.classList.toggle("active",b===bn));return;}
     switchView(bn.dataset.view);if(bn.dataset.view==="profile")switchCabtab("profile");syncDealTabs();return;
   }
 });
@@ -1411,6 +1503,8 @@ if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render()
   document.querySelectorAll("[data-usort]").forEach(b=>b.onclick=()=>{userSort=b.dataset.usort;paintUsers();});
   document.querySelectorAll("[data-psort]").forEach(b=>b.onclick=()=>{peopleFilter=b.dataset.psort;document.querySelectorAll("[data-psort]").forEach(x=>x.classList.toggle("active",x===b));paintPeople();});
   document.querySelectorAll("[data-msort]").forEach(b=>b.onclick=()=>{marketFilter=b.dataset.msort;document.querySelectorAll("[data-msort]").forEach(x=>x.classList.toggle("active",x===b));paintMarket();});
+  document.querySelectorAll("[data-csort]").forEach(b=>b.onclick=()=>{contractFilter=b.dataset.csort;document.querySelectorAll("[data-csort]").forEach(x=>x.classList.toggle("active",x===b));paintContracts();});
+  if($("contractInviteBtn"))$("contractInviteBtn").onclick=()=>invitePartner();
   ensureProfileNums();
   if($("userClose"))$("userClose").onclick=()=>$("userModal").classList.add("hidden");
   if($("agreeClose"))$("agreeClose").onclick=()=>{const id=curPid();try{if(localStorage.getItem("rh_agree_"+id)==="1")$("agreeModal").classList.add("hidden");else notify("Примите договор, чтобы войти в кабинет");}catch(e){$("agreeModal").classList.add("hidden");}};
@@ -2358,3 +2452,53 @@ render();syncDealTabs();highlightQuick();document.body.dataset.settled="1";
   if($("appVer"))$("appVer").textContent="v"+APP_V;
   const fh=$("folderHint");if(fh)fh.style.display=API?"none":"";
 try{const m=location.hash.match(/#listing-(\d+)/);if(m)openDetail(+m[1]);}catch(e){}
+
+
+
+
+
+
+
+
+
+function openUser(pid){
+  const u=loadProfiles().find(x=>x.id===pid);if(!u)return;
+  const meId=curPid(),meName=(curProfile()||{}).name||"";
+  const meLow=String(meName).trim().toLowerCase(),uLow=String(u.name||"").trim().toLowerCase();
+  const isPartner=isPartnerWith(meId,meName,u);
+  const canSee=!!u.public||isPartner;
+
+  // collect ALL projects the user participates in (their own + where they are a party)
+  const owned=profileItems(pid).map(o=>Object.assign({},o,{_joint:false,_mine:false}));
+  const seen=new Set(owned.map(o=>o.id));
+  const asParty=[];
+  LISTINGS.forEach(it=>{
+    if(!it||seen.has(it.id))return;
+    const joined=(it.parties||[]).some(p=>p&&((p.pid&&p.pid===pid)||String(p.name||"").trim().toLowerCase()===uLow));
+    if(joined){asParty.push(Object.assign({},it,{_joint:false,_mine:true}));seen.add(it.id);}
+  });
+  // joint = user is in it AND I (meId/meName) participate too
+  const markJoint=o=>o._joint=!!((o.parties||[]).some(p=>p&&((p.pid&&p.pid===meId)||String(p.name||"").trim().toLowerCase()===meLow))||(o.owner&&o.owner===meId));
+  owned.forEach(markJoint);asParty.forEach(markJoint);
+  const all=[...owned,...asParty];
+  // joint first, then by recency
+  all.sort((a,b)=>(b._joint?1:0)-(a._joint?1:0)||b.createdAt-a.createdAt);
+
+  const contactLine=canSee?[u.username?("Логин: @"+u.username):"",u.email?("Почта: "+u.email):"",u.phone?("Телефон: "+u.phone):""].filter(Boolean):[];
+  const hiddenNote=canSee?"":'<p class="muted" style="font-size:12px">Профиль не публичный. Контакты откроются, когда вы заключите договор.</p>';
+  const cards=all.map(it=>{
+    const joint=it._joint?' <span class="badge partner">совместный</span>':"";
+    const ownerMark=it.owner===pid?' <span class="badge verified">владелец</span>':"";
+    return '<button type="button" class="lrow" data-open="'+it.id+'" style="width:100%;text-align:left;font:inherit;cursor:pointer;color:var(--ink)"><div class="lrow-main"><div class="lrow-title">'+esc(it.title||"Без названия")+joint+ownerMark+'</div><div class="lrow-sub muted">'+esc(it.location||"")+(it.price>0?(" · "+it.price.toLocaleString("ru-RU")+" IDR"):"")+'</div></div></button>';
+  }).join("");
+
+  const title='<h3>#'+(u.num||"—")+' '+esc(u.name||"Без имени")+(isPartner?' <span class="badge partner">Партнёр</span>':(u.public?' <span class="badge verified">Публичный</span>':""))+'</h3>';
+  const contacts=contactLine.length?'<p class="muted" style="font-size:13px">'+contactLine.map(esc).join("<br>")+'</p>':(canSee?'<p class="muted">Контактов нет</p>':"");
+  const bio=u.bio?'<p style="font-size:13px">'+esc(u.bio)+'</p>':"";
+  const projHeader='<h3 style="margin-top:10px">Проекты ('+all.length+')</h3>';
+  const projBody=all.length?'<div style="display:grid;gap:6px">'+cards+'</div>':'<p class="muted">Проектов нет</p>';
+
+  $("userContent").innerHTML=title+hiddenNote+contacts+bio+projHeader+projBody;
+  $("userModal").classList.remove("hidden");
+  $("userContent").querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openDetail(b.dataset.open));
+}

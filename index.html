@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="101">
+<meta name="app-build" content="102">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=101">
+<link rel="stylesheet" href="css/style.css?v=102">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -159,7 +159,7 @@
       <button data-cabtab="profile" class="active">Профиль</button>
       <button data-cabtab="projects">Мои проекты</button>
       <button data-cabtab="add">Добавить проект</button>
-      <button data-cabtab="partners">Партнёры</button>
+      <button data-cabtab=\"contracts\">Договора</button>
     </div>
     <div class="profile-card card" data-cabpanel="profile">
       <img src="https://i.pravatar.cc/120?img=12" alt="avatar" class="avatar" id="pfAvatar" title="Нажмите, чтобы загрузить фото" style="cursor:pointer">
@@ -317,7 +317,21 @@
     <div id="marketEmpty" class="empty hidden">Пока нет открытых профилей.</div>
   </section>
 
-  <section id="view-detail" class="hidden">
+    <section id="view-contracts" class="hidden">
+    <div class="sec-head"><h2>Договора</h2></div>
+    <p class="muted" style="font-size:12px;margin:0 2px 10px">Договоры, в которых вы участвуете. Статус «на согласовании» означает, что приглашение ещё не принято.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <button type="button" class="chip active" data-csort="all">Все</button>
+      <button type="button" class="chip" data-csort="pending">На согласовании</button>
+      <button type="button" class="chip" data-csort="active">Действующие</button>
+      <button type="button" class="chip" data-csort="expired">Завершённые</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button id="contractInviteBtn" class="btn-ghost">➕ Пригласить партнёра</button>
+    </div>
+    <div id="contractsList" style="display:grid;gap:8px"></div>
+    <div id="contractsEmpty" class="empty hidden">Договоров пока нет.</div>
+  </section><section id="view-detail" class="hidden">
     <div id="detailContent"></div>
   </section>
 </main>
@@ -348,11 +362,16 @@
 <div id="filtersModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="filtersClose">✕</button><h3 data-i18n="filters">Фильтры</h3><p class="muted" data-i18n="filters_hint">Задайте значения и нажмите Показать.</p><button id="filtersModalApply" class="btn-primary block" data-i18n="apply">Показать</button></div></div>
 <div id="userModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="userClose">✕</button><div id="userContent"></div></div></div>
 <div id="agreeModal" class="modal hidden"><div class="modal-box wide"><button class="modal-close" id="agreeClose">✕</button>
-  <h3>Пользовательский договор</h3>
-  <div style="height:50vh;border:1px solid var(--line);border-radius:8px;overflow:auto;margin:10px 0">
-    <iframe title="Договор" src="https://docs.google.com/document/d/1Kpa-4oO2z9ng9abkhXm1e8pYuvGd7Ewt/preview" style="width:100%;height:100%;border:0"></iframe>
+  <h3>Пользовательские договоры</h3>
+  <p class="muted" style="font-size:12px">Для входа в личный кабинет необходимо принять оба договора.</p>
+  <div style="height:40vh;border:1px solid var(--line);border-radius:8px;overflow:auto;margin:10px 0">
+    <iframe title="Договор 1" src="https://docs.google.com/document/d/1Kpa-4oO2z9ng9abkhXm1e8pYuvGd7Ewt/preview" style="width:100%;height:100%;border:0"></iframe>
   </div>
-  <label style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px;cursor:pointer"><input type="checkbox" id="agreeCheck" style="margin-top:2px"> Я прочитал(а) и принимаю условия пользовательского договора</label>
+  <label style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px;cursor:pointer"><input type="checkbox" id="agreeCheck1" style="margin-top:2px"> Я прочитал(а) и принимаю условия пользовательского договора №1</label>
+  <div style="height:40vh;border:1px solid var(--line);border-radius:8px;overflow:auto;margin:10px 0">
+    <iframe title="Договор 2" src="https://docs.google.com/document/d/1fK8QdP1OWXwGWtKCfu9kedtiG13JL6XT/preview" style="width:100%;height:100%;border:0"></iframe>
+  </div>
+  <label style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px;cursor:pointer"><input type="checkbox" id="agreeCheck2" style="margin-top:2px"> Я прочитал(а) и принимаю условия пользовательского договора №2</label>
   <button id="agreeBtn" class="btn-primary block" style="margin-top:10px" disabled>Принять</button>
 </div></div>
 
@@ -367,10 +386,12 @@
   <div class="ai-input"><button id="aiAttach" aria-label="Прикрепить фото" title="Прикрепить фото">📎</button><button id="aiCam" aria-label="Камера" title="Камера">📷</button><input type="file" id="aiFiles" accept="image/*" multiple class="hidden"><input type="file" id="aiCamFiles" accept="image/*" capture="environment" class="hidden"><input id="aiText" placeholder="Напишите сообщение..." autocomplete="off"><button id="aiSend" class="btn-primary">➤</button></div>
 </div>
 <div id="sheetBg" class="hidden"></div>
-<nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="market">👥<span data-i18n="nav_market">Участники рынка</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
+<nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="market">👥<span data-i18n="nav_market">Участники рынка</span></button><button class="bn-item" data-view="contracts">🤝<span data-i18n="nav_contracts">Договора</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=101"></script>
+<script src="js/app.js?v=102"></script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
+
+
