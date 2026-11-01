@@ -9,7 +9,7 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="105">
+<meta name="app-build" content="106">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
 <script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=110">');})();</script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -30,7 +30,7 @@
       <div id="google_translate_element" class="gtrans" title="Перевод страницы"></div>
       <button id="themeBtn" class="icon-btn" title="Тема">○</button>
       <button id="favHeaderBtn" class="icon-btn" title="Избранное">♡ <span id="favCount" class="fav-count">0</span></button>
-      <button id="profileBtn" class="icon-btn profile" title="Профиль"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></button>
+      <button id="profileBtn" class="icon-btn profile active" title="Профиль"><img src="https://i.pravatar.cc/150?img=12" class="pf-nav-img" alt="Профиль"><span class="pf-nav-label">Профиль</span></button>
     </div>
     <div class="sub-tabs">
       <button class="chip active" id="tabOffer" data-type="offer" data-i18n="tab_offer">Сдам / Продам</button>
@@ -325,7 +325,7 @@
   </section>
 
   <section id="view-people" class="hidden">
-    <div class="sec-head"><h2>Участники рынка</h2></div>
+    <div class="sec-head"><h2 id="peopleTitle" data-i18n="nav_community">Сообщество</h2></div>
     <p class="muted" style="font-size:12px;margin:0 2px 10px">Открытые профили: агенты, нотариусы, консультанты, операторы, администраторы, владельцы и покупатели. Ваши партнёры отмечены зелёным.</p>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
       <button type="button" class="chip active" data-msort="all">Все</button>
@@ -399,7 +399,7 @@
   <div class="ai-input"><button id="aiAttach" aria-label="Прикрепить фото" title="Прикрепить фото">📎</button><button id="aiCam" aria-label="Камера" title="Камера">📷</button><input type="file" id="aiFiles" accept="image/*" multiple class="hidden"><input type="file" id="aiCamFiles" accept="image/*" capture="environment" class="hidden"><input id="aiText" placeholder="Напишите сообщение..." autocomplete="off"><button id="aiSend" class="btn-primary">➤</button></div>
 </div>
 <div id="sheetBg" class="hidden"></div>
-<nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="market">👥<span data-i18n="nav_market">Участники рынка</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
+<nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="services">🛠<span data-i18n="nav_services">Услуги</span></button><button class="bn-item" data-view="community">👥<span data-i18n="nav_community">Сообщество</span></button></nav>
 
 <script>document.write('<script src="js/app.js?v=110"><\/script>');</script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
