@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="104">
+<meta name="app-build" content="105">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=104">
+<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=110">');})();</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -154,19 +154,25 @@
 
   <section id="view-profile" class="hidden">
     <h2>Личный кабинет</h2>
-    <p class="muted" style="font-size:12px">Без входа · гость <b id="guestId">…</b> · данные только на этом устройстве · <b id="storeMode">Браузер</b></p>
     <div class="imp-tabs" role="tablist" style="margin-bottom:10px">
       <button data-cabtab="profile" class="active">Профиль</button>
       <button data-cabtab="projects">Мои проекты</button>
-      <button data-cabtab="add">Добавить проект</button>
       <button data-cabtab="partners">Партнёры</button>
+      <button data-cabtab="contracts">Договора</button>
     </div>
     <div class="profile-card card" data-cabpanel="profile">
-      <img src="https://i.pravatar.cc/120?img=12" alt="avatar" class="avatar" id="pfAvatar" title="Нажмите, чтобы загрузить фото" style="cursor:pointer">
+      <img src="https://i.pravatar.cc/120?img=12" alt="Фото профиля" class="avatar" id="pfAvatar" title="Нажмите, чтобы загрузить фото" style="cursor:pointer">
       <input type="file" id="pfAvatarInput" accept="image/*" class="hidden">
-      <div style="flex:1;display:grid;gap:8px">
+      <div class="pf-main">
+        <div class="pf-row"><span class="pf-label">Имя пользователя</span><div class="pf-val" id="pfNameView">—</div></div>
+        <div class="pf-row"><span class="pf-label">Номер профиля</span><div class="pf-val" id="pfNum">—</div></div>
+        <div class="pf-row"><span class="pf-label">Баланс</span><div class="pf-val" id="pfBalance">0 IDR</div></div>
+      </div>
+    </div>
+    <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px">
+      <summary style="cursor:pointer;font-weight:700">Аккаунт</summary>
+      <div style="margin-top:10px;display:grid;gap:8px">
         <div class="filter-group"><label>Имя</label><input id="pfName" placeholder="Как к вам обращаться"></div>
-        <div class="filter-group"><label>№ аккаунта</label><div class="muted" id="pfNum" style="font-size:14px;font-weight:700">—</div></div>
         <div class="filter-group"><label>Логин</label><input id="pfUsername" placeholder="username" autocomplete="off"></div>
         <div class="filter-group"><label>Почта</label><input id="pfEmail" type="email" placeholder="mail@example.com" autocomplete="off"></div>
         <div class="filter-group"><label>Телефон</label><input id="pfPhone" placeholder="+62 ..." autocomplete="off"></div>
@@ -181,22 +187,19 @@
         </div>
         <div class="filter-group"><label>Профили на этом устройстве</label><div id="profileList" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
         <div class="imp-row"><input id="pfNewName" placeholder="Имя нового профиля"><button id="pfCreate" class="btn-ghost" type="button">+ Новый</button></div>
-      </div>
-    </div>
-    <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px">
-      <summary style="cursor:pointer;font-weight:700">Мои данные (копия кабинета)</summary>
-      <div style="margin-top:10px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button id="cabExport" class="btn-ghost">Скачать копию</button>
-        <button id="cabImportBtn" class="btn-ghost">Загрузить копию</button>
-        <input type="file" id="cabImport" accept="application/json" class="hidden">
-        <button id="profExport" class="btn-ghost">Скачать настройки профиля</button>
-        <button id="profImportBtn" class="btn-ghost">Загрузить настройки профиля</button>
-        <input type="file" id="profImport" accept="application/json,.txt" class="hidden">
-        <button id="cabWipe" class="btn-text">Стереть мои данные</button>
-        <button id="cabSeqReset" class="btn-text">Сбросить счётчик ID</button>
-      </div>
-      <p class="hint">Копия — это JSON с профилем, проектами и избранным. Перенесите файл на другое устройство, чтобы забрать кабинет с собой.</p>
+        <div class="filter-group"><label>Копия кабинета</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button id="cabExport" class="btn-ghost">Скачать копию</button>
+            <button id="cabImportBtn" class="btn-ghost">Загрузить копию</button>
+            <input type="file" id="cabImport" accept="application/json" class="hidden">
+            <button id="profExport" class="btn-ghost">Скачать настройки профиля</button>
+            <button id="profImportBtn" class="btn-ghost">Загрузить настройки профиля</button>
+            <input type="file" id="profImport" accept="application/json,.txt" class="hidden">
+            <button id="cabWipe" class="btn-text">Стереть мои данные</button>
+            <button id="cabSeqReset" class="btn-text">Сбросить счётчик ID</button>
+          </div>
+        </div>
+        <p class="hint">Копия — это JSON с профилем, проектами и избранным. Перенесите файл на другое устройство, чтобы забрать кабинет с собой.</p>
       </div>
     </details>
     <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px">
@@ -208,7 +211,7 @@
       </div>
       <div id="userList" style="margin-top:10px;display:grid;gap:6px"></div>
     </details>
-    <div class="my-head hidden" data-cabpanel="projects"><h3>Мои проекты</h3><div style="display:flex;gap:6px"><button type="button" class="chip active" data-pf="all">Все</button><button type="button" class="chip" data-pf="offer">Предлагаю</button><button type="button" class="chip" data-pf="request">Ищу</button></div></div>
+    <div class="my-head hidden" data-cabpanel="projects"><h3>Мои проекты</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="chip active" data-pf="all">Все</button><button type="button" class="chip" data-pf="offer">Предлагаю</button><button type="button" class="chip" data-pf="request">Ищу</button><button type="button" class="btn-primary" id="pfAddProj" style="height:26px;padding:3px 12px;font-size:11.5px">Добавить проект</button></div></div>
     <div class="card cab-form hidden" data-cabpanel="add">
     <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px">
     <h3 style="margin:0">Новый проект</h3>
@@ -270,9 +273,14 @@
     <input type="file" id="nlPhotos" accept="image/*" multiple class="hidden"><input type="file" id="nlPhotosCam" accept="image/*" capture="environment" class="hidden"><div id="nlPreview" class="nl-preview"></div></div>
     <div class="filter-group full"><label>Фото по ссылкам — вставьте сюда</label><input id="impUrls2" placeholder="Ссылка Drive или ID, через запятую" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:0 12px;height:40px;font-size:14px;background:var(--card);color:var(--ink);font-family:inherit;outline:none"><button id="impPhotos2" class="btn-primary block" style="margin-top:8px">Загрузить фото</button></div>
     </div>
-    <button id="nlSave" class="btn-primary block">Опубликовать</button>
+    <div class="nl-actions" style="display:flex;gap:8px;margin-top:14px;">
+      <button id="nlDraft" class="btn-ghost block" style="background:#e8f5e9;border:1px solid #4caf50;color:#1b5e20">👍 Сохранить</button>
+      <button id="nlPreview" class="btn-ghost block nl-preview" disabled style="background:#e3f2fd;border:1px solid #2196f3;color:#0d47a1">👁 Просмотр</button>
+      <button id="nlPublish" class="btn-primary block" style="background:#ffa726;border:1px solid #fb8c00;color:#fff">📢 Опубликовать</button>
+    </div>
     <div id="afterSave" class="hidden" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <button id="asView" class="btn-primary" type="button">👁 Просмотреть</button>
+      <button id="asView" class="btn-primary" type="button">🏠 Посмотреть в галерее</button>
+      <button id="asNew" class="btn-primary" type="button">➕ Создать новый проект</button>
       <button id="asClear" class="btn-ghost" type="button">🧹 Очистить форму</button>
       <button id="asTpl" class="btn-ghost" type="button">📋 В шаблон</button>
     </div>
@@ -299,6 +307,21 @@
       <div id="peopleList" style="margin-top:10px;display:grid;gap:8px"></div>
       <p class="hint">Партнёры связаны с вами договором и могут иметь общие проекты. Их контакты вам открыты, даже если профиль не публичный.</p>
     </div>
+    <div class="card cab-form hidden" data-cabpanel="contracts" style="margin-top:10px">
+    <h3>Договора</h3>
+    <p class="muted" style="font-size:12px;margin:0 2px 10px">Договоры, в которых вы участвуете. Статус «на согласовании» означает, что приглашение ещё не принято.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <button type="button" class="chip active" data-csort="all">Все</button>
+      <button type="button" class="chip" data-csort="pending">На согласовании</button>
+      <button type="button" class="chip" data-csort="active">Действующие</button>
+      <button type="button" class="chip" data-csort="expired">Завершённые</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button id="contractInviteBtn" class="btn-ghost">➕ Пригласить партнёра</button>
+    </div>
+    <div id="contractsList" style="display:grid;gap:8px"></div>
+    <div id="contractsEmpty" class="empty hidden">Договоров пока нет.</div>
+      </div>
   </section>
 
   <section id="view-people" class="hidden">
@@ -317,21 +340,7 @@
     <div id="marketEmpty" class="empty hidden">Пока нет открытых профилей.</div>
   </section>
 
-    <section id="view-contracts" class="hidden">
-    <div class="sec-head"><h2>Договора</h2></div>
-    <p class="muted" style="font-size:12px;margin:0 2px 10px">Договоры, в которых вы участвуете. Статус «на согласовании» означает, что приглашение ещё не принято.</p>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-      <button type="button" class="chip active" data-csort="all">Все</button>
-      <button type="button" class="chip" data-csort="pending">На согласовании</button>
-      <button type="button" class="chip" data-csort="active">Действующие</button>
-      <button type="button" class="chip" data-csort="expired">Завершённые</button>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button id="contractInviteBtn" class="btn-ghost">➕ Пригласить партнёра</button>
-    </div>
-    <div id="contractsList" style="display:grid;gap:8px"></div>
-    <div id="contractsEmpty" class="empty hidden">Договоров пока нет.</div>
-  </section><section id="view-detail" class="hidden">
+<section id="view-detail" class="hidden">
     <div id="detailContent"></div>
   </section>
 </main>
@@ -390,9 +399,9 @@
   <div class="ai-input"><button id="aiAttach" aria-label="Прикрепить фото" title="Прикрепить фото">📎</button><button id="aiCam" aria-label="Камера" title="Камера">📷</button><input type="file" id="aiFiles" accept="image/*" multiple class="hidden"><input type="file" id="aiCamFiles" accept="image/*" capture="environment" class="hidden"><input id="aiText" placeholder="Напишите сообщение..." autocomplete="off"><button id="aiSend" class="btn-primary">➤</button></div>
 </div>
 <div id="sheetBg" class="hidden"></div>
-<nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="market">👥<span data-i18n="nav_market">Участники рынка</span></button><button class="bn-item" data-view="contracts">🤝<span data-i18n="nav_contracts">Договора</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
+<nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="market">👥<span data-i18n="nav_market">Участники рынка</span></button><button class="bn-item" data-view="profile">○<span data-i18n="nav_profile">Профиль</span></button></nav>
 
-<script src="js/app.js?v=104"></script>
+<script>document.write('<script src="js/app.js?v=110"><\/script>');</script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
