@@ -209,6 +209,13 @@ try{(JSON.parse(localStorage.getItem(myKey())||"[]")||[]).forEach(o=>{if(o&&o.id
     syncIdSeq();
   }
   render();
+  // Глубокая ссылка вида /prodazha/<id>: открываем деталь после того, как лента подгрузилась
+  try{
+    if(state.view!=="detail"){
+      const rr=location.pathname.match(/(?:arenda|prodazha|ischu)\/(\d+)\/?$/);
+      if(rr){const it=findAnywhere(+rr[1]);if(it)openDetail(it.id);}
+    }
+  }catch(e){}
 })().catch(()=>{});
 
 function getGuestId(){return curPid()||"g-none";}
@@ -435,7 +442,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.65";const APP_BUILD="113";
+const APP_V="2.65";const APP_BUILD="114";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
