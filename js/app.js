@@ -48,13 +48,14 @@ const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня",
 LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
 /* ===== API layer: локальный сервер + MySQL, fallback localStorage ===== */
 const API_BASE = (localStorage.getItem("rh_api_base")||"") + "/api";
+function adminToken(){return localStorage.getItem("rh_admin_token")||"";}
 async function apiGet(path){try{const r=await fetch(API_BASE+path,{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
-async function apiPost(path,body){try{const r=await fetch(API_BASE+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function apiPost(path,body,token){const h={"Content-Type":"application/json"};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(API_BASE+path,{method:"POST",headers:h,body:JSON.stringify(body)});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function apiListings(){const j=await apiGet("/listings");return j&&j.ok?j.items:null;}
 async function apiProfiles(){const j=await apiGet("/profiles");return j&&j.ok?j.items:null;}
 async function apiProfile(id){const j=await apiGet("/profiles?id="+encodeURIComponent(id));return j&&j.ok?j.profile:null;}
-async function apiSaveProfile(p){return await apiPost("/profiles",p);}
-async function apiSaveListing(it){return await apiPost("/listings",it);}
+async function apiSaveProfile(p){return await apiPost("/profiles",p,adminToken());}
+async function apiSaveListing(it){return await apiPost("/listings",it,adminToken());}
 async function apiContracts(){const j=await apiGet("/contracts");return j&&j.ok?j.items:null;}
 /* ===== Local profiles: switch, logout, new (no backend, per-device) ===== */
 function loadProfilesRaw(){
