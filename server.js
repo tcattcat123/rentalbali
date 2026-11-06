@@ -150,6 +150,8 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+app.get('/api/admin/check', adminOnly, (req, res) => res.json({ ok: true, admin: true }));
+
 // ============ LISTINGS ============
 app.get('/api/listings', async (req, res) => {
   try {

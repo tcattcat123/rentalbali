@@ -47,10 +47,10 @@ LISTINGS.forEach((it,i)=>{if(it.user)return;const p=POOL[it.propertyType]||POOL.
 const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],house:["Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад","Телевизор"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],room:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],invest:["Wi-Fi","Кондиционер","Парковка","Охрана"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
 LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
 /* ===== API layer: локальный сервер + MySQL, fallback localStorage ===== */
-const API_BASE = (localStorage.getItem("rh_api_base")||"") + "/api";
+function apiBase(){return (localStorage.getItem("rh_api_base")||"").replace(/\/+$/,"")+"/api";}
 function adminToken(){return localStorage.getItem("rh_admin_token")||"";}
-async function apiGet(path){try{const r=await fetch(API_BASE+path,{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
-async function apiPost(path,body,token){const h={"Content-Type":"application/json"};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(API_BASE+path,{method:"POST",headers:h,body:JSON.stringify(body)});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function apiGet(path,token){const h={};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(apiBase()+path,{cache:"no-store",headers:h});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function apiPost(path,body,token){const h={"Content-Type":"application/json"};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(apiBase()+path,{method:"POST",headers:h,body:JSON.stringify(body)});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function apiListings(){const j=await apiGet("/listings");return j&&j.ok?j.items:null;}
 async function apiProfiles(){const j=await apiGet("/profiles");return j&&j.ok?j.items:null;}
 async function apiProfile(id){const j=await apiGet("/profiles?id="+encodeURIComponent(id));return j&&j.ok?j.profile:null;}
@@ -103,8 +103,10 @@ try{(JSON.parse(localStorage.getItem(myKey())||"[]")||[]).forEach(o=>{if(o&&o.id
 (async ()=>{
   const remote=await apiListings();
   if(remote&&remote.length){
-    for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
-    remote.forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true,phone:""},o,{mine:true,user:true,phone:"",owner:o.owner||getGuestId()}));});
+    const codes=new Set(remote.map(o=>o&&o.code).filter(Boolean));
+    // убираем только локальные копии уже опубликованных объектов, черновики остаются
+    for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user&&LISTINGS[i].status==="published"&&codes.has(LISTINGS[i].code))LISTINGS.splice(i,1);
+    remote.forEach(o=>{if(o&&o.id&&!LISTINGS.some(x=>x.user&&x.code&&x.code===o.code))LISTINGS.unshift(Object.assign({mine:true,user:true,phone:""},o,{mine:true,user:true,phone:"",owner:o.owner||getGuestId()}));});
     LISTINGS.forEach(o=>{if(o.user&&!o.code)o.code=nextObjectId(o.propertyType,o.locationEn);});
     syncIdSeq();
   }
@@ -150,6 +152,8 @@ function renderProfiles(){
   if($("pfRole"))$("pfRole").value=(p&&p.role)||"owner";
   if($("pfBio"))$("pfBio").value=(p&&p.bio)||"";
   if($("pfPublic"))$("pfPublic").checked=!!(p&&p.public);
+  if($("pfApiBase"))$("pfApiBase").value=localStorage.getItem("rh_api_base")||"";
+  if($("pfAdminToken"))$("pfAdminToken").value=localStorage.getItem("rh_admin_token")||"";
   if($("pfAvatar"))$("pfAvatar").src=(p&&p.avatar)||"https://i.pravatar.cc/120?img=12";
   paintNlPartyOpts();
 }
@@ -329,7 +333,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.62";const APP_BUILD="107";
+const APP_V="2.63";const APP_BUILD="108";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1577,6 +1581,17 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   fillDistricts();
   renderProfiles();
   if($("pfSave"))$("pfSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.name=(($("pfName")||{}).value||"").trim().slice(0,60)||it.name;it.username=(($("pfUsername")||{}).value||"").trim().slice(0,40);it.email=(($("pfEmail")||{}).value||"").trim().slice(0,80);it.phone=(($("pfPhone")||{}).value||"").trim().slice(0,30);it.city=(($("pfCity")||{}).value||"").trim();it.role=(($("pfRole")||{}).value||"owner");it.bio=(($("pfBio")||{}).value||"").trim().slice(0,200);it.public=!!$("pfPublic").checked;saveProfiles(list);}renderProfiles();notify("Профиль сохранён");};
+  if($("pfServerSave"))$("pfServerSave").onclick=async()=>{
+    const base=(($("pfApiBase")||{}).value||"").trim().replace(/\/+$/,"");
+    const tok=(($("pfAdminToken")||{}).value||"").trim();
+    try{base?localStorage.setItem("rh_api_base",base):localStorage.removeItem("rh_api_base");tok?localStorage.setItem("rh_admin_token",tok):localStorage.removeItem("rh_admin_token");}catch(e){}
+    const st=$("pfServerStatus");
+    if(!tok){if(st)st.textContent="Токен не задан — сохранение только в браузере";notify("Токен не задан");return;}
+    if(st)st.textContent="Проверяю…";
+    const j=await apiGet("/admin/check",tok);
+    if(j&&j.ok){if(st)st.textContent="Подключено к серверу";notify("Сервер подключён");}
+    else{if(st)st.textContent="Сервер недоступен или токен неверный";notify("Сервер не ответил — проверьте адрес и токен");}
+  };
   if($("pfCreate"))$("pfCreate").onclick=async()=>{const nm=(($("pfNewName")||{}).value||"").trim().slice(0,60)||"Гость";const id="g-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);const list=loadProfilesRaw();list.push({id,num:Math.max(0,...list.map(p=>p.num||0))+1,name:nm,createdAt:Date.now()});saveProfiles(list);if($("pfNewName"))$("pfNewName").value="";await switchProfile(id);};
   if($("pfLogout"))$("pfLogout").onclick=async()=>{
     await persistMy();

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="107">
+<meta name="app-build" content="108">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=110">');})();</script>
+<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=111">');})();</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -200,6 +200,18 @@
           </div>
         </div>
         <p class="hint">Копия — это JSON с профилем, проектами и избранным. Перенесите файл на другое устройство, чтобы забрать кабинет с собой.</p>
+      </div>
+    </details>
+    <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px">
+      <summary style="cursor:pointer;font-weight:700">Сервер и публикация (админ)</summary>
+      <div style="margin-top:10px;display:grid;gap:8px">
+        <div class="filter-group"><label>Адрес API</label><input id="pfApiBase" placeholder="https://balilegalvilla.com" autocomplete="off"></div>
+        <div class="filter-group"><label>Админ-токен</label><input id="pfAdminToken" type="password" placeholder="токен из .env на сервере" autocomplete="off"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button id="pfServerSave" class="btn-primary" type="button">Подключить</button>
+          <span id="pfServerStatus" class="hint"></span>
+        </div>
+        <p class="hint">Без токена объекты сохраняются только в этом браузере. С токеном публикуются в общую базу на сервере.</p>
       </div>
     </details>
     <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px">
@@ -401,7 +413,7 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="services">🛠<span data-i18n="nav_services">Услуги</span></button><button class="bn-item" data-view="community">👥<span data-i18n="nav_community">Сообщество</span></button></nav>
 
-<script>document.write('<script src="js/app.js?v=110"><\/script>');</script>
+<script>document.write('<script src="js/app.js?v=111"><\/script>');</script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
