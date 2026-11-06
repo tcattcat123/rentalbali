@@ -124,12 +124,14 @@ async function persistMy(){
     if(saveLocal(slim)){notify("Места мало: оставил по 1 фото на объявление. Скачайте копию кабинета.");}
     else{notify("Хранилище переполнено: скачайте копию кабинета и удалите часть фото");return;}
   }
-  // Синхронизация в MySQL (только если есть админ-токен, иначе silently — lokalStorage остаётся источником истины)
+  // Синхронизация в MySQL (только если есть админ-токен, иначе localStorage — источник истины)
   const token=localStorage.getItem("rh_admin_token")||"";
   if(token){
+    let allOk=true;
     for(const it of items){
-      try{await apiSaveListing(it);}catch(e){}
+      try{const r=await apiSaveListing(it);if(!r||!r.ok)allOk=false;}catch(e){allOk=false;}
     }
+    if(!allOk){notify("Сервер не сохранил часть объектов — они остались в браузере");return false;}
   }
   return true;
 }
@@ -335,7 +337,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.63";const APP_BUILD="109";
+const APP_V="2.64";const APP_BUILD="110";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1890,7 +1892,7 @@ async function submitForm(auto,opts){
       area:num("nlArea",old?old.area||0:0),landArea:num("nlLand",old?old.landArea||0:0),floors:0,
       yearBuilt:0,furnished:true,
       location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim()||(old?old.addr||"":""),geoAcc:acc,
-      phone:"",owner:getGuestId(),status:(opts&&opts.mode==="draft")?"draft":"published",ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
+      phone:"",owner:getGuestId(),status:((opts&&opts.mode==="publish")?"published":(old?(old.status||"draft"):"draft")),ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
       images:allPhotos,fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
@@ -1898,20 +1900,35 @@ async function submitForm(auto,opts){
       available:$("nlAvail").value?$("nlAvail").value+"-01":(old?old.available||null:null),
       amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:old?old.moveIn||null:null,desc:$("nlDesc").value.trim()||(old?old.desc||"":""),parties:partiesArr,history:(editingId&&old?mergeHistory(old.history,old.parties,partiesArr):[{name:(partiesArr.find(p=>p.role==="admin")||{}).name||((curProfile()||{}).name||"Вы"),action:"join",at:Date.now()}])};
     let backendSaved=true;
+    const tplSnap=snapForm();
     if(editingId){
       const ix=LISTINGS.findIndex(x=>x.id===editingId);
       if(ix>=0){const old=LISTINGS[ix];it.id=old.id;it.createdAt=old.createdAt;it.views=old.views;it.rating=old.rating;it.reviews=old.reviews;it.owner=old.owner||getGuestId();it.ai=old.ai||it.ai;LISTINGS[ix]=it;}
-      backendSaved=await persistMy();resetNlForm();render();notify(backendSaved?"Изменения сохранены":"Изменения сохранены только в браузере");
-    } else {
-      LISTINGS.unshift(it);backendSaved=await persistMy();const tplSnap=snapForm();
-      if(opts&&opts.mode==="draft"){
+      backendSaved=await persistMy();
+      if(opts&&opts.mode==="publish"){
+        state.deal=deal;state.role=role;state.page=1;syncRoleTabs();syncDealTabs();
         resetNlForm();render();
+        const meId=curPid();
+        partiesArr.forEach(p=>{if(p.pid&&p.pid!==meId)contractParties(meId,p.pid,it.id);});
+        showAfterSave(it.id,tplSnap);
+        notify(backendSaved?"Опубликовано! Показываю его в ленте.":"Карточка сохранена в этом браузере.");
+      } else {
+        render();
+        const prev=$("nlPreview");if(prev)prev.disabled=false;
+        lastCreatedId=it.id;lastTplSnap=tplSnap||null;
+        notify(backendSaved?"Изменения сохранены":"Изменения сохранены только в браузере");
+      }
+    } else {
+      LISTINGS.unshift(it);backendSaved=await persistMy();
+      if(opts&&opts.mode==="draft"){
+        editingId=it.id;
+        render();
         const prev=$("nlPreview");if(prev)prev.disabled=false;
         lastCreatedId=it.id;lastTplSnap=tplSnap||null;
         notify(backendSaved?"Черновик сохранён — в «Мои проекты»":"Черновик сохранён только в браузере");
       } else {
+        state.deal=deal;state.role=role;state.page=1;syncRoleTabs();syncDealTabs();
         resetNlForm();render();
-        state.deal=deal;state.role=role;state.page=1;syncRoleTabs();syncDealTabs();render();
         const meId=curPid();
         partiesArr.forEach(p=>{if(p.pid&&p.pid!==meId)contractParties(meId,p.pid,it.id);});
         showAfterSave(it.id,tplSnap);
@@ -1953,10 +1970,12 @@ function saveTpl(name,data){
   if($("nlDraft"))$("nlDraft").onclick=()=>submitForm(false,{mode:"draft"});
   if($("nlPublish"))$("nlPublish").onclick=()=>submitForm(false,{mode:"publish"});
   if($("nlPreview"))$("nlPreview").onclick=()=>{if(lastCreatedId)openDetail(lastCreatedId);};
+  const addPanel=document.querySelector('[data-cabpanel="add"]');
+  if(addPanel){const dirty=()=>{if(lastCreatedId){const pv=$("nlPreview");if(pv)pv.disabled=true;}};addPanel.addEventListener("input",dirty);addPanel.addEventListener("change",dirty);}
   if($("asView"))$("asView").onclick=()=>{if(lastCreatedId)openDetail(lastCreatedId);};
   if($("asClear"))$("asClear").onclick=()=>{resetNlForm();notify("Форма очищена");};
   if($("asTpl"))$("asTpl").onclick=()=>{const it=LISTINGS.find(x=>x.id===lastCreatedId);saveTpl((it&&it.title)||("Шаблон "+new Date().toLocaleDateString("ru-RU")),lastTplSnap);};
-  if($("asNew"))$("asNew").onclick=()=>{resetNlForm();switchCabtab("add");notify("Чистая форма готова");};
+  if($("asNew"))$("asNew").onclick=()=>{resetNlForm();lastCreatedId=0;lastTplSnap=null;switchCabtab("add");notify("Чистая форма готова");};
   paintTplSel();
   if($("nlTplSave"))$("nlTplSave").onclick=()=>saveTpl(($("nlTplName")||{}).value||"");
   if($("nlTplLoad"))$("nlTplLoad").onclick=()=>{const t=loadTpls();const d=t[+((($("nlTplSel")||{}).value)||"")];if(!d){notify("Нет шаблона");return;}fillFormData(d.data||{});switchImptab("manual");notify("Шаблон применён — проверьте и публикуйте");};
