@@ -46,10 +46,8 @@ commercial:[U("photo-1486406146926-c627a92ad1ab"),U("photo-1564013799919-ab60002
 LISTINGS.forEach((it,i)=>{if(it.user)return;const p=POOL[it.propertyType]||POOL.villa;const n=it.type==="request"?1:(it.propertyType==="land"?2:3);it.images=Array.from({length:n},(_,k)=>p[(i+k)%p.length]);it.fb=`https://picsum.photos/seed/bali${it.id}/640/360`;});
 const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],house:["Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад","Телевизор"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],room:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],invest:["Wi-Fi","Кондиционер","Парковка","Охрана"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
 LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
-/* ===== API layer: MySQL via Vercel functions, fallback localStorage ===== */
-const API_BASE = (location.origin.includes("vercel.app")?location.origin:"") + "/api";
-let apiOnline = null;
-async function apiCheck(){try{const r=fetch(API_BASE+"/listings",{cache:"no-store",signal:AbortSignal.timeout?AbortSignal.timeout(3000):null});if(!AbortSignal.timeout){const c=new AbortController();setTimeout(()=>c.abort(),3000);return fetch(API_BASE+"/listings",{signal:c.signal});}return r;}catch(e){return null;}}
+/* ===== API layer: локальный сервер + MySQL, fallback localStorage ===== */
+const API_BASE = (localStorage.getItem("rh_api_base")||"") + "/api";
 async function apiGet(path){try{const r=await fetch(API_BASE+path,{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function apiPost(path,body){try{const r=await fetch(API_BASE+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function apiListings(){const j=await apiGet("/listings");return j&&j.ok?j.items:null;}
@@ -99,22 +97,19 @@ function migrateProfiles(){
 }
 migrateProfiles();
 try{(JSON.parse(localStorage.getItem(myKey())||"[]")||[]).forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true,owner:o.owner||getGuestId(),status:o.status||"published",phone:""},o,{mine:true,user:true,phone:""}));});}catch(e){}
-let API=false;
-fetch("api/ping",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
-  if(!(j&&j.ok))return;
-  API=true;
-  const m=$("storeMode");if(m)m.textContent="Файлы (JSON)";
-  (async ()=>{
-    const remote=await apiListings();
-    if(remote&&remote.length){
-      for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
-      remote.forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true,phone:""},o,{mine:true,user:true,phone:"",owner:o.owner||getGuestId()}));});
-      LISTINGS.forEach(o=>{if(o.user&&!o.code)o.code=nextObjectId(o.propertyType,o.locationEn);});
-      syncIdSeq();
-    }
-    render();
-  })().catch(()=>{});
-}).catch(()=>{});
+
+// Загрузка опубликованных объектов из локального сервера (MySQL), с откатом на localStorage
+(async ()=>{
+  const remote=await apiListings();
+  if(remote&&remote.length){
+    for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
+    remote.forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true,phone:""},o,{mine:true,user:true,phone:"",owner:o.owner||getGuestId()}));});
+    LISTINGS.forEach(o=>{if(o.user&&!o.code)o.code=nextObjectId(o.propertyType,o.locationEn);});
+    syncIdSeq();
+  }
+  render();
+})().catch(()=>{});
+
 function getGuestId(){return curPid()||"g-none";}
 async function persistMy(){
   const items=LISTINGS.filter(x=>x.user);
@@ -131,13 +126,7 @@ async function persistMy(){
       try{await apiSaveListing(it);}catch(e){}
     }
   }
-  if(!API)return true;
-  try{
-    const response=await fetch("api/listings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items})});
-    const result=await response.json();
-    if(!response.ok||!result.ok)throw new Error("server save failed");
-    return true;
-  }catch(_){notify("Карточка осталась в браузере; сервер не подтвердил сохранение");return false;}
+  return true;
 }
 function getProfile(){const p=curProfile();return{name:(p&&p.name)||"",guestId:curPid()};}
 function renderProfiles(){
