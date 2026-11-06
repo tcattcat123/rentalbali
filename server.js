@@ -201,7 +201,6 @@ async function upsertListing(b) {
     b.desc || '',
     JSON.stringify(jsonArr(b.parties)),
     status,
-    code,
     bool(b.ai),
     b.agentName || '',
     bool(b.isVerified),
@@ -225,19 +224,20 @@ async function upsertListing(b) {
         parties=?, status=?, ai=?, agent_name=?, is_verified=?, is_agent=?, is_top=?, is_urgent=?, legal=?,
         rating=?, reviews=?, move_in=?, owner=?, updated_at=NOW()
        WHERE code=?`,
-      [...values.slice(0, 39), code]
+      [...values, code]
     );
     return { ok: true, id: existing[0].id, code, status, updated: true };
   }
 
+  const placeholders = values.map(() => '?').join(',');
   const [result] = await pool.query(
     `INSERT INTO listings
       (title, deal_type, role, property_type, district, location, address, price, price_min, currency, category,
        bedrooms, bathrooms, area, land_area, floors, year_built, furnished, tenure, lease_years, available,
        geo_lat, geo_lng, geo_acc, amenities, images, \`desc\`, parties, status, ai, agent_name, is_verified,
        is_agent, is_top, is_urgent, legal, rating, reviews, move_in, owner, code, mine, \`user\`, created_at, updated_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,1,NOW(),NOW())`,
-    values
+     VALUES (${placeholders},?,1,1,NOW(),NOW())`,
+    [...values, code]
   );
   return { ok: true, id: result.insertId, code, status, created: true };
 }
