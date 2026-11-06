@@ -123,6 +123,45 @@ CREATE TABLE IF NOT EXISTS favorites (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================
+-- 6. АККАУНТЫ ПОЛЬЗОВАТЕЛЕЙ (логин + пароль)
+-- Пароль хранится как scrypt-хеш (Node crypto).
+-- profile_id — профиль участника, привязанный к аккаунту (u<id>).
+-- ============================================
+CREATE TABLE IF NOT EXISTS accounts (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  login VARCHAR(80) NOT NULL UNIQUE,
+  pass_hash VARCHAR(255) NOT NULL,
+  name VARCHAR(120) NOT NULL,
+  profile_id VARCHAR(64) UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================
+-- 7. СЕССИИ (долгие, со скользящим продлением)
+-- ============================================
+CREATE TABLE IF NOT EXISTS sessions (
+  token CHAR(64) PRIMARY KEY,
+  account_id BIGINT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME NOT NULL,
+  INDEX idx_account (account_id),
+  INDEX idx_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================
+-- 8. ШАБЛОНЫ ФОРМЫ (личный кабинет)
+-- ============================================
+CREATE TABLE IF NOT EXISTS templates (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  account_id BIGINT NOT NULL,
+  name VARCHAR(120),
+  data JSON NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_account (account_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================
 -- Пример админа (пароль будет взят из env ADMIN_PASSWORD_HASH при инициализации)
 -- ============================================
 INSERT IGNORE INTO users (username, password_hash, role)
