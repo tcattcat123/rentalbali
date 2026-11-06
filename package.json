@@ -1,0 +1,16 @@
+{
+  "name": "rentalbali",
+  "version": "2.61",
+  "description": "RentHome Bali — аренда и покупка недвижимости на Бали",
+  "main": "index.html",
+  "scripts": {
+    "dev": "echo 'Use Vercel CLI or admin-server.py'",
+    "setup-db": "echo 'Apply db/schema.sql to your MySQL, then set env vars in Vercel'"
+  },
+  "dependencies": {
+    "mysql2": "^3.11.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

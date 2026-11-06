@@ -46,11 +46,41 @@ commercial:[U("photo-1486406146926-c627a92ad1ab"),U("photo-1564013799919-ab60002
 LISTINGS.forEach((it,i)=>{if(it.user)return;const p=POOL[it.propertyType]||POOL.villa;const n=it.type==="request"?1:(it.propertyType==="land"?2:3);it.images=Array.from({length:n},(_,k)=>p[(i+k)%p.length]);it.fb=`https://picsum.photos/seed/bali${it.id}/640/360`;});
 const AM={villa:["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад"],house:["Wi-Fi","Кондиционер","Кухня","Парковка","Стиральная машина","Сад","Телевизор"],apartment:["Wi-Fi","Кондиционер","Холодильник","Телевизор","Стиральная машина","Плита"],homestay:["Wi-Fi","Кондиционер","Завтраки","Холодильник","Телевизор"],boarding:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],townhouse:["Wi-Fi","Кондиционер","Парковка","Стиральная машина","Холодильник"],room:["Wi-Fi","Кондиционер","Холодильник","Общая кухня"],invest:["Wi-Fi","Кондиционер","Парковка","Охрана"],land:["Подъездная дорога","Электричество","Вода","Тихий район"],commercial:["Wi-Fi","Кондиционер","Парковка","Витрина","Склад"]};
 LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.propertyType]||AM.villa;it.amenities=a.slice(0,4+(i%3));});
+/* ===== API layer: MySQL via Vercel functions, fallback localStorage ===== */
+const API_BASE = (location.origin.includes("vercel.app")?location.origin:"") + "/api";
+let apiOnline = null;
+async function apiCheck(){try{const r=fetch(API_BASE+"/listings",{cache:"no-store",signal:AbortSignal.timeout?AbortSignal.timeout(3000):null});if(!AbortSignal.timeout){const c=new AbortController();setTimeout(()=>c.abort(),3000);return fetch(API_BASE+"/listings",{signal:c.signal});}return r;}catch(e){return null;}}
+async function apiGet(path){try{const r=await fetch(API_BASE+path,{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function apiPost(path,body){try{const r=await fetch(API_BASE+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function apiListings(){const j=await apiGet("/listings");return j&&j.ok?j.items:null;}
+async function apiProfiles(){const j=await apiGet("/profiles");return j&&j.ok?j.items:null;}
+async function apiProfile(id){const j=await apiGet("/profiles?id="+encodeURIComponent(id));return j&&j.ok?j.profile:null;}
+async function apiSaveProfile(p){return await apiPost("/profiles",p);}
+async function apiSaveListing(it){return await apiPost("/listings",it);}
+async function apiContracts(){const j=await apiGet("/contracts");return j&&j.ok?j.items:null;}
 /* ===== Local profiles: switch, logout, new (no backend, per-device) ===== */
-function loadProfilesRaw(){try{const p=JSON.parse(localStorage.getItem("rh_profiles")||"[]");return Array.isArray(p)?p.filter(x=>x&&x.id):[];}catch(e){return[];}}
-function loadProfiles(){return loadProfilesRaw().map((p,i)=>Object.assign({num:i+1,username:"",email:"",phone:"",password:"",role:"owner",city:"",bio:"",public:false},p));}
+function loadProfilesRaw(){
+  const fromLS=()=>{try{const p=JSON.parse(localStorage.getItem("rh_profiles")||"[]");return Array.isArray(p)?p.filter(x=>x&&x.id):[];}catch(e){return[];}};
+  return fromLS();
+}
+function loadProfiles(){
+  const ls=loadProfilesRaw().map((p,i)=>Object.assign({num:i+1,username:"",email:"",phone:"",password:"",role:"owner",city:"",bio:"",public:false},p));
+  return ls;
+}
+function saveProfiles(list){
+  try{localStorage.setItem("rh_profiles",JSON.stringify(list||[]));}catch(e){}
+  try{apiPost("/profiles",{id:(list&&list[0]&&list[0].id)||"",profiles:list});}catch(e){}
+}
+/* ===== Profiles sync with API (admin writes, frontend reads) ===== */
+async function syncProfilesFromAPI(){
+  const items=await apiProfiles();
+  if(!items||!items.length)return;
+  try{
+    const merged=items.map(p=>Object.assign({num:p.num||0,username:p.username||"",email:p.email||"",phone:p.phone||"",role:p.role||"owner",city:p.city||"",bio:p.bio||"",public:!!p.public},p));
+    saveProfiles(merged);
+  }catch(e){}
+}
 function ensureProfileNums(){try{const l=JSON.parse(localStorage.getItem("rh_profiles")||"[]");if(Array.isArray(l)&&l.length&&l.some(p=>!p||!p.num)){l.forEach((p,i)=>{if(p&&!p.num)p.num=i+1;});localStorage.setItem("rh_profiles",JSON.stringify(l));}}catch(e){}}
-function saveProfiles(list){try{localStorage.setItem("rh_profiles",JSON.stringify(list||[]));}catch(e){}}
 function curPid(){try{return localStorage.getItem("rh_profile_current")||"";}catch(e){return"";}}
 function setCurPid(id){try{if(id)localStorage.setItem("rh_profile_current",id);else localStorage.removeItem("rh_profile_current");}catch(e){}}
 function curProfile(){const id=curPid();if(!id)return null;return loadProfiles().find(x=>x.id===id)||null;}
@@ -74,14 +104,16 @@ fetch("api/ping",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
   if(!(j&&j.ok))return;
   API=true;
   const m=$("storeMode");if(m)m.textContent="Файлы (JSON)";
-  fetch("api/listings",{cache:"no-store"}).then(r=>r.json()).then(d=>{
-    if(!d||!d.ok||!Array.isArray(d.items))return;
-    for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
-    d.items.forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true,phone:""},o,{mine:true,user:true,phone:"",owner:o.owner||getGuestId()}));});
-    LISTINGS.forEach(o=>{if(o.user&&!o.code)o.code=nextObjectId(o.propertyType,o.locationEn);});
-    syncIdSeq();
+  (async ()=>{
+    const remote=await apiListings();
+    if(remote&&remote.length){
+      for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
+      remote.forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true,phone:""},o,{mine:true,user:true,phone:"",owner:o.owner||getGuestId()}));});
+      LISTINGS.forEach(o=>{if(o.user&&!o.code)o.code=nextObjectId(o.propertyType,o.locationEn);});
+      syncIdSeq();
+    }
     render();
-  }).catch(()=>{});
+  })().catch(()=>{});
 }).catch(()=>{});
 function getGuestId(){return curPid()||"g-none";}
 async function persistMy(){
@@ -91,6 +123,13 @@ async function persistMy(){
     const slim=items.map(o=>Object.assign({},o,{images:(o.images||[]).slice(0,1)}));
     if(saveLocal(slim)){notify("Места мало: оставил по 1 фото на объявление. Скачайте копию кабинета.");}
     else{notify("Хранилище переполнено: скачайте копию кабинета и удалите часть фото");return;}
+  }
+  // Синхронизация в MySQL (только если есть админ-токен, иначе silently — lokalStorage остаётся источником истины)
+  const token=localStorage.getItem("rh_admin_token")||"";
+  if(token){
+    for(const it of items){
+      try{await apiSaveListing(it);}catch(e){}
+    }
   }
   if(!API)return true;
   try{
@@ -300,7 +339,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.61";const APP_BUILD="106";
+const APP_V="2.62";const APP_BUILD="107";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -827,8 +866,14 @@ function isCurrentAdmin(it){
   return (it.parties||[]).some(p=>p&&p.role==="admin"&&((p.pid&&p.pid===curPid())||String(p.name||"").trim().toLowerCase()===me));
 }
 function esc(s){return String(s||"").replace(/</g,"&lt;");}
-function loadContracts(){try{return JSON.parse(localStorage.getItem("rh_contracts")||"[]");}catch(e){return[];}}
-function saveContracts(l){try{localStorage.setItem("rh_contracts",JSON.stringify(l||[]));}catch(e){}}
+async function loadContracts(){
+  const remote=await apiContracts();
+  if(remote)return remote;
+  try{return JSON.parse(localStorage.getItem("rh_contracts")||"[]");}catch(e){return[];}}
+function saveContracts(l){
+  try{localStorage.setItem("rh_contracts",JSON.stringify(l||[]));}catch(e){}
+  try{apiPost("/contracts",{id:"sync",parties:[],projects:[],status:"pending"});}catch(e){}
+}
 function contractParties(meId,themId,projectId){
   const contracts=loadContracts();
   let c=contracts.find(c=>c.parties.some(p=>p.pid===meId)&&c.parties.some(p=>p.pid===themId));
