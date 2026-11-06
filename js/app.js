@@ -435,7 +435,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.65";const APP_BUILD="112";
+const APP_V="2.65";const APP_BUILD="113";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -962,10 +962,9 @@ function isCurrentAdmin(it){
   return (it.parties||[]).some(p=>p&&p.role==="admin"&&((p.pid&&p.pid===curPid())||String(p.name||"").trim().toLowerCase()===me));
 }
 function esc(s){return String(s||"").replace(/</g,"&lt;");}
-async function loadContracts(){
-  const remote=await apiContracts();
-  if(remote)return remote;
-  try{return JSON.parse(localStorage.getItem("rh_contracts")||"[]");}catch(e){return[];}}
+function loadContracts(){
+  try{return JSON.parse(localStorage.getItem("rh_contracts")||"[]");}catch(e){return[];}
+}
 function saveContracts(l){
   try{localStorage.setItem("rh_contracts",JSON.stringify(l||[]));}catch(e){}
   const t=sessionToken()||adminToken();
