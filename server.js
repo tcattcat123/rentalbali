@@ -47,7 +47,7 @@ const pool = mysql.createPool({
 const app = express();
 app.disable('x-powered-by');
 app.use(cors());
-app.use(express.json({ limit: '4mb' }));
+app.use(express.json({ limit: '12mb' }));
 
 // ---------- Авторизация админа ----------
 function adminOnly(req, res, next) {
