@@ -77,8 +77,14 @@ async function syncProfilesFromAPI(){
   const items=await apiProfiles();
   if(!items||!items.length)return;
   try{
-    const merged=items.map(p=>Object.assign({num:p.num||0,username:p.username||"",email:p.email||"",phone:p.phone||"",role:p.role||"owner",city:p.city||"",bio:p.bio||"",public:!!p.public},p));
-    saveProfiles(merged);
+    const local=loadProfilesRaw();
+    const map=new Map(local.map(p=>[p.id,p]));
+    items.forEach(p=>{
+      if(!p||!p.id)return;
+      map.set(p.id,Object.assign({num:p.num||0,username:p.username||"",email:p.email||"",phone:p.phone||"",role:p.role||"owner",city:p.city||"",bio:p.bio||"",public:!!p.public},map.get(p.id)||{},p));
+    });
+    localStorage.setItem("rh_profiles",JSON.stringify([...map.values()]));
+    ensureProfileNums();
   }catch(e){}
 }
 function ensureProfileNums(){try{const l=JSON.parse(localStorage.getItem("rh_profiles")||"[]");if(Array.isArray(l)&&l.length&&l.some(p=>!p||!p.num)){l.forEach((p,i)=>{if(p&&!p.num)p.num=i+1;});localStorage.setItem("rh_profiles",JSON.stringify(l));}}catch(e){}}
@@ -99,6 +105,7 @@ function migrateProfiles(){
   }catch(e){}
 }
 migrateProfiles();
+syncProfilesFromAPI().then(()=>{try{renderProfiles();}catch(e){}}).catch(()=>{});
 try{(JSON.parse(localStorage.getItem(myKey())||"[]")||[]).forEach(o=>{if(o&&o.id)LISTINGS.unshift(Object.assign({mine:true,user:true,owner:o.owner||getGuestId(),status:o.status||"published",phone:""},o,{mine:true,user:true,phone:""}));});}catch(e){}
 
 // Загрузка опубликованных объектов из локального сервера (MySQL), с откатом на localStorage
@@ -337,7 +344,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.64";const APP_BUILD="110";
+const APP_V="2.64";const APP_BUILD="111";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
