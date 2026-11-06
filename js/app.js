@@ -1,4 +1,4 @@
-﻿/* RentHome Bali v2 — deal tabs + extended filters + characteristics */
+/* RentHome Bali v2 — deal tabs + extended filters + characteristics */
 const RATE = 16000;
 const now = Date.now();
 const H = 3600e3, M = 60e3;
@@ -57,6 +57,8 @@ async function apiProfile(id){const j=await apiGet("/profiles?id="+encodeURIComp
 async function apiSaveProfile(p){return await apiPost("/profiles",p,adminToken());}
 async function apiSaveListing(it){return await apiPost("/listings",it,adminToken());}
 async function apiContracts(){const j=await apiGet("/contracts");return j&&j.ok?j.items:null;}
+let API=false;
+(async()=>{const j=await apiGet("/health");API=!!(j&&j.ok);const fh=$("folderHint");if(fh)fh.style.display=API?"none":"";})();
 /* ===== Local profiles: switch, logout, new (no backend, per-device) ===== */
 function loadProfilesRaw(){
   const fromLS=()=>{try{const p=JSON.parse(localStorage.getItem("rh_profiles")||"[]");return Array.isArray(p)?p.filter(x=>x&&x.id):[];}catch(e){return[];}};
@@ -68,7 +70,7 @@ function loadProfiles(){
 }
 function saveProfiles(list){
   try{localStorage.setItem("rh_profiles",JSON.stringify(list||[]));}catch(e){}
-  try{apiPost("/profiles",{id:(list&&list[0]&&list[0].id)||"",profiles:list});}catch(e){}
+  if(adminToken())apiPost("/profiles",{profiles:list||[]},adminToken()).catch(()=>{});
 }
 /* ===== Profiles sync with API (admin writes, frontend reads) ===== */
 async function syncProfilesFromAPI(){
@@ -333,7 +335,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.63";const APP_BUILD="108";
+const APP_V="2.63";const APP_BUILD="109";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
