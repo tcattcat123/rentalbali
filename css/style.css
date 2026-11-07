@@ -51,6 +51,8 @@ a{-webkit-tap-highlight-color:transparent}
 .icon-btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px;height:28px;display:inline-flex;align-items:center;gap:4px}
 .icon-btn:hover{border-color:var(--acc);color:var(--acc-dark)}
 .icon-btn.profile{background:var(--acc);color:#fff;border-color:var(--acc)}
+.auth-nav-btn{background:#fff;color:var(--acc-dark);border-color:var(--acc);font-weight:700;white-space:nowrap}
+.auth-nav-btn:hover{background:var(--acc);color:#fff}
 .pf-nav-img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.7);flex-shrink:0}
 .pf-nav-label{font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
 .fav-count{background:var(--acc);color:#fff;border-radius:4px;font-size:11px;padding:0 6px;margin-left:4px;font-weight:700}

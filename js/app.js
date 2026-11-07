@@ -171,7 +171,7 @@ async function doAuth(kind){
   applyAuthAccount(j.account);
   await loadCabinetFromServer();
   renderAuth();
-  notify(kind==="register"?"Аккаунт создан":"Вы вошли");
+  notify(kind==="register"?("Аккаунт создан. Ваш ID: "+j.account.profileId):"Вы вошли");
 }
 async function doAuthLogout(){
   const token=sessionToken();
@@ -190,7 +190,19 @@ function renderAuth(){
   if(out)out.classList.toggle("hidden",logged);
   if(inn)inn.classList.toggle("hidden",!logged);
   if($("authWho"))$("authWho").textContent=logged?("Вы вошли как "+(authAccount.login||authAccount.name)+" · профиль "+authAccount.profileId):"";
+  if($("authIdLine"))$("authIdLine").textContent=logged?("ID пользователя: "+authAccount.profileId+" — ваши карточки сохраняются под этим ID"):"";
+  const nav=$("authNavBtn");if(nav)nav.classList.toggle("hidden",logged);
+  const card=$("authCard");if(card&&!logged)card.open=true;
   const st=$("authStatus");if(st)st.textContent=logged?"Сессия хранится 365 дней":"Без входа данные остаются только в браузере";
+}
+function openAuthPanel(){
+  switchView("profile");
+  switchCabtab("profile");
+  const card=$("authCard");if(card)card.open=true;
+  setTimeout(()=>{
+    if(card)card.scrollIntoView({behavior:"smooth",block:"center"});
+    const el=$("authLogin")||$("authPass");if(el)el.focus();
+  },60);
 }
 
 migrateProfiles();
@@ -442,7 +454,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.65";const APP_BUILD="114";
+const APP_V="2.66";const APP_BUILD="115";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1705,6 +1717,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   if($("pfCreate"))$("pfCreate").onclick=async()=>{const nm=(($("pfNewName")||{}).value||"").trim().slice(0,60)||"Гость";const id="g-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);const list=loadProfilesRaw();list.push({id,num:Math.max(0,...list.map(p=>p.num||0))+1,name:nm,createdAt:Date.now()});saveProfiles(list);if($("pfNewName"))$("pfNewName").value="";await switchProfile(id);};
   if($("authLoginBtn"))$("authLoginBtn").onclick=()=>doAuth("login");
   if($("authRegisterBtn"))$("authRegisterBtn").onclick=()=>doAuth("register");
+  if($("authNavBtn"))$("authNavBtn").onclick=openAuthPanel;
   if($("authLogoutBtn"))$("authLogoutBtn").onclick=()=>doAuthLogout();
   if($("pfLogout"))$("pfLogout").onclick=async()=>{
     await persistMy();
@@ -2001,7 +2014,7 @@ async function submitForm(auto,opts){
       area:num("nlArea",old?old.area||0:0),landArea:num("nlLand",old?old.landArea||0:0),floors:0,
       yearBuilt:0,furnished:true,
       location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim()||(old?old.addr||"":""),geoAcc:acc,
-      phone:"",owner:getGuestId(),status:((opts&&opts.mode==="publish")?"published":(old?(old.status||"draft"):"draft")),ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
+      phone:"",owner:((authAccount&&sessionToken())?authAccount.profileId:getGuestId()),status:((opts&&opts.mode==="publish")?"published":(old?(old.status||"draft"):"draft")),ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
       images:allPhotos,fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",

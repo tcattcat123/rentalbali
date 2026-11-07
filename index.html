@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="114">
+<meta name="app-build" content="115">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=117">');})();</script>
+<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=118">');})();</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -30,6 +30,7 @@
       <div id="google_translate_element" class="gtrans" title="Перевод страницы"></div>
       <button id="themeBtn" class="icon-btn" title="Тема">○</button>
       <button id="favHeaderBtn" class="icon-btn" title="Избранное">♡ <span id="favCount" class="fav-count">0</span></button>
+      <button id="authNavBtn" class="icon-btn auth-nav-btn" title="Регистрация / Вход">Регистрация</button>
       <button id="profileBtn" class="icon-btn profile active" title="Профиль"><img src="https://i.pravatar.cc/150?img=12" class="pf-nav-img" alt="Профиль"><span class="pf-nav-label">Профиль</span></button>
     </div>
     <div class="sub-tabs">
@@ -169,20 +170,21 @@
         <div class="pf-row"><span class="pf-label">Баланс</span><div class="pf-val" id="pfBalance">0 IDR</div></div>
       </div>
     </div>
-    <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px" id="authCard">
+    <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px" id="authCard" open>
       <summary style="cursor:pointer;font-weight:700">Вход и регистрация</summary>
       <div style="margin-top:10px;display:grid;gap:8px">
         <div id="authLoggedOut" style="display:grid;gap:8px">
           <div class="filter-group"><label>Логин</label><input id="authLogin" placeholder="username" autocomplete="username"></div>
-          <div class="filter-group"><label>Пароль</label><input id="authPass" type="password" placeholder="••••••" autocomplete="current-password"></div>
+          <div class="filter-group"><label>Пароль (виден, не под звёздочками)</label><input id="authPass" type="text" placeholder="пароль" autocomplete="off"></div>
           <div class="filter-group"><label>Имя (при создании аккаунта)</label><input id="authName" placeholder="Как к вам обращаться" autocomplete="name"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button id="authLoginBtn" class="btn-primary" type="button">Войти</button>
-            <button id="authRegisterBtn" class="btn-ghost" type="button">Создать аккаунт</button>
+            <button id="authRegisterBtn" class="btn-primary" type="button">Зарегистрироваться</button>
           </div>
         </div>
         <div id="authLoggedIn" class="hidden" style="display:grid;gap:8px">
           <div id="authWho" class="hint" style="font-weight:600"></div>
+          <div id="authIdLine" class="hint" style="font-weight:600"></div>
           <div id="authStatus" class="hint"></div>
           <button id="authLogoutBtn" class="btn-ghost" type="button">Выйти</button>
         </div>
@@ -196,7 +198,7 @@
         <div class="filter-group"><label>Логин</label><input id="pfUsername" placeholder="username" autocomplete="off"></div>
         <div class="filter-group"><label>Почта</label><input id="pfEmail" type="email" placeholder="mail@example.com" autocomplete="off"></div>
         <div class="filter-group"><label>Телефон</label><input id="pfPhone" placeholder="+62 ..." autocomplete="off"></div>
-        <div class="filter-group"><label>Пароль</label><input id="pfPass" type="password" placeholder="••••••" autocomplete="new-password"></div>
+        <div class="filter-group"><label>Пароль (виден)</label><input id="pfPass" type="text" placeholder="пароль" autocomplete="off"></div>
         <div class="filter-group"><label>Город</label><input id="pfCity" placeholder="Например: Чангу"></div>
         <div class="filter-group"><label>Роль на рынке</label><select id="pfRole"><option value="owner">Владелец</option><option value="agent">Агент</option><option value="notary">Нотариус</option><option value="consultant">Консультант</option><option value="admin">Администратор</option><option value="buyer">Покупатель</option></select></div>
         <div class="filter-group"><label>Описание</label><textarea id="pfBio" rows="2" placeholder="Кем вы работаете на рынке недвижимости?"></textarea></div>
@@ -433,7 +435,7 @@
 <div id="sheetBg" class="hidden"></div>
 <nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="services">🛠<span data-i18n="nav_services">Услуги</span></button><button class="bn-item" data-view="community">👥<span data-i18n="nav_community">Сообщество</span></button></nav>
 
-<script>document.write('<script src="js/app.js?v=117"><\/script>');</script>
+<script>document.write('<script src="js/app.js?v=118"><\/script>');</script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
