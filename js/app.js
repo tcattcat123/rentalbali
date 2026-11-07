@@ -49,6 +49,7 @@ LISTINGS.forEach((it,i)=>{if(it.user&&it.amenities)return;const a=AM[it.property
 /* ===== API layer: локальный сервер + MySQL, fallback localStorage ===== */
 function apiBase(){return (localStorage.getItem("rh_api_base")||"").replace(/\/+$/,"")+"/api";}
 function adminToken(){return localStorage.getItem("rh_admin_token")||"";}
+function isAdminUser(){return !!adminToken();}
 function sessionToken(){try{return localStorage.getItem("rh_session")||"";}catch(e){return"";}}
 function authToken(){return sessionToken()||adminToken();}
 async function apiGet(path,token){const h={};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(apiBase()+path,{cache:"no-store",headers:h});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
@@ -85,7 +86,10 @@ async function syncProfilesFromAPI(){
     const map=new Map(local.map(p=>[p.id,p]));
     items.forEach(p=>{
       if(!p||!p.id)return;
-      map.set(p.id,Object.assign({num:p.num||0,username:p.username||"",email:p.email||"",phone:p.phone||"",role:p.role||"owner",city:p.city||"",bio:p.bio||"",public:!!p.public},map.get(p.id)||{},p));
+      const prev=map.get(p.id);
+      const merged=Object.assign({num:p.num||0,username:p.username||"",email:p.email||"",phone:p.phone||"",role:p.role||"owner",city:p.city||"",bio:p.bio||"",public:!!p.public},prev||{},p);
+      if(!prev)merged.remote=true;
+      map.set(p.id,merged);
     });
     localStorage.setItem("rh_profiles",JSON.stringify([...map.values()]));
     ensureProfileNums();
@@ -265,8 +269,11 @@ async function persistMy(){
 function getProfile(){const p=curProfile();return{name:(p&&p.name)||"",guestId:curPid()};}
 function renderProfiles(){
   const box=$("profileList");if(!box)return;
-  const list=loadProfiles(),cur=curPid();
-  box.innerHTML=list.length?list.map(p=>`<span style="display:inline-flex;gap:2px;align-items:center"><button type="button" class="chip${p.id===cur?" active":""}" data-profile="${p.id}">${(p.name||"Без имени").replace(/</g,"&lt;")}</button><button type="button" class="btn-text" data-pdel="${p.id}" title="Удалить профиль">✕</button></span>`).join(""):`<span class="muted">Нет профилей — создайте ниже</span>`;
+  const cur=curPid();
+  const all=loadProfiles();
+  const list=all.filter(p=>!p.remote||p.id===cur);
+  const canDel=isAdminUser();
+  box.innerHTML=list.length?list.map(p=>`<span style="display:inline-flex;gap:2px;align-items:center"><button type="button" class="chip${p.id===cur?" active":""}" data-profile="${p.id}">${(p.name||"Без имени").replace(/</g,"&lt;")}</button>${canDel?`<button type="button" class="btn-text" data-pdel="${p.id}" title="Удалить профиль">✕</button>`:""}</span>`).join(""):`<span class="muted">Нет профилей — создайте ниже</span>`;
   box.querySelectorAll("[data-profile]").forEach(b=>b.onclick=()=>switchProfile(b.dataset.profile));
   box.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>deleteProfile(b.dataset.pdel,b));
   const g=$("guestId");if(g)g.textContent=cur||"—";
@@ -291,6 +298,7 @@ function renderProfiles(){
 }
 function deleteProfile(id,btn){
   if(!id)return;
+  if(!isAdminUser()){notify("Удалять пользователей может только администратор");return;}
   if(!btn.dataset.armed){btn.dataset.armed="1";btn.textContent="Точно?";setTimeout(()=>{delete btn.dataset.armed;btn.textContent="✕";},5000);return;}
   if(id===curPid()){
     for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user)LISTINGS.splice(i,1);
@@ -466,7 +474,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.71";const APP_BUILD="120";
+const APP_V="2.72";const APP_BUILD="121";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1741,6 +1749,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     const base=(($("pfApiBase")||{}).value||"").trim().replace(/\/+$/,"");
     const tok=(($("pfAdminToken")||{}).value||"").trim();
     try{base?localStorage.setItem("rh_api_base",base):localStorage.removeItem("rh_api_base");tok?localStorage.setItem("rh_admin_token",tok):localStorage.removeItem("rh_admin_token");}catch(e){}
+    renderProfiles();
     const st=$("pfServerStatus");
     if(!tok){if(st)st.textContent="Токен не задан — сохранение только в браузере";notify("Токен не задан");return;}
     if(st)st.textContent="Проверяю…";
