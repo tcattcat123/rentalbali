@@ -465,7 +465,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.67";const APP_BUILD="116";
+const APP_V="2.68";const APP_BUILD="117";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1124,6 +1124,8 @@ function resetNlForm(){
   if($("nlPhotos"))$("nlPhotos").value="";
   nlPhotos=[];nlRemote=[];paintNlPreview();nlPartyList=[];paintNlParties();syncNlRoleView();
   if($("nlSave"))$("nlSave").textContent="Опубликовать";
+  if($("nlPublish"))$("nlPublish").textContent="📢 Опубликовать";
+  if($("nlDraft"))$("nlDraft").textContent="👍 Сохранить";
   const c=$("nlCancel");if(c)c.remove();
   const pv=$("nlPreview");if(pv)pv.disabled=true;
 }
@@ -1162,8 +1164,9 @@ function fillEditForm(id){
   nlPartyList=(it.parties||[]).filter(p=>p&&p.name).map(p=>({pid:p.pid||"",name:String(p.name).slice(0,60),role:PARTY_ROLES[p.role]?p.role:"viewer"}));paintNlParties();paintNlPartyOpts();
   switchImptab("manual");
   nlPhotos=[];nlRemote=[...(it.images||[])];paintNlPreview();
-  $("nlSave").textContent="Сохранить изменения";
-  if(!$("nlCancel")){const b=document.createElement("button");b.id="nlCancel";b.className="btn-text";b.textContent="Отмена";b.style.marginTop="8px";b.onclick=()=>{resetNlForm();};$("nlSave").after(b);}
+  const saveBtn=$("nlPublish")||$("nlSave");
+  if(saveBtn)saveBtn.textContent="💾 Сохранить изменения";
+  if(!$("nlCancel")){const b=document.createElement("button");b.id="nlCancel";b.className="btn-text";b.textContent="Отмена";b.style.marginTop="8px";b.onclick=()=>{resetNlForm();};(saveBtn||$("nlDraft")).after(b);}
   switchView("profile");switchCabtab("add");
   document.querySelector('#view-profile [data-cabpanel="add"]').scrollIntoView({behavior:"smooth"});
 }
