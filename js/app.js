@@ -465,7 +465,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.68";const APP_BUILD="117";
+const APP_V="2.69";const APP_BUILD="118";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1123,6 +1123,7 @@ function resetNlForm(){
   if($("nlAvail"))$("nlAvail").value="";
   if($("nlPhotos"))$("nlPhotos").value="";
   nlPhotos=[];nlRemote=[];paintNlPreview();nlPartyList=[];paintNlParties();syncNlRoleView();
+  if($("nlFormTitle"))$("nlFormTitle").textContent="Новый проект";
   if($("nlSave"))$("nlSave").textContent="Опубликовать";
   if($("nlPublish"))$("nlPublish").textContent="📢 Опубликовать";
   if($("nlDraft"))$("nlDraft").textContent="👍 Сохранить";
@@ -1166,6 +1167,7 @@ function fillEditForm(id){
   nlPhotos=[];nlRemote=[...(it.images||[])];paintNlPreview();
   const saveBtn=$("nlPublish")||$("nlSave");
   if(saveBtn)saveBtn.textContent="💾 Сохранить изменения";
+  if($("nlFormTitle"))$("nlFormTitle").textContent="Редактирование проекта";
   if(!$("nlCancel")){const b=document.createElement("button");b.id="nlCancel";b.className="btn-text";b.textContent="Отмена";b.style.marginTop="8px";b.onclick=()=>{resetNlForm();};(saveBtn||$("nlDraft")).after(b);}
   switchView("profile");switchCabtab("add");
   document.querySelector('#view-profile [data-cabpanel="add"]').scrollIntoView({behavior:"smooth"});
@@ -2104,7 +2106,7 @@ function saveTpl(name,data){
   notify("Шаблон «"+name+"» сохранён");
 }
   if($("nlDraft"))$("nlDraft").onclick=()=>submitForm(false,{mode:"draft"});
-  if($("nlPublish"))$("nlPublish").onclick=()=>submitForm(false,{mode:"publish"});
+  if($("nlPublish"))$("nlPublish").onclick=()=>submitForm(false,{mode:editingId?"draft":"publish"});
   if($("nlPreview"))$("nlPreview").onclick=()=>{if(lastCreatedId)openDetail(lastCreatedId);};
   const addPanel=document.querySelector('[data-cabpanel="add"]');
   if(addPanel){const dirty=()=>{if(lastCreatedId){const pv=$("nlPreview");if(pv)pv.disabled=true;}};addPanel.addEventListener("input",dirty);addPanel.addEventListener("change",dirty);}
