@@ -61,23 +61,38 @@ function fetchWithTimeout(path,opts,ms){
 async function apiGet(path,token,retries=1){
   const h={};if(token)h["Authorization"]="Bearer "+token;
   for(let i=0;i<=retries;i++){
-    try{const r=await fetchWithTimeout(path,{cache:"no-store",headers:h},15000);if(!r.ok)return null;return await r.json();}catch(e){if(i===retries)return null;await new Promise(x=>setTimeout(x,1200));}
+    try{
+      const r=await fetchWithTimeout(path,{cache:"no-store",headers:h},15000);
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok)return {ok:false,error:j.error||("HTTP "+r.status)};
+      return j;
+    }catch(e){if(i===retries)return {ok:false,error:"Сеть"};await new Promise(x=>setTimeout(x,1200));}
   }
-  return null;
+  return {ok:false,error:"Сеть"};
 }
 async function apiPost(path,body,token,retries=1){
   const h={"Content-Type":"application/json"};if(token)h["Authorization"]="Bearer "+token;
   for(let i=0;i<=retries;i++){
-    try{const r=await fetchWithTimeout(path,{method:"POST",headers:h,body:JSON.stringify(body)},15000);if(!r.ok)return null;return await r.json();}catch(e){if(i===retries)return null;await new Promise(x=>setTimeout(x,1200));}
+    try{
+      const r=await fetchWithTimeout(path,{method:"POST",headers:h,body:JSON.stringify(body)},15000);
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok)return {ok:false,error:j.error||("HTTP "+r.status)};
+      return j;
+    }catch(e){if(i===retries)return {ok:false,error:"Сеть"};await new Promise(x=>setTimeout(x,1200));}
   }
-  return null;
+  return {ok:false,error:"Сеть"};
 }
 async function apiDelete(path,token,retries=1){
   const h={};if(token)h["Authorization"]="Bearer "+token;
   for(let i=0;i<=retries;i++){
-    try{const r=await fetchWithTimeout(path,{method:"DELETE",headers:h},15000);if(!r.ok)return null;return await r.json();}catch(e){if(i===retries)return null;await new Promise(x=>setTimeout(x,1200));}
+    try{
+      const r=await fetchWithTimeout(path,{method:"DELETE",headers:h},15000);
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok)return {ok:false,error:j.error||("HTTP "+r.status)};
+      return j;
+    }catch(e){if(i===retries)return {ok:false,error:"Сеть"};await new Promise(x=>setTimeout(x,1200));}
   }
-  return null;
+  return {ok:false,error:"Сеть"};
 }
 async function apiListings(){const j=await apiGet("/listings");return j&&j.ok?j.items:null;}
 async function apiProfiles(){const j=await apiGet("/profiles");return j&&j.ok?j.items:null;}
@@ -683,7 +698,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.79";const APP_BUILD="128";
+const APP_V="2.80";const APP_BUILD="129";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
