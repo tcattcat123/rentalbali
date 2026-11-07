@@ -52,9 +52,33 @@ function adminToken(){return localStorage.getItem("rh_admin_token")||"";}
 function isAdminUser(){return !!adminToken();}
 function sessionToken(){try{return localStorage.getItem("rh_session")||"";}catch(e){return"";}}
 function authToken(){return sessionToken()||adminToken();}
-async function apiGet(path,token){const h={};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(apiBase()+path,{cache:"no-store",headers:h});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
-async function apiPost(path,body,token){const h={"Content-Type":"application/json"};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(apiBase()+path,{method:"POST",headers:h,body:JSON.stringify(body)});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
-async function apiDelete(path,token){const h={};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(apiBase()+path,{method:"DELETE",headers:h});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+function fetchWithTimeout(path,opts,ms){
+  return new Promise((res,rej)=>{
+    const c=new AbortController();const t=setTimeout(()=>c.abort(),ms||15000);
+    fetch(apiBase()+path,Object.assign({signal:c.signal},opts)).then(r=>{clearTimeout(t);res(r);}).catch(e=>{clearTimeout(t);rej(e);});
+  });
+}
+async function apiGet(path,token,retries=1){
+  const h={};if(token)h["Authorization"]="Bearer "+token;
+  for(let i=0;i<=retries;i++){
+    try{const r=await fetchWithTimeout(path,{cache:"no-store",headers:h},15000);if(!r.ok)return null;return await r.json();}catch(e){if(i===retries)return null;await new Promise(x=>setTimeout(x,1200));}
+  }
+  return null;
+}
+async function apiPost(path,body,token,retries=1){
+  const h={"Content-Type":"application/json"};if(token)h["Authorization"]="Bearer "+token;
+  for(let i=0;i<=retries;i++){
+    try{const r=await fetchWithTimeout(path,{method:"POST",headers:h,body:JSON.stringify(body)},15000);if(!r.ok)return null;return await r.json();}catch(e){if(i===retries)return null;await new Promise(x=>setTimeout(x,1200));}
+  }
+  return null;
+}
+async function apiDelete(path,token,retries=1){
+  const h={};if(token)h["Authorization"]="Bearer "+token;
+  for(let i=0;i<=retries;i++){
+    try{const r=await fetchWithTimeout(path,{method:"DELETE",headers:h},15000);if(!r.ok)return null;return await r.json();}catch(e){if(i===retries)return null;await new Promise(x=>setTimeout(x,1200));}
+  }
+  return null;
+}
 async function apiListings(){const j=await apiGet("/listings");return j&&j.ok?j.items:null;}
 async function apiProfiles(){const j=await apiGet("/profiles");return j&&j.ok?j.items:null;}
 async function apiProfile(id){const j=await apiGet("/profiles?id="+encodeURIComponent(id));return j&&j.ok?j.profile:null;}
@@ -659,7 +683,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.78";const APP_BUILD="127";
+const APP_V="2.79";const APP_BUILD="128";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
