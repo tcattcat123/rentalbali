@@ -659,7 +659,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.75";const APP_BUILD="124";
+const APP_V="2.76";const APP_BUILD="125";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1761,6 +1761,7 @@ let contactMenuEl=null,contactMenuKind=null;
 function ensureContactMenu(){
   if(contactMenuEl)return contactMenuEl;
   const el=document.createElement("div");
+  el.id="contactMenu";
   el.className="contact-menu hidden";
   el.innerHTML='<div class="contact-menu-wrap"><div class="contact-menu-title" id="contactMenuTitle"></div><div class="contact-menu-list" id="contactMenuList"></div></div>';
   document.body.appendChild(el);
