@@ -32,6 +32,19 @@ CREATE TABLE IF NOT EXISTS profiles (
   bio TEXT,
   public TINYINT(1) DEFAULT 0,
   avatar VARCHAR(500),
+  -- Реквизиты профиля и их публичность (политика конфиденциальности)
+  verification VARCHAR(20) DEFAULT 'email',
+  alias VARCHAR(120),
+  whatsapp VARCHAR(60),
+  telegram VARCHAR(120),
+  website VARCHAR(255),
+  instagram VARCHAR(255),
+  facebook VARCHAR(255),
+  address VARCHAR(255),
+  certificate MEDIUMTEXT,
+  roles TEXT,
+  public_fields TEXT,
+  pass_plain VARCHAR(120),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -107,6 +120,7 @@ CREATE TABLE IF NOT EXISTS contracts (
   projects JSON NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   status ENUM('pending','active','finished') DEFAULT 'pending',
+  created_by VARCHAR(64) DEFAULT NULL,
   INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

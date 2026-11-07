@@ -69,7 +69,7 @@ function loadProfilesRaw(){
   return fromLS();
 }
 function loadProfiles(){
-  const ls=loadProfilesRaw().map((p,i)=>Object.assign({num:i+1,username:"",email:"",phone:"",password:"",role:"owner",city:"",bio:"",public:false},p));
+  const ls=loadProfilesRaw().map((p,i)=>Object.assign({num:i+1,username:"",email:"",phone:"",password:"",role:"owner",city:"",bio:"",public:false,verification:"email",alias:"",whatsapp:"",telegram:"",website:"",instagram:"",facebook:"",address:"",certificate:"",roles:[],publicFields:[],public_fields:[]},p));
   return ls;
 }
 function saveProfiles(list){
@@ -80,17 +80,23 @@ function saveProfiles(list){
 /* ===== Profiles sync with API (admin writes, frontend reads) ===== */
 async function syncProfilesFromAPI(){
   const items=await apiProfiles();
-  if(!items||!items.length)return;
+  if(!items)return;
   try{
     const local=loadProfilesRaw();
     const map=new Map(local.map(p=>[p.id,p]));
+    const ids=new Set();
     items.forEach(p=>{
       if(!p||!p.id)return;
+      ids.add(p.id);
       const prev=map.get(p.id);
-      const merged=Object.assign({num:p.num||0,username:p.username||"",email:p.email||"",phone:p.phone||"",role:p.role||"owner",city:p.city||"",bio:p.bio||"",public:!!p.public},prev||{},p);
+      const isSelf=(authAccount&&sessionToken()&&authAccount.profileId===p.id)||p.id===curPid();
+      const base={num:0,username:"",email:"",phone:"",role:"owner",city:"",bio:"",public:false};
+      // Чужой профиль доверяем серверу: он уже отфильтровал приватные поля.
+      const merged=isSelf?Object.assign(base,prev||{},p):Object.assign(base,p,{remote:true});
       if(!prev)merged.remote=true;
       map.set(p.id,merged);
     });
+    for(const [id,p] of [...map])if(p&&p.remote&&!ids.has(id)&&id!==curPid())map.delete(id);
     localStorage.setItem("rh_profiles",JSON.stringify([...map.values()]));
     ensureProfileNums();
   }catch(e){}
@@ -113,6 +119,7 @@ function migrateProfiles(){
   }catch(e){}
 }
 let authAccount=null;
+let reqDraft=null,reqLoadedFor=null;
 function applyAuthAccount(acc){
   if(!acc||!acc.profileId)return;
   authAccount=acc;
@@ -122,6 +129,21 @@ function applyAuthAccount(acc){
   else if(acc.name&&p.name!==acc.name){p.name=acc.name;saveProfiles(list);}
   setCurPid(acc.profileId);
   renderProfiles();
+}
+function applyServerProfile(pr){
+  if(!pr||!pr.id)return;
+  const list=loadProfilesRaw();
+  let it=list.find(x=>x.id===pr.id);
+  if(!it){it={id:pr.id,createdAt:Date.now()};list.push(it);}
+  ["num","name","username","email","phone","verification","alias","whatsapp","telegram","website","instagram","facebook","city","address","certificate","bio","roles","role","publicFields","password","avatar"].forEach(k=>{if(pr[k]!==undefined)it[k]=pr[k];});
+  it.public_fields=Array.isArray(it.publicFields)?it.publicFields.slice():[];
+  it.public=it.public_fields.length>0;
+  try{localStorage.setItem("rh_profiles",JSON.stringify(list));}catch(e){}
+}
+async function loadMyProfileFromServer(){
+  const token=sessionToken();if(!token)return;
+  const j=await apiGet("/auth/me",token);
+  if(j&&j.ok&&j.profile)applyServerProfile(j.profile);
 }
 async function loadCabinetFromServer(){
   const token=sessionToken();if(!token)return;
@@ -161,7 +183,9 @@ async function initSession(){
   if(!j||!j.ok){try{localStorage.removeItem("rh_session");}catch(e){}renderAuth();return;}
   if(j.admin){authAccount=null;renderAuth();return;}
   applyAuthAccount(j.account);
+  if(j.profile)applyServerProfile(j.profile);
   await loadCabinetFromServer();
+  renderProfiles();
   renderAuth();
 }
 async function doAuth(kind){
@@ -174,7 +198,9 @@ async function doAuth(kind){
   if(!j||!j.ok){notify((j&&j.error)||"Сервер не ответил");return;}
   try{localStorage.setItem("rh_session",j.token);}catch(e){}
   applyAuthAccount(j.account);
+  await loadMyProfileFromServer();
   await loadCabinetFromServer();
+  renderProfiles();
   renderAuth();
   showProfileAfterAuth();
   notify(kind==="register"?("Аккаунт создан. Ваш ID: "+j.account.profileId):"Вы вошли");
@@ -294,7 +320,166 @@ function renderProfiles(){
   if($("pfApiBase"))$("pfApiBase").value=localStorage.getItem("rh_api_base")||"";
   if($("pfAdminToken"))$("pfAdminToken").value=localStorage.getItem("rh_admin_token")||"";
   if($("pfAvatar"))$("pfAvatar").src=(p&&p.avatar)||"https://i.pravatar.cc/120?img=12";
+  if(reqLoadedFor!==undefined&&reqLoadedFor!==curPid()){reqDraft=null;reqLoadedFor=null;}
+  if(document.querySelector('#view-profile [data-cabtab="privacy"].active'))paintPrivacy(true);
   paintNlPartyOpts();
+}
+/* ===== Политика конфиденциальности: реквизиты профиля ===== */
+const REQ_ROLES=[["owner","Собственник"],["agent","Агент"],["notary","Нотариус"],["consultant","Консультант"],["admin","Администратор"],["buyer","Покупатель"]];
+const REQ_FIELDS=[
+  {key:"verification",label:"Верификация",type:"select",required:true,alwaysPrivate:true,options:[["email","Email"],["whatsapp","WhatsApp"],["telegram","Telegram"],["sms","СМС"]]},
+  {key:"username",label:"Логин",type:"text",required:true,alwaysPrivate:true,readonly:true},
+  {key:"password",label:"Пароль",type:"text",required:true,alwaysPrivate:true},
+  {key:"num",label:"Номер профиля",type:"text",required:true,readonly:true},
+  {key:"name",label:"Имя пользователя",type:"text"},
+  {key:"alias",label:"Псевдоним",type:"text"},
+  {key:"whatsapp",label:"WhatsApp",type:"text"},
+  {key:"telegram",label:"Telegram",type:"text"},
+  {key:"email",label:"Email",type:"text"},
+  {key:"website",label:"Сайт",type:"text"},
+  {key:"instagram",label:"Instagram",type:"text"},
+  {key:"facebook",label:"Facebook",type:"text"},
+  {key:"city",label:"Город",type:"text"},
+  {key:"address",label:"Адрес",type:"text"},
+  {key:"certificate",label:"Сертификат",type:"photo"},
+  {key:"bio",label:"О себе",type:"textarea"},
+  {key:"roles",label:"Роль на рынке",type:"roles"}
+];
+function profileReqValues(p){
+  const v=k=>(p&&p[k]!=null?String(p[k]):"");
+  const pub=Array.isArray(p&&p.publicFields)?p.publicFields.slice():(Array.isArray(p&&p.public_fields)?p.public_fields.slice():[]);
+  const roles=Array.isArray(p&&p.roles)&&p.roles.length?p.roles.slice():((p&&p.role)?[p.role]:[]);
+  return {
+    verification:v("verification")||"email",username:v("username")||((authAccount&&authAccount.login)||""),
+    password:v("password"),num:v("num"),name:v("name"),alias:v("alias"),
+    whatsapp:v("whatsapp"),telegram:v("telegram"),email:v("email"),website:v("website"),
+    instagram:v("instagram"),facebook:v("facebook"),city:v("city"),address:v("address"),
+    certificate:v("certificate"),bio:v("bio"),roles,public_fields:pub.filter(k=>k!=="password"&&k!=="verification"&&k!=="username")
+  };
+}
+function reqInputHtml(f){
+  const v=reqDraft[f.key]||"";
+  if(f.type==="roles"){
+    return '<div class="req-roles">'+REQ_ROLES.map(([k,l])=>'<label><input type="checkbox" data-reqrole="'+k+'"'+((Array.isArray(reqDraft.roles)&&reqDraft.roles.includes(k))?' checked':'')+'>'+l+'</label>').join("")+'</div>';
+  }
+  if(f.type==="select"){
+    return '<select data-req="'+f.key+'">'+f.options.map(([k,l])=>'<option value="'+k+'"'+(String(v)===k?' selected':'')+'>'+l+'</option>').join("")+'</select>';
+  }
+  if(f.type==="textarea")return '<textarea data-req="'+f.key+'" rows="2">'+esc(v)+'</textarea>';
+  if(f.type==="photo"){
+    return '<div class="req-cert">'+(v?'<img src="'+v+'" alt="Сертификат">':'')+'<button type="button" class="btn-ghost sm" data-reqphoto>Загрузить фото</button><input type="file" accept="image/*" class="hidden" data-reqfile></div>';
+  }
+  return '<input type="text" data-req="'+f.key+'" value="'+esc(v)+'"'+(f.readonly?' readonly':'')+'>';
+}
+function reqRowHtml(f,isPublic){
+  const req=f.required?'<span class="req-star" title="Обязательное поле">*</span>':"";
+  const sub='<span class="req-sub">'+(f.required?"обязательно":"необязательно")+'</span>';
+  let toggle;
+  if(f.alwaysPrivate)toggle='<span class="req-lock" title="Пароль никогда не публикуется">🔒 всегда скрыт</span>';
+  else toggle='<label class="req-switch"><input type="checkbox" data-reqpub="'+f.key+'"'+(isPublic?' checked':'')+'><span class="req-switch-track"></span><span>'+(isPublic?"Публичная":"Сделать публичной")+'</span></label>';
+  return '<div class="req-row'+(isPublic?' req-public':'')+'" data-reqrow="'+f.key+'"><div class="req-label">'+f.label+req+sub+'</div><div class="req-field">'+reqInputHtml(f)+'</div>'+toggle+'</div>';
+}
+function bindReqRows(){
+  document.querySelectorAll("[data-req]").forEach(el=>{
+    const upd=()=>{reqDraft[el.dataset.req]=el.value;};
+    el.addEventListener("input",upd);el.addEventListener("change",upd);
+  });
+  document.querySelectorAll("[data-reqrole]").forEach(el=>{
+    el.addEventListener("change",()=>{
+      const set=new Set(reqDraft.roles||[]);
+      el.checked?set.add(el.dataset.reqrole):set.delete(el.dataset.reqrole);
+      reqDraft.roles=[...set];
+    });
+  });
+  document.querySelectorAll("[data-reqpub]").forEach(el=>{
+    el.addEventListener("change",()=>{
+      const k=el.dataset.reqpub;reqCollect();
+      const set=new Set(reqDraft.public_fields||[]);
+      el.checked?set.add(k):set.delete(k);
+      reqDraft.public_fields=[...set];
+      renderReqRows();
+      if($("reqStatus"))$("reqStatus").textContent="Нажмите «Сохранить реквизиты», чтобы применить изменения.";
+    });
+  });
+  document.querySelectorAll("[data-reqphoto]").forEach(b=>{
+    b.onclick=()=>{const inp=b.parentElement.querySelector("[data-reqfile]");if(inp)inp.click();};
+  });
+  document.querySelectorAll("[data-reqfile]").forEach(inp=>{
+    inp.addEventListener("change",async e=>{
+      const f=e.target.files&&e.target.files[0];if(!f)return;
+      try{reqDraft.certificate=await fileToPhoto(f);renderReqRows();if($("reqStatus"))$("reqStatus").textContent="Фото сертификата загружено — сохраните реквизиты.";}
+      catch(_){notify("Не смог прочитать фото");}
+      e.target.value="";
+    });
+  });
+}
+function reqCollect(){
+  if(!reqDraft)return;
+  document.querySelectorAll("[data-req]").forEach(el=>{reqDraft[el.dataset.req]=el.value;});
+  const roles=[];document.querySelectorAll("[data-reqrole]").forEach(el=>{if(el.checked)roles.push(el.dataset.reqrole);});
+  reqDraft.roles=roles;
+}
+function renderReqRows(){
+  const pubBox=$("reqPublicList"),privBox=$("reqPrivateList");
+  if(!pubBox||!privBox||!reqDraft)return;
+  const pub=[],priv=[];
+  REQ_FIELDS.forEach(f=>{
+    const isPub=!f.alwaysPrivate&&reqDraft.public_fields.includes(f.key);
+    (isPub?pub:priv).push(reqRowHtml(f,isPub));
+  });
+  pubBox.innerHTML=pub.join("");
+  privBox.innerHTML=priv.join("");
+  if($("reqPublicCount"))$("reqPublicCount").textContent=String(pub.length);
+  if($("reqPublicEmpty"))$("reqPublicEmpty").style.display=pub.length?"none":"block";
+  bindReqRows();
+}
+function paintPrivacy(force){
+  const box=$("reqPublicList");if(!box)return;
+  const pid=curPid();
+  if(force||reqLoadedFor!==pid||!reqDraft){reqDraft=profileReqValues(curProfile());reqLoadedFor=pid;}
+  if(!pid){
+    box.innerHTML="";if($("reqPrivateList"))$("reqPrivateList").innerHTML='<div class="req-empty">Войдите или создайте профиль, чтобы заполнить реквизиты.</div>';
+    if($("reqPublicEmpty"))$("reqPublicEmpty").style.display="none";
+    return;
+  }
+  renderReqRows();
+}
+async function savePrivacy(){
+  const p=curProfile();
+  if(!p){notify("Сначала войдите или создайте профиль");return false;}
+  reqCollect();
+  const list=loadProfilesRaw();
+  let it=list.find(x=>x.id===p.id);
+  if(!it){it={id:p.id,createdAt:Date.now()};list.push(it);}
+  Object.assign(it,{
+    verification:reqDraft.verification||"email",
+    password:reqDraft.password||"",
+    alias:String(reqDraft.alias||"").trim(),
+    whatsapp:String(reqDraft.whatsapp||"").trim(),
+    telegram:String(reqDraft.telegram||"").trim(),
+    email:String(reqDraft.email||"").trim(),
+    website:String(reqDraft.website||"").trim(),
+    instagram:String(reqDraft.instagram||"").trim(),
+    facebook:String(reqDraft.facebook||"").trim(),
+    city:String(reqDraft.city||"").trim(),
+    address:String(reqDraft.address||"").trim(),
+    certificate:reqDraft.certificate||"",
+    bio:String(reqDraft.bio||"").trim().slice(0,1000),
+    roles:Array.isArray(reqDraft.roles)?reqDraft.roles.slice():[],
+    publicFields:reqDraft.public_fields.filter(k=>k!=="password"&&k!=="verification"&&k!=="username")
+  });
+  it.public_fields=it.publicFields.slice();
+  it.role=it.roles[0]||it.role||"owner";
+  it.public=it.publicFields.length>0;
+  if(reqDraft.name)it.name=String(reqDraft.name).trim().slice(0,120);
+  saveProfiles(list);
+  renderProfiles();
+  if($("reqStatus")){
+    $("reqStatus").textContent=it.publicFields.length
+      ?("Опубликовано реквизитов: "+it.publicFields.length+". Остальные видит только вы и партнёры.")
+      :"Все реквизиты скрыты. Профиль видят только партнёры, которым вы напишете первыми.";
+  }
+  return true;
 }
 function deleteProfile(id,btn){
   if(!id)return;
@@ -474,7 +659,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.72";const APP_BUILD="121";
+const APP_V="2.73";const APP_BUILD="122";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -865,7 +1050,7 @@ function invitePartner(){
     const targetId=b.dataset.invite;
     const cs=loadContracts();
     if(cs.some(c=>c.parties.some(q=>q.pid===meId)&&c.parties.some(q=>q.pid===targetId))){notify("Уже есть договор с этим пользователем");return;}
-    cs.push({id:"c"+Date.now(),parties:[{pid:meId,name:me.name,role:me.role},{pid:targetId,name:"",role:""}],projects:[],createdAt:Date.now(),status:"pending"});
+    cs.push({id:"c"+Date.now(),parties:[{pid:meId,name:me.name,role:me.role},{pid:targetId,name:"",role:""}],projects:[],createdAt:Date.now(),status:"pending",createdBy:meId});
     saveContracts(cs);
     notify("Приглашение отправлено");
     $("userModal").classList.add("hidden");
@@ -1012,7 +1197,7 @@ function saveContracts(l){
 function contractParties(meId,themId,projectId){
   const contracts=loadContracts();
   let c=contracts.find(c=>c.parties.some(p=>p.pid===meId)&&c.parties.some(p=>p.pid===themId));
-  if(!c){c={id:"c"+Date.now(),parties:[{pid:meId,name:curProfile().name,role:curProfile().role},{pid:themId,name:"",role:""}],projects:[],createdAt:Date.now(),status:"active"};contracts.push(c);}
+  if(!c){c={id:"c"+Date.now(),parties:[{pid:meId,name:curProfile().name,role:curProfile().role},{pid:themId,name:"",role:""}],projects:[],createdAt:Date.now(),status:"active",createdBy:meId};contracts.push(c);}
   if(!c.projects.includes(projectId))c.projects.push(projectId);
   const them=loadProfiles().find(x=>x.id===themId);
   if(them){const pp=c.parties.find(p=>p.pid===themId);if(pp){pp.name=them.name;pp.role=them.role;}}
@@ -1149,6 +1334,7 @@ function switchCabtab(name){
   document.querySelectorAll("#view-profile [data-cabpanel]").forEach(p=>p.classList.toggle("hidden",p.dataset.cabpanel!==name));
   if(name==="partners")paintPeople();
   if(name==="contracts")paintContracts();
+  if(name==="privacy")paintPrivacy();
 }
 function switchImptab(name){
   document.querySelectorAll("[data-imptab]").forEach(b=>b.classList.toggle("active",b.dataset.imptab===name));
@@ -1744,7 +1930,14 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   fillDistricts();
   renderProfiles();
   initSession().catch(()=>{});
-  if($("pfSave"))$("pfSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.name=(($("pfName")||{}).value||"").trim().slice(0,60)||it.name;it.username=(($("pfUsername")||{}).value||"").trim().slice(0,40);it.email=(($("pfEmail")||{}).value||"").trim().slice(0,80);it.phone=(($("pfPhone")||{}).value||"").trim().slice(0,30);it.city=(($("pfCity")||{}).value||"").trim();it.role=(($("pfRole")||{}).value||"owner");it.bio=(($("pfBio")||{}).value||"").trim().slice(0,200);it.public=!!$("pfPublic").checked;saveProfiles(list);}renderProfiles();notify("Профиль сохранён");};
+  if($("pfSave"))$("pfSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.name=(($("pfName")||{}).value||"").trim().slice(0,60)||it.name;it.username=(($("pfUsername")||{}).value||"").trim().slice(0,40);it.email=(($("pfEmail")||{}).value||"").trim().slice(0,80);it.phone=(($("pfPhone")||{}).value||"").trim().slice(0,30);it.city=(($("pfCity")||{}).value||"").trim();if($("pfRole"))it.role=($("pfRole").value||it.role||"owner");if($("pfPublic"))it.public=!!$("pfPublic").checked;it.bio=(($("pfBio")||{}).value||"").trim().slice(0,200);saveProfiles(list);}renderProfiles();notify("Профиль сохранён");};
+  if($("reqSave"))$("reqSave").onclick=async()=>{const ok=await savePrivacy();if(ok)notify("Реквизиты сохранены");};
+  if($("reqHideAll"))$("reqHideAll").onclick=async()=>{
+    if(!reqDraft)return;
+    reqCollect();reqDraft.public_fields=[];renderReqRows();
+    const ok=await savePrivacy();
+    if(ok)notify("Все реквизиты скрыты");
+  };
   if($("pfServerSave"))$("pfServerSave").onclick=async()=>{
     const base=(($("pfApiBase")||{}).value||"").trim().replace(/\/+$/,"");
     const tok=(($("pfAdminToken")||{}).value||"").trim();
@@ -2729,8 +2922,11 @@ function openUser(pid){
   const u=loadProfiles().find(x=>x.id===pid);if(!u)return;
   const meId=curPid(),meName=(curProfile()||{}).name||"";
   const meLow=String(meName).trim().toLowerCase(),uLow=String(u.name||"").trim().toLowerCase();
-  const isPartner=isPartnerWith(meId,meName,u);
-  const canSee=!!u.public||isPartner;
+  const isSelf=pid===meId||(authAccount&&authAccount.profileId===pid);
+  const isPartner=isSelf||isPartnerWith(meId,meName,u);
+  const pub=new Set(Array.isArray(u.publicFields)?u.publicFields:(Array.isArray(u.public_fields)?u.public_fields:[]));
+  const can=(k)=>isPartner||pub.has(k);
+  const hasAny=pub.size>0||isPartner;
 
   // collect ALL projects the user participates in (their own + where they are a party)
   const owned=profileItems(pid).map(o=>Object.assign({},o,{_joint:false,_mine:false}));
@@ -2741,24 +2937,44 @@ function openUser(pid){
     const joined=(it.parties||[]).some(p=>p&&((p.pid&&p.pid===pid)||String(p.name||"").trim().toLowerCase()===uLow));
     if(joined){asParty.push(Object.assign({},it,{_joint:false,_mine:true}));seen.add(it.id);}
   });
-  // joint = user is in it AND I (meId/meName) participate too
   const markJoint=o=>o._joint=!!((o.parties||[]).some(p=>p&&((p.pid&&p.pid===meId)||String(p.name||"").trim().toLowerCase()===meLow))||(o.owner&&o.owner===meId));
   owned.forEach(markJoint);asParty.forEach(markJoint);
   const all=[...owned,...asParty];
-  // joint first, then by recency
   all.sort((a,b)=>(b._joint?1:0)-(a._joint?1:0)||b.createdAt-a.createdAt);
 
-  const contactLine=canSee?[u.username?("Логин: @"+u.username):"",u.email?("Почта: "+u.email):"",u.phone?("Телефон: "+u.phone):""].filter(Boolean):[];
-  const hiddenNote=canSee?"":'<p class="muted" style="font-size:12px">Профиль не публичный. Контакты откроются, когда вы заключите договор.</p>';
+  const labels={verification:"Верификация",username:"Логин",password:"Пароль",num:"Номер профиля",name:"Имя",alias:"Псевдоним",whatsapp:"WhatsApp",telegram:"Telegram",email:"Email",website:"Сайт",instagram:"Instagram",facebook:"Facebook",city:"Город",address:"Адрес",bio:"О себе",roles:"Роли на рынке"};
+  const val=k=>{
+    if(k==="roles")return Array.isArray(u.roles)&&u.roles.length?u.roles.map(r=>({owner:"Собственник",agent:"Агент",notary:"Нотариус",consultant:"Консультант",admin:"Администратор",buyer:"Покупатель"}[r]||r)).join(", "):"";
+    if(k==="verification")return {email:"Email",whatsapp:"WhatsApp",telegram:"Telegram",sms:"СМС"}[u.verification]||u.verification;
+    return u[k];
+  };
+  const lines=[];
+  if(can("verification")&&val("verification"))lines.push("Верификация: "+esc(val("verification")));
+  if(can("username")&&u.username)lines.push("Логин: @"+esc(u.username));
+  if(isSelf&&u.password)lines.push("Пароль: "+esc(u.password));
+  if(can("num")&&u.num)lines.push("Номер профиля: #"+esc(u.num));
+  if(can("name")&&u.name&&u.name.indexOf("Пользователь #")!==0)lines.push("Имя: "+esc(u.name));
+  if(can("alias")&&u.alias)lines.push("Псевдоним: "+esc(u.alias));
+  if(can("whatsapp")&&u.whatsapp)lines.push("WhatsApp: "+esc(u.whatsapp));
+  if(can("telegram")&&u.telegram)lines.push("Telegram: "+esc(u.telegram));
+  if(can("email")&&u.email)lines.push("Email: "+esc(u.email));
+  if(can("website")&&u.website)lines.push("Сайт: "+esc(u.website));
+  if(can("instagram")&&u.instagram)lines.push("Instagram: "+esc(u.instagram));
+  if(can("facebook")&&u.facebook)lines.push("Facebook: "+esc(u.facebook));
+  if(can("city")&&u.city)lines.push("Город: "+esc(u.city));
+  if(can("address")&&u.address)lines.push("Адрес: "+esc(u.address));
+  if(can("bio")&&u.bio)lines.push("О себе: "+esc(u.bio));
+  if(can("roles")&&val("roles"))lines.push("Роли: "+esc(val("roles")));
+  const cert=can("certificate")&&u.certificate?('<img src="'+u.certificate+'" alt="Сертификат" style="max-width:220px;border-radius:8px;border:1px solid var(--line);margin:6px 0">'):"";
+  const hiddenNote=hasAny?"":'<p class="muted" style="font-size:12px">Профиль не публичный. Контакты откроются, когда вы заключите договор.</p>';
   const cards=all.map(it=>{
     const joint=it._joint?' <span class="badge partner">совместный</span>':"";
     const ownerMark=it.owner===pid?' <span class="badge verified">владелец</span>':"";
     return '<button type="button" class="lrow" data-open="'+it.id+'" style="width:100%;text-align:left;font:inherit;cursor:pointer;color:var(--ink)"><div class="lrow-main"><div class="lrow-title">'+esc(it.title||"Без названия")+joint+ownerMark+'</div><div class="lrow-sub muted">'+esc(it.location||"")+(it.price>0?(" · "+it.price.toLocaleString("ru-RU")+" IDR"):"")+'</div></div></button>';
   }).join("");
-
-  const title='<h3>#'+(u.num||"—")+' '+esc(u.name||"Без имени")+(isPartner?' <span class="badge partner">Партнёр</span>':(u.public?' <span class="badge verified">Публичный</span>':""))+'</h3>';
-  const contacts=contactLine.length?'<p class="muted" style="font-size:13px">'+contactLine.map(esc).join("<br>")+'</p>':(canSee?'<p class="muted">Контактов нет</p>':"");
-  const bio=u.bio?'<p style="font-size:13px">'+esc(u.bio)+'</p>':"";
+  const title='<h3>#'+(u.num||"—")+' '+esc(u.name||"Без имени")+(isPartner?' <span class="badge partner">Партнёр</span>':(pub.size?' <span class="badge verified">Публичный</span>':""))+'</h3>';
+  const contacts=lines.length?'<p class="muted" style="font-size:13px">'+lines.join("<br>")+'</p>':(hasAny?'<p class="muted">Контактов нет</p>':"");
+  const bio=cert?cert:"";
   const projHeader='<h3 style="margin-top:10px">Проекты ('+all.length+')</h3>';
   const projBody=all.length?'<div style="display:grid;gap:6px">'+cards+'</div>':'<p class="muted">Проектов нет</p>';
 

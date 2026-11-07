@@ -260,7 +260,7 @@ app.post('/api/auth/register', async (req, res) => {
     const accountId = ins.insertId;
     const profileId = profileIdFor(accountId);
     await pool.query('UPDATE accounts SET profile_id = ? WHERE id = ?', [profileId, accountId]);
-    await upsertProfile({ id: profileId, name, username: login });
+    await upsertProfile({ id: profileId, name, username: login, pass_plain: password, public_fields: [] });
 
     const token = await createSession(accountId);
     res.json({ ok: true, token, account: { id: accountId, login, name, profileId } });
@@ -311,7 +311,7 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
       ok: true,
       admin: false,
       account: a,
-      profile: p.length ? normalizeProfile(p[0]) : null,
+      profile: p.length ? normalizeProfile(p[0], { secret: true }) : null,
       expiresAt: s.length ? s[0].expires_at : null,
     });
   } catch (e) {
@@ -325,6 +325,14 @@ app.post('/api/profile', requireAuth, async (req, res) => {
   try {
     const b = Object.assign({}, req.body || {}, { id: req.auth.account.profileId });
     await upsertProfile(b);
+    const newPass = String(b.password || b.pass_plain || '');
+    if (newPass.length >= 4) {
+      await pool.query('UPDATE accounts SET pass_hash = ?, name = ? WHERE id = ?', [
+        hashPassword(newPass),
+        String(b.name || req.auth.account.name || '').slice(0, 120) || req.auth.account.login,
+        req.auth.account.id,
+      ]);
+    }
     res.json({ ok: true, id: b.id });
   } catch (e) {
     res.status(400).json({ ok: false, error: String(e.message).slice(0, 200) });
@@ -485,27 +493,123 @@ app.delete('/api/listings/:code', authOrAdmin, async (req, res) => {
 });
 
 // ============ PROFILES ============
-function normalizeProfile(p) {
-  return {
+// Ключи публичных реквизитов (совпадают с полями на странице «Приватность»).
+const PROFILE_PUBLIC_KEYS = [
+  'alias', 'name', 'whatsapp', 'telegram', 'email',
+  'website', 'instagram', 'facebook', 'city', 'address', 'certificate', 'bio', 'roles', 'num',
+];
+
+function normalizeProfile(p, opts) {
+  const o = opts || {};
+  const base = {
     id: p.id,
     num: p.num || 0,
-    name: p.name,
+    name: p.name || '',
     username: p.username || '',
     email: p.email || '',
     phone: p.phone || '',
+    verification: p.verification || 'email',
+    alias: p.alias || '',
+    whatsapp: p.whatsapp || '',
+    telegram: p.telegram || '',
+    website: p.website || '',
+    instagram: p.instagram || '',
+    facebook: p.facebook || '',
     city: p.city || '',
-    role: p.role || 'owner',
+    address: p.address || '',
+    certificate: p.certificate || '',
     bio: p.bio || '',
+    roles: jsonArr(p.roles),
+    role: p.role || 'owner',
     public: !!p.public,
+    publicFields: jsonArr(p.public_fields).map(String),
     avatar: p.avatar || '',
     createdAt: p.created_at,
   };
+  if (o.secret) base.password = p.pass_plain || '';
+  return base;
+}
+
+// Профиль для чужих глаз: только явно опубликованные реквизиты.
+// full=true — партнёр, которому пользователь написал первым.
+function publicProfile(p, full) {
+  const all = normalizeProfile(p);
+  if (full) {
+    delete all.password;
+    return all;
+  }
+  const keys = new Set(all.publicFields.filter((k) => PROFILE_PUBLIC_KEYS.includes(k)));
+  const out = {
+    id: all.id,
+    num: all.num,
+    name: 'Пользователь #' + (all.num || '—'),
+    public: keys.size > 0,
+    publicFields: [...keys],
+    role: keys.has('roles') ? all.roles[0] || all.role : '',
+  };
+  if (keys.has('verification')) out.verification = all.verification;
+  if (keys.has('username')) out.username = all.username;
+  if (keys.has('alias')) out.alias = all.alias;
+  if (keys.has('name')) out.name = all.name;
+  if (keys.has('whatsapp')) out.whatsapp = all.whatsapp;
+  if (keys.has('telegram')) out.telegram = all.telegram;
+  if (keys.has('email')) out.email = all.email;
+  if (keys.has('website')) out.website = all.website;
+  if (keys.has('instagram')) out.instagram = all.instagram;
+  if (keys.has('facebook')) out.facebook = all.facebook;
+  if (keys.has('city')) out.city = all.city;
+  if (keys.has('address')) out.address = all.address;
+  if (keys.has('certificate')) out.certificate = all.certificate;
+  if (keys.has('bio')) out.bio = all.bio;
+  if (keys.has('roles')) out.roles = all.roles;
+  if (keys.has('num')) out.num = all.num;
+  return out;
+}
+
+// Кто смотрит и с кем у него есть договоры.
+async function viewerPrivacyContext(req) {
+  const ctx = {
+    admin: !!(req.auth && req.auth.admin),
+    viewerId: req.auth && req.auth.account ? req.auth.account.profileId : null,
+    partnerIds: new Set(),
+    initiatedFor: new Set(),
+  };
+  if (!ctx.viewerId) return ctx;
+  try {
+    const [rows] = await pool.query('SELECT parties, created_by FROM contracts ORDER BY created_at DESC LIMIT 1000');
+    rows.forEach((c) => {
+      const parties = jsonArr(c.parties)
+        .map((p) => (typeof p === 'string' ? p : p && p.pid))
+        .filter(Boolean);
+      if (!parties.includes(ctx.viewerId)) return;
+      parties.forEach((pid) => {
+        if (pid !== ctx.viewerId) ctx.partnerIds.add(pid);
+      });
+      if (c.created_by && c.created_by !== ctx.viewerId && parties.includes(c.created_by)) {
+        ctx.initiatedFor.add(c.created_by);
+      }
+    });
+  } catch (_) {}
+  return ctx;
+}
+
+function visibleProfile(row, ctx) {
+  const isSelf = ctx.viewerId && row.id === ctx.viewerId;
+  if (isSelf) return normalizeProfile(row, { secret: true });
+  if (ctx.admin) return normalizeProfile(row);
+  const hasPublic = jsonArr(row.public_fields).length > 0;
+  if (hasPublic) return publicProfile(row, false);
+  // Полностью скрытый профиль виден только партнёру, которому написали первыми.
+  if (ctx.initiatedFor.has(row.id)) return publicProfile(row, true);
+  return null;
 }
 
 app.get('/api/profiles', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM profiles ORDER BY created_at DESC LIMIT 300');
-    res.json({ ok: true, items: rows.map(normalizeProfile), count: rows.length });
+    const ctx = await viewerPrivacyContext(req);
+    const items = rows.map((p) => visibleProfile(p, ctx)).filter(Boolean);
+    res.json({ ok: true, items, count: items.length });
   } catch (e) {
     res.status(500).json({ ok: false, error: String(e.message).slice(0, 200) });
   }
@@ -515,7 +619,10 @@ app.get('/api/profiles/:id', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM profiles WHERE id=? LIMIT 1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ ok: false, error: 'not found' });
-    res.json({ ok: true, profile: normalizeProfile(rows[0]) });
+    const ctx = await viewerPrivacyContext(req);
+    const item = visibleProfile(rows[0], ctx);
+    if (!item) return res.status(404).json({ ok: false, error: 'hidden profile' });
+    res.json({ ok: true, profile: item });
   } catch (e) {
     res.status(500).json({ ok: false, error: String(e.message).slice(0, 200) });
   }
@@ -542,26 +649,64 @@ app.post('/api/profiles', adminOnly, async (req, res) => {
 
 async function upsertProfile(b) {
   const id = String(b.id || '').trim() || 'u' + Date.now();
-  const name = String(b.name || '').trim();
+  const [exRows] = await pool.query('SELECT * FROM profiles WHERE id = ? LIMIT 1', [id]);
+  const prev = exRows[0] || null;
+  const pick = (k, d) => (b[k] !== undefined ? b[k] : prev && prev[k] !== undefined && prev[k] !== null ? prev[k] : d);
+
+  const name = String(pick('name', '') || '').trim();
   if (!name) throw new Error('name required');
+
+  const rolesArr = b.roles !== undefined ? jsonArr(b.roles) : jsonArr(prev && prev.roles);
+  const publicFields = (b.public_fields !== undefined ? jsonArr(b.public_fields) : jsonArr(prev && prev.public_fields))
+    .map(String)
+    .filter((k) => PROFILE_PUBLIC_KEYS.includes(k));
+  const password =
+    b.pass_plain !== undefined
+      ? String(b.pass_plain || '')
+      : b.password !== undefined
+        ? String(b.password || '')
+        : prev
+          ? prev.pass_plain || ''
+          : '';
+  const role = String(b.role || rolesArr[0] || (prev && prev.role) || 'owner');
+
   await pool.query(
-    `INSERT INTO profiles (id, name, username, email, phone, city, role, bio, public, avatar, created_at, updated_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,NOW(),NOW())
+    `INSERT INTO profiles
+       (id, name, username, email, phone, city, role, bio, public, avatar,
+        verification, alias, whatsapp, telegram, website, instagram, facebook, address,
+        certificate, roles, public_fields, pass_plain, created_at, updated_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())
      ON DUPLICATE KEY UPDATE
        name=VALUES(name), username=VALUES(username), email=VALUES(email), phone=VALUES(phone),
        city=VALUES(city), role=VALUES(role), bio=VALUES(bio), public=VALUES(public),
-       avatar=VALUES(avatar), updated_at=NOW()`,
+       avatar=VALUES(avatar), verification=VALUES(verification), alias=VALUES(alias),
+       whatsapp=VALUES(whatsapp), telegram=VALUES(telegram), website=VALUES(website),
+       instagram=VALUES(instagram), facebook=VALUES(facebook), address=VALUES(address),
+       certificate=VALUES(certificate), roles=VALUES(roles), public_fields=VALUES(public_fields),
+       pass_plain=VALUES(pass_plain), updated_at=NOW()`,
     [
       id,
       name,
-      b.username || null,
-      b.email || null,
-      b.phone || null,
-      b.city || null,
-      b.role || 'owner',
-      b.bio || null,
-      b.public ? 1 : 0,
-      b.avatar || null,
+      pick('username', '') || null,
+      pick('email', '') || null,
+      pick('phone', '') || null,
+      pick('city', '') || null,
+      role,
+      pick('bio', '') || null,
+      publicFields.length ? 1 : 0,
+      pick('avatar', '') || null,
+      pick('verification', 'email') || 'email',
+      pick('alias', '') || null,
+      pick('whatsapp', '') || null,
+      pick('telegram', '') || null,
+      pick('website', '') || null,
+      pick('instagram', '') || null,
+      pick('facebook', '') || null,
+      pick('address', '') || null,
+      pick('certificate', '') || null,
+      JSON.stringify(rolesArr),
+      JSON.stringify(publicFields),
+      password || null,
     ]
   );
   return id;
@@ -584,6 +729,7 @@ app.get('/api/contracts', requireAuth, async (req, res) => {
         projects: jsonArr(c.projects),
         status: c.status,
         createdAt: c.created_at,
+        createdBy: c.created_by || '',
       })),
       count: items.length,
     });
@@ -607,11 +753,16 @@ app.post('/api/contracts', requireAuth, async (req, res) => {
         const has = parties.some((p) => (typeof p === 'string' ? p : p && p.pid) === pid);
         if (!has) parties.push({ pid, name: req.auth.account.name || '', role: 'admin' });
       }
+      const createdBy =
+        req.auth && req.auth.account
+          ? req.auth.account.profileId
+          : String(b.createdBy || b.created_by || '').slice(0, 64) || null;
       await pool.query(
-        `INSERT INTO contracts (id, parties, projects, status, created_at)
-         VALUES (?,?,?,?,NOW())
-         ON DUPLICATE KEY UPDATE parties=VALUES(parties), projects=VALUES(projects), status=VALUES(status)`,
-        [id, JSON.stringify(parties), JSON.stringify(jsonArr(b.projects)), status]
+        `INSERT INTO contracts (id, parties, projects, status, created_by, created_at)
+         VALUES (?,?,?,?,?,NOW())
+         ON DUPLICATE KEY UPDATE parties=VALUES(parties), projects=VALUES(projects), status=VALUES(status),
+           created_by=COALESCE(contracts.created_by, VALUES(created_by))`,
+        [id, JSON.stringify(parties), JSON.stringify(jsonArr(b.projects)), status, createdBy]
       );
       saved++;
     }

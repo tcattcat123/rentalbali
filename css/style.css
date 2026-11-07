@@ -595,3 +595,35 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .pf-row:last-child{border-bottom:0;padding-bottom:0}
 .pf-label{font-size:12px;color:var(--ink2)}
 .pf-val{font-size:15px;font-weight:700;color:var(--ink);text-align:right;word-break:break-word}
+
+/* ===== Приватность: реквизиты профиля ===== */
+.req-head{display:flex;align-items:center;gap:8px;margin:14px 0 8px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink2)}
+.req-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--acc);color:#fff;font-size:11px;font-weight:700;text-transform:none;letter-spacing:0}
+.req-list{display:grid;gap:8px}
+.req-empty{padding:10px 12px;border:1px dashed var(--line);border-radius:10px;color:var(--mut);font-size:12.5px}
+.req-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,1.5fr) auto;gap:10px;align-items:center;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--card);transition:border-color .15s,box-shadow .15s}
+.req-row.req-public{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc-soft) inset}
+.req-label{font-size:12.5px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:4px;line-height:1.25}
+.req-star{color:#e5484d;font-weight:700}
+.req-sub{display:block;font-size:10.5px;font-weight:400;color:var(--mut)}
+.req-field input[type=text],.req-field input[type=email],.req-field input[type=password],.req-field select,.req-field textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;font-size:13px;background:var(--card);color:var(--ink)}
+.req-field textarea{resize:vertical;min-height:38px}
+.req-field input[readonly]{background:var(--line-soft);color:var(--ink2);cursor:default}
+.req-roles{display:flex;gap:6px;flex-wrap:wrap}
+.req-roles label{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border:1px solid var(--line);border-radius:999px;font-size:12px;cursor:pointer;background:var(--card);color:var(--ink)}
+.req-roles input{accent-color:var(--acc);margin:0}
+.req-switch{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--ink2);cursor:pointer;white-space:nowrap;user-select:none}
+.req-switch input{position:absolute;opacity:0;width:0;height:0}
+.req-switch-track{position:relative;width:36px;height:20px;border-radius:999px;background:#c9ced6;transition:background .15s;flex:0 0 auto}
+.req-switch-track::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.req-switch input:checked+.req-switch-track{background:var(--acc)}
+.req-switch input:checked+.req-switch-track::after{transform:translateX(16px)}
+.req-lock{font-size:11px;color:var(--mut);white-space:nowrap}
+.req-cert{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.req-cert img{width:54px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.req-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+[data-theme="dark"] .req-switch-track{background:#4a5568}
+@media (max-width:640px){
+  .req-row{grid-template-columns:1fr;gap:7px}
+  .req-switch{justify-content:flex-start;padding-top:2px}
+}
