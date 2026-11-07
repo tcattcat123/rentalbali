@@ -321,7 +321,7 @@ function renderProfiles(){
   if($("pfAdminToken"))$("pfAdminToken").value=localStorage.getItem("rh_admin_token")||"";
   if($("pfAvatar"))$("pfAvatar").src=(p&&p.avatar)||"https://i.pravatar.cc/120?img=12";
   if(reqLoadedFor!==undefined&&reqLoadedFor!==curPid()){reqDraft=null;reqLoadedFor=null;}
-  if(document.querySelector('#view-profile [data-cabtab="privacy"].active'))paintPrivacy(true);
+  paintPrivacy(true);
   paintNlPartyOpts();
 }
 /* ===== Политика конфиденциальности: реквизиты профиля ===== */
@@ -659,7 +659,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.76";const APP_BUILD="125";
+const APP_V="2.77";const APP_BUILD="126";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1334,7 +1334,7 @@ function switchCabtab(name){
   document.querySelectorAll("#view-profile [data-cabpanel]").forEach(p=>p.classList.toggle("hidden",p.dataset.cabpanel!==name));
   if(name==="partners")paintPeople();
   if(name==="contracts")paintContracts();
-  if(name==="privacy")paintPrivacy();
+  if(name==="profile")paintPrivacy(true);
 }
 function switchImptab(name){
   document.querySelectorAll("[data-imptab]").forEach(b=>b.classList.toggle("active",b.dataset.imptab===name));
@@ -2318,7 +2318,7 @@ async function submitForm(auto,opts){
       area:num("nlArea",old?old.area||0:0),landArea:num("nlLand",old?old.landArea||0:0),floors:0,
       yearBuilt:0,furnished:true,
       location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim()||(old?old.addr||"":""),geoAcc:acc,
-      phone:"",owner:((authAccount&&sessionToken())?authAccount.profileId:getGuestId()),status:((opts&&opts.mode==="publish")?"published":(old?(old.status||"draft"):"draft")),ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
+      phone:(curProfile()&&curProfile().phone)||"",owner:((authAccount&&sessionToken())?authAccount.profileId:getGuestId()),status:((opts&&opts.mode==="publish")?"published":(old?(old.status||"draft"):"draft")),ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
       images:allPhotos,fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
