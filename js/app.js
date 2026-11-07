@@ -359,11 +359,8 @@ function renderProfiles(){
   if($("pfApiBase"))$("pfApiBase").value=localStorage.getItem("rh_api_base")||"";
   if($("pfAdminToken"))$("pfAdminToken").value=localStorage.getItem("rh_admin_token")||"";
   if($("pfAvatar"))$("pfAvatar").src=(p&&p.avatar)||"https://i.pravatar.cc/120?img=12";
-  if($("accVerification"))$("accVerification").value=(p&&p.verification)||"email";
-  if($("accUsername"))$("accUsername").value=(p&&p.username)||"";
-  if($("accPass"))$("accPass").value=(p&&p.password)||"";
-  if($("accNum"))$("accNum").textContent=(p&&p.num)?("№ "+p.num):"—";
   if(reqLoadedFor!==undefined&&reqLoadedFor!==curPid()){reqDraft=null;reqLoadedFor=null;}
+  paintPrivacy(true);
   paintNlPartyOpts();
 }
 /* ===== Политика конфиденциальности: реквизиты профиля ===== */
@@ -701,7 +698,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.82";const APP_BUILD="131";
+const APP_V="2.83";const APP_BUILD="132";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1377,7 +1374,7 @@ function switchCabtab(name){
   document.querySelectorAll("#view-profile [data-cabpanel]").forEach(p=>p.classList.toggle("hidden",p.dataset.cabpanel!==name));
   if(name==="partners")paintPeople();
   if(name==="contracts")paintContracts();
-  if(name==="privacy")paintPrivacy(true);
+  if(name==="profile")paintPrivacy(true);
 }
 function switchImptab(name){
   document.querySelectorAll("[data-imptab]").forEach(b=>b.classList.toggle("active",b.dataset.imptab===name));
@@ -2043,7 +2040,6 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
   renderProfiles();
   initSession().catch(()=>{});
   if($("pfSave"))$("pfSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.name=(($("pfName")||{}).value||"").trim().slice(0,60)||it.name;it.username=(($("pfUsername")||{}).value||"").trim().slice(0,40);it.email=(($("pfEmail")||{}).value||"").trim().slice(0,80);it.phone=(($("pfPhone")||{}).value||"").trim().slice(0,30);it.city=(($("pfCity")||{}).value||"").trim();if($("pfRole"))it.role=($("pfRole").value||it.role||"owner");if($("pfPublic"))it.public=!!$("pfPublic").checked;it.bio=(($("pfBio")||{}).value||"").trim().slice(0,200);saveProfiles(list);}renderProfiles();notify("Профиль сохранён");};
-  if($("accSave"))$("accSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.verification=$("accVerification").value;it.username=($("accUsername").value||"").trim().slice(0,40);it.password=($("accPass").value||"").trim();saveProfiles(list);}renderProfiles();notify("Аккаунт сохранён");};
   if($("reqSave"))$("reqSave").onclick=async()=>{const ok=await savePrivacy();if(ok)notify("Реквизиты сохранены");};
   if($("reqHideAll"))$("reqHideAll").onclick=async()=>{
     if(!reqDraft)return;
