@@ -53,6 +53,7 @@ function sessionToken(){try{return localStorage.getItem("rh_session")||"";}catch
 function authToken(){return sessionToken()||adminToken();}
 async function apiGet(path,token){const h={};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(apiBase()+path,{cache:"no-store",headers:h});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function apiPost(path,body,token){const h={"Content-Type":"application/json"};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(apiBase()+path,{method:"POST",headers:h,body:JSON.stringify(body)});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function apiDelete(path,token){const h={};if(token)h["Authorization"]="Bearer "+token;try{const r=await fetch(apiBase()+path,{method:"DELETE",headers:h});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function apiListings(){const j=await apiGet("/listings");return j&&j.ok?j.items:null;}
 async function apiProfiles(){const j=await apiGet("/profiles");return j&&j.ok?j.items:null;}
 async function apiProfile(id){const j=await apiGet("/profiles?id="+encodeURIComponent(id));return j&&j.ok?j.profile:null;}
@@ -226,7 +227,7 @@ try{(JSON.parse(localStorage.getItem(myKey())||"[]")||[]).forEach(o=>{if(o&&o.id
     const codes=new Set(remote.map(o=>o&&o.code).filter(Boolean));
     // убираем только локальные копии уже опубликованных объектов, черновики остаются
     for(let i=LISTINGS.length-1;i>=0;i--)if(LISTINGS[i].user&&LISTINGS[i].status==="published"&&codes.has(LISTINGS[i].code))LISTINGS.splice(i,1);
-    remote.forEach(o=>{if(o&&o.id&&!LISTINGS.some(x=>x.user&&x.code&&x.code===o.code))LISTINGS.unshift(Object.assign({mine:true,user:true,phone:""},o,{mine:true,user:true,phone:"",owner:o.owner||getGuestId()}));});
+    remote.forEach(o=>{if(o&&o.id&&!LISTINGS.some(x=>x.code&&x.code===o.code))LISTINGS.unshift(Object.assign({},o,{mine:false,user:false,phone:""}));});
     LISTINGS.forEach(o=>{if(o.user&&!o.code)o.code=nextObjectId(o.propertyType,o.locationEn);});
     syncIdSeq();
   }
@@ -465,7 +466,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.69";const APP_BUILD="118";
+const APP_V="2.70";const APP_BUILD="119";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1166,7 +1167,7 @@ function fillEditForm(id){
   switchImptab("manual");
   nlPhotos=[];nlRemote=[...(it.images||[])];paintNlPreview();
   const saveBtn=$("nlPublish")||$("nlSave");
-  if(saveBtn)saveBtn.textContent="💾 Сохранить изменения";
+  if($("nlDraft"))$("nlDraft").textContent="💾 Сохранить изменения";
   if($("nlFormTitle"))$("nlFormTitle").textContent="Редактирование проекта";
   if(!$("nlCancel")){const b=document.createElement("button");b.id="nlCancel";b.className="btn-text";b.textContent="Отмена";b.style.marginTop="8px";b.onclick=()=>{resetNlForm();};(saveBtn||$("nlDraft")).after(b);}
   switchView("profile");switchCabtab("add");
@@ -1567,7 +1568,21 @@ document.addEventListener("click",e=>{
   const f=e.target.closest("[data-fav]");
   if(f){e.stopPropagation();const id=+f.dataset.fav;state.fav.has(id)?state.fav.delete(id):state.fav.add(id);localStorage.setItem(favKey(),JSON.stringify([...state.fav]));render();const t=sessionToken();if(t)apiPost("/favorites",{listingId:id,action:state.fav.has(id)?"add":"remove"},t).catch(()=>{});return;}
   const del=e.target.closest("[data-del]");
-  if(del){e.stopPropagation();const id=+del.dataset.del;const ix=LISTINGS.findIndex(x=>x.id===id);if(ix>=0)LISTINGS.splice(ix,1);persistMy();if(editingId===id)resetNlForm();render();return;}
+  if(del){
+    e.stopPropagation();
+    if(!del.dataset.armed){
+      del.dataset.armed="1";del.textContent="Точно удалить?";
+      setTimeout(()=>{delete del.dataset.armed;del.textContent="✕ Удалить";},4000);
+      return;
+    }
+    const id=+del.dataset.del;const ix=LISTINGS.findIndex(x=>x.id===id);
+    const removed=ix>=0?LISTINGS.splice(ix,1)[0]:null;
+    persistMy();if(editingId===id)resetNlForm();render();
+    const t=sessionToken();
+    if(t&&removed&&removed.code)apiDelete("/listings/"+encodeURIComponent(removed.code),t).catch(()=>{});
+    notify("Объект удалён");
+    return;
+  }
   const nd=e.target.closest("[data-nldel]");
   if(nd){e.stopPropagation();const k=nd.dataset.nldel;const i=+k.slice(1);if(k[0]==="r")nlRemote.splice(i,1);else nlPhotos.splice(i,1);paintNlPreview();return;}
   const mv=e.target.closest("[data-nlmove]");
@@ -2106,7 +2121,7 @@ function saveTpl(name,data){
   notify("Шаблон «"+name+"» сохранён");
 }
   if($("nlDraft"))$("nlDraft").onclick=()=>submitForm(false,{mode:"draft"});
-  if($("nlPublish"))$("nlPublish").onclick=()=>submitForm(false,{mode:editingId?"draft":"publish"});
+  if($("nlPublish"))$("nlPublish").onclick=()=>submitForm(false,{mode:"publish"});
   if($("nlPreview"))$("nlPreview").onclick=()=>{if(lastCreatedId)openDetail(lastCreatedId);};
   const addPanel=document.querySelector('[data-cabpanel="add"]');
   if(addPanel){const dirty=()=>{if(lastCreatedId){const pv=$("nlPreview");if(pv)pv.disabled=true;}};addPanel.addEventListener("input",dirty);addPanel.addEventListener("change",dirty);}
