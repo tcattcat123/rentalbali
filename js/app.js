@@ -659,7 +659,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.73";const APP_BUILD="122";
+const APP_V="2.74";const APP_BUILD="123";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1729,9 +1729,11 @@ function openDetail(id){
     <div class="d-locrow"><span class="d-loc">${SVG_PIN} ${locLabel(it)}, Бали</span>
       <span class="d-meta">${SVG_EYE} ${it.views} <span class="time-pill">${timeAgo(it.createdAt)}</span></span></div>
     ${it.addr?`<div class="d-addr">${SVG_PIN} ${it.addr} ${it.geoAcc==="approx"?'<span class="acc-badge">Ориентир</span>':'<span class="acc-badge ok">Точный адрес</span>'}</div>`:""}
-    <div class="d-actions">${it.type==="request"
-      ?`<button class="btn-call" data-offer="${it.id}">✉ ${t("offer_btn")}</button>`
-      :`<a class="btn-call" href="tel:${waNum(it)}">Позвонить</a><a class="btn-wa" href="https://wa.me/${waNum(it)}" target="_blank" rel="noopener">WhatsApp</a><a class="btn-tg" href="https://t.me/BaliLegalVilla" target="_blank" rel="noopener">Telegram</a>`}</div>
+    <div class="d-actions">
+      <a class="btn-wa-left" href="https://wa.me/${waNum(it)}" target="_blank" rel="noopener">WhatsApp</a>
+      <button class="btn-contact" data-contact-menu="obj"><div class="btn-contact-top">связаться</div><div class="btn-contact-icons">📩✉📞</div></button>
+      <button class="btn-renthome" data-contact-menu="rh">спросить RentHome</button>
+    </div>
     ${it.desc?`<div class="desc-block open"><div class="desc-body"><div class="desc-in"><div class="desc-text"></div></div></div></div>`:""}
     ${it.legal?`<div class="legal">◈ ${t("legal_txt")} · ${agent}</div>`:""}
   </div><div class="d-right">
@@ -1753,6 +1755,66 @@ function openDetail(id){
   $("dShare").onclick=()=>{try{navigator.clipboard.writeText(listingUrl(it));}catch(e){}notify(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
   $("dFav").onclick=()=>{const on=!state.fav.has(it.id);on?state.fav.add(it.id):state.fav.delete(it.id);localStorage.setItem(favKey(),JSON.stringify([...state.fav]));const b=$("dFav");b.textContent=on?"♥":"♡";b.classList.toggle("on",on);render();const t=sessionToken();if(t)apiPost("/favorites",{listingId:it.id,action:on?"add":"remove"},t).catch(()=>{});};
   if($("dEdit"))$("dEdit").onclick=()=>fillEditForm(it.id);
+}
+/* ===== Контекстное меню способов связи на детальной карточке ===== */
+let contactMenuEl=null,contactMenuKind=null;
+function ensureContactMenu(){
+  if(contactMenuEl)return contactMenuEl;
+  const el=document.createElement("div");
+  el.className="contact-menu hidden";
+  el.innerHTML='<div class="contact-menu-wrap"><div class="contact-menu-title" id="contactMenuTitle"></div><div class="contact-menu-list" id="contactMenuList"></div></div>';
+  document.body.appendChild(el);
+  contactMenuEl=el;
+  document.addEventListener("click",e=>{
+    if(!contactMenuEl||contactMenuEl.classList.contains("hidden"))return;
+    if(contactMenuEl.contains(e.target))return;
+    hideContactMenu();
+  });
+  return el;
+}
+function buildContactMenu(kind){
+  const it=findListing(detailId);
+  const phone=String(it&&it.phone||"").trim();
+  const items=[];let title="";
+  if(kind==="obj"){
+    title="Связаться с владельцем объекта";
+    if(phone)items.push({label:"WhatsApp",icon:"💬",href:"https://wa.me/"+waNum(it)});
+    items.push({label:"Telegram",icon:"📩",href:"https://t.me/BaliLegalVilla"});
+    if(phone)items.push({label:"Позвонить",icon:"📞",href:"tel:"+phone});
+    if(it.email)items.push({label:"Email",icon:"✉",href:"mailto:"+String(it.email).replace(/&/g,"&amp;").replace(/</g,"&lt;")});
+    if(!items.length)items.push({label:"Контакты не указаны",icon:"—",href:"#"});
+  } else {
+    title="Связаться с RentHome";
+    items.push({label:"WhatsApp",icon:"💬",href:"https://wa.me/6281337341275"});
+    items.push({label:"Telegram",icon:"📩",href:"https://t.me/BaliLegalVilla"});
+    items.push({label:"Позвонить",icon:"📞",href:"tel:+6281337341275"});
+    items.push({label:"Email",icon:"✉",href:"mailto:info@balilegalvilla.com"});
+    items.push({label:"Чат-бот",icon:"🤖",href:"https://t.me/BaliLegalVilla"});
+  }
+  return{title,items};
+}
+function showContactMenu(btn,kind){
+  const el=ensureContactMenu();contactMenuKind=kind;
+  const d=buildContactMenu(kind);
+  const titleEl=$("contactMenuTitle");if(titleEl)titleEl.textContent=d.title;
+  const list=$("contactMenuList");
+  list.innerHTML=d.items.map(it=>{
+    const ext=it.href.startsWith("http");
+    return `<a class="contact-menu-item" href="${String(it.href).replace(/&/g,"&amp;")}" target="${ext?"_blank":""}" rel="${ext?"noopener":""}"><span class="ic">${it.icon}</span>${String(it.label).replace(/&/g,"&amp;").replace(/</g,"&lt;")}</a>`;
+  }).join("");
+  el.classList.remove("hidden");el.style.display="block";el.style.left="0";el.style.top="0";
+  const rect=btn.getBoundingClientRect();const wrap=el.querySelector(".contact-menu-wrap");
+  let top=rect.bottom+6,left=rect.left;const wb=wrap.getBoundingClientRect();
+  const vpW=window.innerWidth,vpH=window.innerHeight;
+  if(left+wb.width>vpW)left=Math.max(8,vpW-wb.width-8);
+  if(top+wb.height>vpH)top=Math.max(8,rect.top-wb.height-6);
+  if(top<8)top=8;
+  el.style.left=Math.max(8,left)+"px";el.style.top=top+"px";
+  el.classList.add("show");
+}
+function hideContactMenu(){
+  const el=$("contactMenu");if(el){el.classList.remove("show");el.classList.add("hidden");el.style.display="";}
+  contactMenuKind=null;
 }
 function closeDetail(){try{history.replaceState(null,"",siteBase());}catch(e){}switchView("list");syncDealTabs();}
 function refreshDetail(){
@@ -1798,6 +1860,10 @@ document.addEventListener("click",e=>{
   if(o){e.stopPropagation();notify(state.lang==="ru"?"Заявка отправлена владельцу запроса!":"Proposal sent!");return;}
   const ct=e.target.closest("[data-contact]");
   if(ct){e.stopPropagation();const it=LISTINGS.find(x=>x.id===+ct.dataset.contact);const nm=it&&it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");notify(state.lang==="ru"?"Свяжемся с "+nm+" в течение часа!":"We will contact "+nm);return;}
+  const cmi=e.target.closest(".contact-menu-item");
+  if(cmi){hideContactMenu();return;}
+  const cmb=e.target.closest("[data-contact-menu]");
+  if(cmb){e.preventDefault();e.stopPropagation();showContactMenu(cmb,cmb.dataset.contactMenu);return;}
   const p=e.target.closest("[data-page]");
   if(p){state.page=+p.dataset.page;render();window.scrollTo({top:0,behavior:"smooth"});return;}
   const cr=e.target.closest("[data-crumb]");
