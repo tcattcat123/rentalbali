@@ -698,7 +698,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.80";const APP_BUILD="129";
+const APP_V="2.81";const APP_BUILD="130";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1349,7 +1349,8 @@ let editingId=null;
 function resetNlForm(){
   editingId=null;
   const as=$("afterSave");if(as)as.classList.add("hidden");
-  ["nlTitle","nlPrice","nlPriceTo","nlLocCustom","nlAddr","nlGeo","nlArea","nlLand","impUrls","impUrls2","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
+  ["nlTitle","nlPrice","nlPriceTo","nlLocCustom","nlAddr","nlGeo","nlContactPhone","nlArea","nlLand","impUrls","impUrls2","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
+  const cp=$("nlContactPhone");if(cp)cp.value=(curProfile()&&curProfile().phone)||"";
   document.querySelectorAll("#nlAmen input").forEach(c=>{c.checked=false;});
   const ac=$("nlAmenCount");if(ac)ac.textContent="0";
   if($("nlAcc"))$("nlAcc").value="exact";
@@ -1396,6 +1397,7 @@ function fillEditForm(id){
   $("nlLiving").value=it.living||0;$("nlPark").value=it.parking||0;
   $("nlAvail").value=it.available?it.available.slice(0,7):"";
   if($("nlAddr"))$("nlAddr").value=it.addr||"";
+  if($("nlContactPhone"))$("nlContactPhone").value=it.phone||(curProfile()&&curProfile().phone)||"";
   if($("nlAcc"))$("nlAcc").value=it.geoAcc||"exact";
   if($("nlCur"))$("nlCur").value="IDR";
   paintNlAmen(it.amenities||[]);syncNlDeal();
@@ -2352,12 +2354,14 @@ async function submitForm(auto,opts){
     const partiesArr=buildParties();
     const num=(id,fb)=>{const v=$(id)?$(id).value:"";return(v===""&&old)?fb:(parseFloat(v)||0);};
     const leaseY=num("nlLease",old?old.leaseYears||0:0);
+    const contactPhone=($("nlContactPhone")&&$("nlContactPhone").value.trim())||(curProfile()&&curProfile().phone)||"";
+    if(!contactPhone){notify("Укажите контактный телефон");return false;}
     const it={id:editingId||Date.now(),type:role,dealType:deal,category:$("nlCat").value,title,price,priceMin:priceMin,currency:"IDR",
       propertyType:pt,bedrooms:num("nlBed",old?old.bedrooms||0:0),bathrooms:num("nlBath",old?old.bathrooms||0:0),
       area:num("nlArea",old?old.area||0:0),landArea:num("nlLand",old?old.landArea||0:0),floors:0,
       yearBuilt:0,furnished:true,
       location:rl,locationEn:dk,lat,lng,addr:$("nlAddr").value.trim()||(old?old.addr||"":""),geoAcc:acc,
-      phone:(curProfile()&&curProfile().phone)||"",owner:((authAccount&&sessionToken())?authAccount.profileId:getGuestId()),status:((opts&&opts.mode==="publish")?"published":(old?(old.status||"draft"):"draft")),ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
+      phone:contactPhone,owner:((authAccount&&sessionToken())?authAccount.profileId:getGuestId()),status:((opts&&opts.mode==="publish")?"published":(old?(old.status||"draft"):"draft")),ai:!!(opts&&opts.via==="ai"),code:((editingId&&old&&old.code)||nextObjectId(pt,dk)),
       images:allPhotos,fb:`https://picsum.photos/seed/my${Date.now()}/640/360`,
       createdAt:Date.now(),isVerified:false,isAgent:false,agentName:getProfile().name||"",isTop:false,isUrgent:false,
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
