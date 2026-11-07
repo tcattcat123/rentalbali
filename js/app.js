@@ -171,7 +171,17 @@ async function doAuth(kind){
   applyAuthAccount(j.account);
   await loadCabinetFromServer();
   renderAuth();
+  showProfileAfterAuth();
   notify(kind==="register"?("Аккаунт создан. Ваш ID: "+j.account.profileId):"Вы вошли");
+}
+function showProfileAfterAuth(){
+  try{switchView("profile");switchCabtab("profile");}catch(e){}
+  const card=$("authCard");if(card)card.open=false;
+  renderProfiles();renderAuth();
+  setTimeout(()=>{
+    const pc=document.querySelector("#view-profile .profile-card");
+    if(pc)pc.scrollIntoView({behavior:"smooth",block:"start"});
+  },100);
 }
 async function doAuthLogout(){
   const token=sessionToken();
@@ -263,6 +273,7 @@ function renderProfiles(){
   if($("pfName"))$("pfName").value=(p&&p.name)||"";
   if($("pfNum"))$("pfNum").textContent=(p&&p.num)?("№ "+p.num):"—";
   if($("pfNameView"))$("pfNameView").textContent=(p&&p.name)||"Без имени";
+  if($("pfIdView"))$("pfIdView").textContent=(authAccount&&sessionToken())?authAccount.profileId:(cur||"—");
   if($("pfBalance"))$("pfBalance").textContent=Number((p&&p.balance)||0).toLocaleString("ru-RU")+" IDR";
   if($("pfUsername"))$("pfUsername").value=(p&&p.username)||"";
   if($("pfEmail"))$("pfEmail").value=(p&&p.email)||"";
@@ -454,7 +465,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.66";const APP_BUILD="115";
+const APP_V="2.67";const APP_BUILD="116";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
