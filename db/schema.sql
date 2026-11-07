@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- ============================================
 CREATE TABLE IF NOT EXISTS profiles (
   id VARCHAR(64) PRIMARY KEY,
+  num INT DEFAULT 0,
   name VARCHAR(120) NOT NULL,
   username VARCHAR(80) UNIQUE,
   email VARCHAR(255),

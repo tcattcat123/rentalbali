@@ -260,7 +260,7 @@ app.post('/api/auth/register', async (req, res) => {
     const accountId = ins.insertId;
     const profileId = profileIdFor(accountId);
     await pool.query('UPDATE accounts SET profile_id = ? WHERE id = ?', [profileId, accountId]);
-    await upsertProfile({ id: profileId, name, username: login, pass_plain: password, public_fields: [] });
+    await upsertProfile({ id: profileId, name, username: login, pass_plain: password, public_fields: [], num: accountId });
 
     const token = await createSession(accountId);
     res.json({ ok: true, token, account: { id: accountId, login, name, profileId } });
@@ -656,6 +656,9 @@ async function upsertProfile(b) {
   const name = String(pick('name', '') || '').trim();
   if (!name) throw new Error('name required');
 
+  const derivedNum = /^u(\d+)$/.test(id) ? +id.slice(1) : 0;
+  const num = Number(pick('num', derivedNum) || derivedNum) || derivedNum;
+
   const rolesArr = b.roles !== undefined ? jsonArr(b.roles) : jsonArr(prev && prev.roles);
   const publicFields = (b.public_fields !== undefined ? jsonArr(b.public_fields) : jsonArr(prev && prev.public_fields))
     .map(String)
@@ -672,12 +675,12 @@ async function upsertProfile(b) {
 
   await pool.query(
     `INSERT INTO profiles
-       (id, name, username, email, phone, city, role, bio, public, avatar,
+       (id, num, name, username, email, phone, city, role, bio, public, avatar,
         verification, alias, whatsapp, telegram, website, instagram, facebook, address,
         certificate, roles, public_fields, pass_plain, created_at, updated_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())
      ON DUPLICATE KEY UPDATE
-       name=VALUES(name), username=VALUES(username), email=VALUES(email), phone=VALUES(phone),
+       num=VALUES(num), name=VALUES(name), username=VALUES(username), email=VALUES(email), phone=VALUES(phone),
        city=VALUES(city), role=VALUES(role), bio=VALUES(bio), public=VALUES(public),
        avatar=VALUES(avatar), verification=VALUES(verification), alias=VALUES(alias),
        whatsapp=VALUES(whatsapp), telegram=VALUES(telegram), website=VALUES(website),
@@ -686,6 +689,7 @@ async function upsertProfile(b) {
        pass_plain=VALUES(pass_plain), updated_at=NOW()`,
     [
       id,
+      num,
       name,
       pick('username', '') || null,
       pick('email', '') || null,
