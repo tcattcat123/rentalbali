@@ -466,7 +466,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.70";const APP_BUILD="119";
+const APP_V="2.71";const APP_BUILD="120";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1117,7 +1117,10 @@ let editingId=null;
 function resetNlForm(){
   editingId=null;
   const as=$("afterSave");if(as)as.classList.add("hidden");
-  ["nlTitle","nlPrice","nlPriceTo","nlLocCustom","nlArea","nlLand","impUrls","impUrls2","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
+  ["nlTitle","nlPrice","nlPriceTo","nlLocCustom","nlAddr","nlGeo","nlArea","nlLand","impUrls","impUrls2","nlDesc"].forEach(k=>{if($(k))$(k).value="";});
+  document.querySelectorAll("#nlAmen input").forEach(c=>{c.checked=false;});
+  const ac=$("nlAmenCount");if(ac)ac.textContent="0";
+  if($("nlAcc"))$("nlAcc").value="exact";
   ["nlBed","nlLiving"].forEach(k=>{if($(k))$(k).value=1;});
   if($("nlBath"))$("nlBath").value=1;
   if($("nlPark"))$("nlPark").value=0;
@@ -2064,7 +2067,7 @@ async function submitForm(auto,opts){
         const meId=curPid();
         partiesArr.forEach(p=>{if(p.pid&&p.pid!==meId)contractParties(meId,p.pid,it.id);});
         showAfterSave(it.id,tplSnap);
-        notify(backendSaved?"Опубликовано! Показываю его в ленте.":"Карточка сохранена в этом браузере.");
+        notify(backendSaved?"Изменения опубликованы":"Карточка сохранена в этом браузере.");
       } else {
         render();
         const prev=$("nlPreview");if(prev)prev.disabled=false;
@@ -2085,7 +2088,7 @@ async function submitForm(auto,opts){
         const meId=curPid();
         partiesArr.forEach(p=>{if(p.pid&&p.pid!==meId)contractParties(meId,p.pid,it.id);});
         showAfterSave(it.id,tplSnap);
-        notify(backendSaved?"Опубликовано! Показываю его в ленте.":"Карточка сохранена в этом браузере.");
+        notify(backendSaved?"Опубликовано! Объект виден всем.":"Карточка сохранена в этом браузере.");
       }
     }
     submitBusy=false;
