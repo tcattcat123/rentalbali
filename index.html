@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="133">
+<meta name="app-build" content="135">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=136">');})();</script>
+<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=145">');})();</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -27,9 +27,12 @@
     </nav>
     <div class="header-actions">
       <select id="currencySelect" class="mini-select" title="Валюта"><option value="IDR">IDR</option><option value="USD">USD</option></select>
-      <div id="google_translate_element" class="gtrans" title="Перевод страницы"></div>
-      <button id="themeBtn" class="icon-btn" title="Тема">○</button>
-      <button id="favHeaderBtn" class="icon-btn" title="Избранное">♡ <span id="favCount" class="fav-count">0</span></button>
+      <div class="dd lang-dd" id="langDD">
+        <button id="langBtn" class="dd-btn lang-btn" type="button" title="Язык страницы" aria-label="Язык страницы" aria-haspopup="true" aria-expanded="false"><svg class="lang-ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg></button>
+        <div class="dd-panel lang-panel"><div id="google_translate_element" class="gtrans"></div></div>
+      </div>
+      <button id="themeBtn" class="icon-btn" title="Включить тёмную тему" aria-label="Включить тёмную тему" aria-pressed="false"><svg class="theme-ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg></button>
+      <button id="favHeaderBtn" class="icon-btn" title="Избранное"><svg class="fav-ic" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true" focusable="false"><path d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8l0-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5l0 3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20-.1-.1s0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5l0 3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2l0-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"/></svg><span id="favCount" class="fav-count">0</span></button>
       <button id="authNavBtn" class="icon-btn auth-nav-btn" title="Регистрация / Вход">Регистрация</button>
       <button id="profileBtn" class="icon-btn profile active" title="Профиль"><img src="https://i.pravatar.cc/150?img=12" class="pf-nav-img" alt="Профиль"><span class="pf-nav-label">Профиль</span></button>
     </div>
@@ -157,7 +160,7 @@
     <h2>Личный кабинет</h2>
     <div class="imp-tabs" role="tablist" style="margin-bottom:10px">
       <button data-cabtab="profile" class="active">Профиль</button>
-      <button data-cabtab="projects">Мои проекты</button>
+      <button data-cabtab="projects">Проекты</button>
       <button data-cabtab="partners">Партнёры</button>
       <button data-cabtab="contracts">Договора</button>
     </div>
@@ -167,6 +170,8 @@
       <div class="pf-main">
         <div class="pf-row"><span class="pf-label">Имя пользователя</span><div class="pf-val" id="pfNameView">—</div></div>
         <div class="pf-row"><span class="pf-label">ID пользователя</span><div class="pf-val" id="pfIdView">—</div></div>
+        <div class="pf-row"><span class="pf-label">Верификация</span><div class="pf-val" id="pfVerified">—</div></div>
+        <div class="pf-row"><span class="pf-label">На карте</span><div class="pf-val" id="pfGeoView">Нет точки</div></div>
         <div class="pf-row"><span class="pf-label">Баланс</span><div class="pf-val" id="pfBalance">0 IDR</div></div>
       </div>
     </div>
@@ -174,13 +179,7 @@
       <summary style="cursor:pointer;font-weight:700">Вход и регистрация</summary>
       <div style="margin-top:10px;display:grid;gap:8px">
         <div id="authLoggedOut" style="display:grid;gap:8px">
-          <div class="filter-group"><label>Логин</label><input id="authLogin" placeholder="username" autocomplete="username"></div>
-          <div class="filter-group"><label>Пароль (виден, не под звёздочками)</label><input id="authPass" type="text" placeholder="пароль" autocomplete="off"></div>
-          <div class="filter-group"><label>Имя (при создании аккаунта)</label><input id="authName" placeholder="Как к вам обращаться" autocomplete="name"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button id="authLoginBtn" class="btn-primary" type="button">Войти</button>
-            <button id="authRegisterBtn" class="btn-primary" type="button">Зарегистрироваться</button>
-          </div>
+          <button id="authOpenBtn" class="btn-primary block" type="button" style="height:44px;font-size:15px;border-radius:10px">Войти или зарегистрироваться</button>
         </div>
         <div id="authLoggedIn" class="hidden" style="display:grid;gap:8px">
           <div id="authWho" class="hint" style="font-weight:600"></div>
@@ -200,6 +199,7 @@
         <div class="filter-group"><label>Почта</label><input id="pfEmail" type="email" placeholder="mail@example.com" autocomplete="off"></div>
         <div class="filter-group"><label>Телефон</label><input id="pfPhone" placeholder="+62 ..." autocomplete="off"></div>
         <div class="filter-group"><label>Город</label><input id="pfCity" placeholder="Например: Чангу"></div>
+        <div class="filter-group"><label>Ссылка Google Maps (точка профиля)</label><input id="pfGeoLink" placeholder="https://maps.app.goo.gl/..."></div>
         <div class="filter-group"><label>Описание</label><textarea id="pfBio" rows="2" placeholder="Кем вы работаете на рынке недвижимости?"></textarea></div>
         <h3 style="margin:10px 0 4px;font-size:13px">Политика конфиденциальности</h3>
         <p class="hint" style="margin-top:0;margin-bottom:8px">Справа у каждого реквизита есть переключатель «Сделать публичной». Публичные строки видны всем. Приватные не видны никому, кроме вас и партнёров.</p>
@@ -219,6 +219,7 @@
           <button id="pfSave" class="btn-primary">Сохранить</button>
           <button id="pfLogout" class="btn-ghost">Выйти</button>
         </div>
+        <div id="cabAdminTools" class="hidden">
         <div class="filter-group"><label>Профили на этом устройстве</label><div id="profileList" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>        <div class="imp-row"><input id="pfNewName" placeholder="Имя нового профиля"><button id="pfCreate" class="btn-ghost" type="button">+ Новый</button></div>
         <div class="filter-group"><label>Копия кабинета</label>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -232,7 +233,8 @@
             <button id="cabSeqReset" class="btn-text">Сбросить счётчик ID</button>
           </div>
         </div>
-        <p class="hint">Копия — это JSON с профилем, проектами и избранным. Перенесите файл на другое устройство, чтобы забрать кабинет с собой.</p>
+        <p class="hint">Копия - это JSON с профилем, проектами и избранным. Перенесите файл на другое устройство, чтобы забрать кабинет с собой.</p>
+        </div>
       </div>
     </details>
     <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px">
@@ -247,7 +249,7 @@
         <p class="hint">Без токена объекты сохраняются только в этом браузере. С токеном публикуются в общую базу на сервере.</p>
       </div>
     </details>
-    <div class="my-head hidden" data-cabpanel="projects"><h3>Мои проекты</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="chip active" data-pf="all">Все</button><button type="button" class="chip" data-pf="offer">Предлагаю</button><button type="button" class="chip" data-pf="request">Ищу</button><button type="button" class="btn-primary" id="pfAddProj" style="height:26px;padding:3px 12px;font-size:11.5px">Добавить проект</button></div></div>
+    <div class="my-head hidden" data-cabpanel="projects"><div class="my-title-row"><h3>Проекты</h3><button type="button" class="btn-primary" id="pfAddProj">Добавить проект</button></div><div class="my-chips"><button type="button" class="chip active" data-pf="all">Все</button><button type="button" class="chip" data-pf="offer">Предлагаю</button><button type="button" class="chip" data-pf="request">Ищу</button></div></div>
     <div class="card cab-form hidden" data-cabpanel="add">
     <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px">
     <h3 style="margin:0" id="nlFormTitle">Новый проект</h3>
@@ -310,10 +312,17 @@
     <input type="file" id="nlPhotos" accept="image/*" multiple class="hidden"><input type="file" id="nlPhotosCam" accept="image/*" capture="environment" class="hidden"><div id="nlPreview" class="nl-preview"></div></div>
     <div class="filter-group full"><label>Фото по ссылкам — вставьте сюда</label><input id="impUrls2" placeholder="Ссылка Drive или ID, через запятую" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:0 12px;height:40px;font-size:14px;background:var(--card);color:var(--ink);font-family:inherit;outline:none"><button id="impPhotos2" class="btn-primary block" style="margin-top:8px">Загрузить фото</button></div>
     </div>
-    <div class="nl-actions" style="display:flex;gap:8px;margin-top:14px;">
+    <div class="nl-actions" style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
       <button id="nlDraft" class="btn-ghost block" style="background:#e8f5e9;border:1px solid #4caf50;color:#1b5e20">👍 Сохранить</button>
       <button id="nlPreview" class="btn-ghost block nl-preview" disabled style="background:#e3f2fd;border:1px solid #2196f3;color:#0d47a1">👁 Просмотр</button>
       <button id="nlPublish" class="btn-primary block" style="background:#ffa726;border:1px solid #fb8c00;color:#fff">📢 Опубликовать</button>
+      <button id="nlAddOrder" class="btn-ghost block" type="button">＋ В заказ</button>
+    </div>
+    <div id="nlOrderBox" class="hidden" style="margin-top:12px;border:1px solid var(--line);border-radius:8px;padding:10px">
+      <b style="font-size:14px">Заказ клиента (<span id="nlOrderCount">0</span>)</b>
+      <div id="nlOrderList" style="display:grid;gap:6px;margin-top:8px"></div>
+      <button id="nlPublishOrder" class="btn-primary block" type="button" style="margin-top:10px;background:#ffa726;border:1px solid #fb8c00;color:#fff">📢 Опубликовать заказ (0)</button>
+      <p class="hint" style="margin:8px 0 0">Один заказ - несколько объектов от одного заказчика. Контакт общий, у каждого объекта свои тип, сделка и площадь.</p>
     </div>
     <div id="afterSave" class="hidden" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
       <button id="asView" class="btn-primary" type="button">🏠 Посмотреть в галерее</button>
@@ -436,9 +445,41 @@
   <div class="ai-input"><button id="aiAttach" aria-label="Прикрепить фото" title="Прикрепить фото">📎</button><button id="aiCam" aria-label="Камера" title="Камера">📷</button><input type="file" id="aiFiles" accept="image/*" multiple class="hidden"><input type="file" id="aiCamFiles" accept="image/*" capture="environment" class="hidden"><input id="aiText" placeholder="Напишите сообщение..." autocomplete="off"><button id="aiSend" class="btn-primary">➤</button></div>
 </div>
 <div id="sheetBg" class="hidden"></div>
-<nav class="bottom-nav"><button class="bn-item active" data-view="list">▦<span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want">⌕<span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="services">🛠<span data-i18n="nav_services">Услуги</span></button><button class="bn-item" data-view="community">👥<span data-i18n="nav_community">Сообщество</span></button></nav>
+<nav class="bottom-nav"><button class="bn-item active" data-view="list"><svg class="bn-ic" viewBox="0 0 576 512" fill="currentColor" aria-hidden="true" focusable="false"><path d="M64 80c-8.8 0-16 7.2-16 16l0 320c0 8.8 7.2 16 16 16l448 0c8.8 0 16-7.2 16-16l0-320c0-8.8-7.2-16-16-16L64 80zM0 96C0 60.7 28.7 32 64 32l448 0c35.3 0 64 28.7 64 64l0 320c0 35.3-28.7 64-64 64L64 480c-35.3 0-64-28.7-64-64L0 96zm96 64a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm104 0c0-13.3 10.7-24 24-24l224 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-224 0c-13.3 0-24-10.7-24-24zm0 96c0-13.3 10.7-24 24-24l224 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-224 0c-13.3 0-24-10.7-24-24zm0 96c0-13.3 10.7-24 24-24l224 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-224 0c-13.3 0-24-10.7-24-24zm-72-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM96 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg><span data-i18n="nav_list">Каталог</span></button><button class="bn-item" data-view="want"><svg class="bn-ic" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true" focusable="false"><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm306.7 69.1L162.4 380.6c-19.4 7.5-38.5-11.6-31-31l55.5-144.3c3.3-8.5 9.9-15.1 18.4-18.4l144.3-55.5c19.4-7.5 38.5 11.6 31 31L325.1 306.7c-3.2 8.5-9.9 15.1-18.4 18.4zM288 256a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg><span data-i18n="nav_want">Ищу</span></button><button class="bn-item" data-view="services"><svg class="bn-ic" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true" focusable="false"><path d="M385.1 419.1C349.7 447.2 304.8 464 256 464s-93.7-16.8-129.1-44.9l80.4-80.4c14.3 8.4 31 13.3 48.8 13.3s34.5-4.8 48.8-13.3l80.4 80.4zm68.1 .2C489.9 374.9 512 318.1 512 256s-22.1-118.9-58.8-163.3L465 81c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0L419.3 58.8C374.9 22.1 318.1 0 256 0S137.1 22.1 92.7 58.8L81 47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9L58.8 92.7C22.1 137.1 0 193.9 0 256s22.1 118.9 58.8 163.3L47 431c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l11.8-11.8C137.1 489.9 193.9 512 256 512s118.9-22.1 163.3-58.8L431 465c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-11.8-11.8zm-34.1-34.1l-80.4-80.4c8.4-14.3 13.3-31 13.3-48.8s-4.8-34.5-13.3-48.8l80.4-80.4C447.2 162.3 464 207.2 464 256s-16.8 93.7-44.9 129.1zM385.1 92.9l-80.4 80.4c-14.3-8.4-31-13.3-48.8-13.3s-34.5 4.8-48.8 13.3L126.9 92.9C162.3 64.8 207.2 48 256 48s93.7 16.8 129.1 44.9zM173.3 304.8L92.9 385.1C64.8 349.7 48 304.8 48 256s16.8-93.7 44.9-129.1l80.4 80.4c-8.4 14.3-13.3 31-13.3 48.8s4.8 34.5 13.3 48.8zM208 256a48 48 0 1 1 96 0 48 48 0 1 1 -96 0z"/></svg><span data-i18n="nav_services">Услуги</span></button><button class="bn-item" data-view="community"><svg class="bn-ic" viewBox="0 0 640 512" fill="currentColor" aria-hidden="true" focusable="false"><path d="M88.2 309.1c9.8-18.3 6.8-40.8-7.5-55.8C59.4 230.9 48 204 48 176c0-63.5 63.8-128 160-128s160 64.5 160 128s-63.8 128-160 128c-13.1 0-25.8-1.3-37.8-3.6c-10.4-2-21.2-.6-30.7 4.2c-4.1 2.1-8.3 4.1-12.6 6c-16 7.2-32.9 13.5-49.9 18c2.8-4.6 5.4-9.1 7.9-13.6c1.1-1.9 2.2-3.9 3.2-5.9zM208 352c114.9 0 208-78.8 208-176S322.9 0 208 0S0 78.8 0 176c0 41.8 17.2 80.1 45.9 110.3c-.9 1.7-1.9 3.5-2.8 5.1c-10.3 18.4-22.3 36.5-36.6 52.1c-6.6 7-8.3 17.2-4.6 25.9C5.8 378.3 14.4 384 24 384c43 0 86.5-13.3 122.7-29.7c4.8-2.2 9.6-4.5 14.2-6.8c15.1 3 30.9 4.5 47.1 4.5zM432 480c16.2 0 31.9-1.6 47.1-4.5c4.6 2.3 9.4 4.6 14.2 6.8C529.5 498.7 573 512 616 512c9.6 0 18.2-5.7 22-14.5c3.8-8.8 2-19-4.6-25.9c-14.2-15.6-26.2-33.7-36.6-52.1c-.9-1.7-1.9-3.4-2.8-5.1C622.8 384.1 640 345.8 640 304c0-94.4-87.9-171.5-198.2-175.8c4.1 15.2 6.2 31.2 6.2 47.8l0 .6c87.2 6.7 144 67.5 144 127.4c0 28-11.4 54.9-32.7 77.2c-14.3 15-17.3 37.6-7.5 55.8c1.1 2 2.2 4 3.2 5.9c2.5 4.5 5.2 9 7.9 13.6c-17-4.5-33.9-10.7-49.9-18c-4.3-1.9-8.5-3.9-12.6-6c-9.5-4.8-20.3-6.2-30.7-4.2c-12.1 2.4-24.8 3.6-37.8 3.6c-61.7 0-110-26.5-136.8-62.3c-16 5.4-32.8 9.4-50 11.8C279 439.8 350 480 432 480z"/></svg><span data-i18n="nav_community">Сообщество</span></button></nav>
 
-<script>document.write('<script src="js/app.js?v=136"><\/script>');</script>
+<div id="authOverlay" class="auth-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="auth-dialog">
+    <button type="button" class="auth-close" id="authCloseBtn" aria-label="Закрыть">✕</button>
+    <h2 id="authTitle" class="auth-title">Создать аккаунт</h2>
+    <p class="auth-sub" id="authSub">Минута - и ваши объекты сохраняются на сервере</p>
+    <div class="auth-tabs" role="tablist">
+      <button type="button" id="authTabLogin" role="tab">Вход</button>
+      <button type="button" id="authTabRegister" role="tab" class="active">Регистрация</button>
+    </div>
+    <form id="authForm" novalidate>
+      <div class="auth-field hidden" id="authNameWrap">
+        <label for="authName">Имя</label>
+        <input id="authName" placeholder="Как к вам обращаться" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label for="authLogin">Логин</label>
+        <input id="authLogin" placeholder="Телефон, почта или имя" autocomplete="username" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="auth-field">
+        <label for="authPass">Пароль</label>
+        <div class="auth-passwrap">
+          <input id="authPass" type="password" placeholder="Минимум 4 символа" autocomplete="new-password">
+          <button type="button" class="auth-eye" id="authEye" aria-label="Показать пароль">👁</button>
+        </div>
+      </div>
+      <p class="auth-error hidden" id="authError" role="alert"></p>
+      <button type="submit" class="auth-submit" id="authSubmit">Создать аккаунт</button>
+    </form>
+    <p class="auth-hint">Без входа данные остаются только в этом браузере. С аккаунтом объекты, избранное и договора доступны с любого устройства.</p>
+  </div>
+</div>
+
+<script>document.write('<script src="js/app.js?v=152"><\/script>');</script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

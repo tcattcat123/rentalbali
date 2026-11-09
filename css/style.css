@@ -56,6 +56,7 @@ a{-webkit-tap-highlight-color:transparent}
 .pf-nav-img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.7);flex-shrink:0}
 .pf-nav-label{font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
 .fav-count{background:var(--acc);color:#fff;border-radius:4px;font-size:11px;padding:0 6px;margin-left:4px;font-weight:700}
+.fav-ic{width:18px;height:18px;flex:0 0 auto}
 .mini-select{border:1px solid var(--line);border-radius:4px;padding:3px 6px;background:var(--card);color:var(--ink);font-size:12px;height:28px}
 .sub-tabs{display:flex;gap:6px;align-items:center;flex-basis:100%;width:100%}
 .chip{border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:11.5px;font-weight:600;height:26px}
@@ -283,6 +284,11 @@ body:not([data-settled]) .property-card{animation:rise .5s both}
 .lrow.req{border-color:#9B51E0;background:#FBF7FF}
 .want-banner{background:#9B51E0;color:#fff;font-weight:800;font-size:15px;text-align:center;border-radius:10px;padding:10px 12px;margin-bottom:10px;letter-spacing:.04em}
 .badge.tenure{background:rgba(20,30,50,.65);color:#fff;font-weight:600}
+.badge.admin{background:#243B53;color:#fff;font-weight:700}
+.badge.ver-yes{background:var(--ok);color:#fff}
+.badge.ver-no{background:#EDEFF2;color:#5A6472}
+.verify-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 2px;font-size:13px}
+.verify-row label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .favorite-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.85);border:0;border-radius:4px;width:34px;height:34px;font-size:17px;cursor:pointer;z-index:3;color:var(--ink);touch-action:manipulation}
 .favorite-btn.active{color:var(--acc)}
 .card-body{padding:10px 12px}
@@ -332,11 +338,14 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .empty{text-align:center;color:var(--mut);padding:28px;border:1px dashed var(--line);border-radius:var(--r);background:var(--card);font-size:14px}
 .empty b{font-size:24px}
 .profile-card{padding:14px;display:flex;gap:12px;align-items:center;margin-bottom:10px}
-.my-head{display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px}
+.my-head{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px}
+.my-title-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.my-chips{display:flex;gap:6px;flex-wrap:wrap}
+#pfAddProj{height:36px;padding:0 14px;font-size:13px;white-space:nowrap}
 .cab-form{padding:14px;margin-bottom:14px;max-width:680px}
 .cab-form h3{font-size:15px;margin-bottom:10px}
 .imp-tabs{display:flex;background:var(--line-soft);border-radius:8px;padding:3px;margin-bottom:12px;gap:2px}
-.imp-tabs button{flex:1;border:0;background:transparent;border-radius:6px;padding:8px 4px;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer}
+.imp-tabs button{flex:1;border:0;background:transparent;border-radius:6px;padding:8px 4px;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center;min-height:40px}
 .imp-tabs button.active{background:var(--acc);color:#fff;box-shadow:0 2px 8px -2px rgba(0,102,255,.5)}
 .imp-panel .filter-group{margin-bottom:10px}
 .imp-row{display:flex;gap:8px}
@@ -528,6 +537,7 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 /* bottom nav */
 .bottom-nav{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:var(--card);display:none;box-shadow:var(--sh-h);z-index:60;border:1px solid var(--line);border-radius:8px;padding:4px;width:min(440px,calc(100% - 24px))}
 .bn-item{flex:1;border:0;background:transparent;padding:8px 4px;display:flex;flex-direction:column;align-items:center;font-size:11px;font-weight:600;gap:2px;color:var(--ink2);cursor:pointer;border-radius:4px}
+.bn-ic{width:20px;height:20px;flex:0 0 auto}
 .bn-item.active{background:var(--acc);color:#fff}
 .only-mobile{display:none}
 /* credit calculator */
@@ -640,3 +650,146 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
   .req-row{grid-template-columns:1fr;gap:7px}
   .req-switch{justify-content:flex-start;padding-top:2px}
 }
+/* ===== Вход / регистрация: модальное окно, mobile-first ===== */
+.auth-overlay{position:fixed;inset:0;z-index:300;background:rgba(10,15,25,.5);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
+.auth-dialog{position:relative;background:var(--card);color:var(--ink);width:100%;max-width:440px;border-radius:20px 20px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -12px 40px rgba(0,0,0,.25);animation:sheetUp .28s ease;max-height:92vh;overflow-y:auto}
+.auth-close{position:absolute;top:12px;right:12px;width:36px;height:36px;border:0;border-radius:50%;background:var(--line-soft);color:var(--mut);font-size:16px;cursor:pointer}
+.auth-title{font-size:21px;font-weight:700;margin:0 0 4px}
+.auth-sub{margin:0 0 14px;color:var(--mut);font-size:13px}
+.auth-tabs{display:flex;background:var(--line-soft);border-radius:12px;padding:4px;gap:4px;margin-bottom:16px}
+.auth-tabs button{flex:1;border:0;background:transparent;border-radius:9px;padding:10px 8px;font-size:14px;font-weight:600;color:var(--mut);cursor:pointer}
+.auth-tabs button.active{background:var(--card);color:var(--acc);box-shadow:var(--sh)}
+.auth-field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.auth-field label{font-size:12px;font-weight:600;color:var(--mut)}
+.auth-field input{width:100%;height:48px;border:1px solid var(--line);border-radius:12px;padding:0 14px;font:inherit;font-size:16px;background:var(--card);color:var(--ink);outline:none}
+.auth-field input:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+.auth-passwrap{position:relative}
+.auth-passwrap input{padding-right:48px}
+.auth-eye{position:absolute;top:50%;right:6px;transform:translateY(-50%);width:38px;height:38px;border:0;border-radius:10px;background:transparent;color:var(--mut);font-size:17px;cursor:pointer}
+.auth-error{margin:0 0 10px;color:var(--bad);font-size:13px;font-weight:600;background:rgba(235,87,87,.08);border:1px solid rgba(235,87,87,.3);border-radius:10px;padding:8px 12px}
+.auth-submit{width:100%;height:50px;border:0;border-radius:12px;background:var(--acc);color:#fff;font-size:16px;font-weight:700;cursor:pointer}
+.auth-submit:active{transform:scale(.98)}
+.auth-submit[disabled]{opacity:.6;cursor:default}
+.auth-hint{margin:12px 0 0;color:var(--mut);font-size:12px;line-height:1.5}
+@media(min-width:768px){.auth-overlay{align-items:center;padding:20px}.auth-dialog{border-radius:20px;padding:28px 26px;animation:authPop .22s ease}}
+@keyframes authPop{from{transform:translateY(14px);opacity:.4}}
+/* ===== Мобильная версия «как в приложении» ===== */
+@media(max-width:767px){
+  html,body{overflow-x:clip}
+  body{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
+  /* шапка - одна строка, только essentials */
+  .header-inner{flex-wrap:nowrap;gap:8px;padding:8px 12px}
+  .logo{font-size:17px;gap:5px;min-width:0}
+  .logo em{display:none}
+  .logo-palm{width:20px;height:20px}
+  .header-actions{gap:4px;margin-left:auto;flex:0 0 auto}
+  #currencySelect,#google_translate_element,.gtrans{display:none}
+  .header-actions .dd{display:none}
+  .pf-nav-label{display:none}
+  #profileBtn{padding:2px;border:0;background:transparent}
+  .pf-nav-img{width:32px;height:32px}
+  #favHeaderBtn{font-size:18px;padding:4px 6px;height:36px}
+  .auth-nav-btn{font-size:12px;padding:0 10px;height:36px;border-radius:8px}
+  /* герой компактнее, без бейджей */
+  .hero{margin:0 0 8px}
+  .hero h1{font-size:18px;line-height:1.3}
+  .trust{display:none}
+  /* поиск */
+  .msearch{padding:10px;border-radius:12px}
+  .msearch-input input{font-size:16px}
+  #mshow{height:46px}
+  /*.results-бар в одну строку */
+  .bottom-row{flex-wrap:nowrap;gap:8px;margin-top:10px;padding-top:8px}
+  #resetBtn,.sort-label,.sort-ic,#listModeBtn{display:none}
+  #mapBtn{padding:0 8px;height:34px;font-size:14px}
+  #mapBtn span{display:none}
+  .bottom-row .results-count{font-size:12px;flex:1;text-align:center;white-space:nowrap}
+  .sort-wrap{display:flex;align-items:center;gap:6px;margin-left:auto}
+  #sortSelect{height:34px;font-size:12px;max-width:130px}
+  /* карточки */
+  .card-body{padding:10px}
+  .price{font-size:16px}
+  /* кабинет и формы - одна колонка, крупные поля */
+  .cab-form{max-width:none;padding:12px}
+  .calc-grid{grid-template-columns:1fr}
+  .imp-row{flex-wrap:wrap}
+  .imp-row input{flex:1 1 100%;height:44px;font-size:16px}
+  .imp-row .btn-primary,.imp-row .btn-ghost{flex:1;height:44px}
+  .filter-group input[type="text"],.filter-group input[type="number"],.filter-group input[type="email"],.filter-group input[type="month"],.filter-group select,.filter-group textarea{height:44px;font-size:16px;width:100%}
+  .nl-actions{flex-direction:column}
+  .nl-actions .btn-ghost,.nl-actions .btn-primary{width:100%;height:46px}
+  .amen-boxes label{padding:8px 12px;font-size:13px}
+  /* детальная */
+  .d-layout{gap:12px}
+  .detail-card{padding:12px}
+  .d-price-row .price,.price-block .price{font-size:22px}
+  .profile-card{flex-wrap:wrap}
+  /* нижнее меню - таб-бар на всю ширину */
+  .bottom-nav{bottom:0;left:0;transform:none;width:100%;border-radius:0;border-left:0;border-right:0;border-bottom:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(0,0,0,.08)}
+  .bn-item{border-radius:10px;font-size:10.5px;min-height:52px}
+  #aiFab{bottom:calc(76px + env(safe-area-inset-bottom))}
+  /* поля не зумят на iOS */
+  input[type="text"],input[type="number"],input[type="email"],input[type="password"],input[type="month"],input:not([type]),select,textarea{font-size:16px}
+}
+/* ===== Мобильный UI/UX: ровные строки, текст не вылезает ===== */
+@media(max-width:767px){
+  .grid{gap:12px}
+  .card-body{padding:12px}
+  .pt-title,.card-body .title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35}
+  .pt-sub,.location-sm{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .price{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .spec b,.spec span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .agent-row{gap:10px}
+  .agent-row b,.agent-row small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .agent-row .btn-ghost{flex:0 0 auto;white-space:nowrap}
+  .hero h1{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .detail-card h1{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3}
+  .d-meta{flex-wrap:wrap;row-gap:4px}
+  .sec-head h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sec-head button{flex:0 0 auto;white-space:nowrap}
+  .bn-item span{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .req-label{line-height:1.3}
+  .req-actions .btn-primary,.req-actions .btn-ghost{flex:1;white-space:nowrap}
+  .card-body,.detail-card{overflow-wrap:break-word}
+  .imp-tabs button{font-size:12.5px;padding:8px 2px;min-height:44px}
+  .my-title-row h3{font-size:16px;white-space:nowrap}
+  #pfAddProj{height:40px;font-size:13px}
+  .my-chips{flex-wrap:nowrap}
+  .my-chips .chip{flex:1;text-align:center;white-space:nowrap;min-height:40px}
+  .fav-ic{width:18px;height:18px}
+}
+
+/* Desktop header: одна ровная строка, крупные кнопки */
+@media(min-width:768px){
+  .header-inner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:clamp(14px,2vw,30px);row-gap:4px;padding:10px 20px 8px;flex-wrap:unset}
+  .header-inner .logo{grid-column:1;white-space:nowrap;font-size:19px}
+  .logo-palm{width:26px;height:26px}
+  .header-inner .hnav{grid-column:2;justify-self:center;grid-row:1;margin:0;gap:clamp(16px,2.4vw,30px);white-space:nowrap}
+  .hnav button{font-size:16px;padding:10px 2px}
+  .header-actions{grid-column:3;grid-row:1;margin-left:0;gap:10px;flex:0 0 auto}
+  .header-actions .icon-btn,.header-actions .dd-btn{height:42px;min-width:42px;padding:0 12px;font-size:14px;border-radius:12px;gap:8px;justify-content:center}
+  .header-actions .dd{min-width:0}
+  .theme-ic,.lang-ic,.fav-ic{width:21px;height:21px}
+  .pf-nav-img{width:34px;height:34px}
+  .pf-nav-label{font-size:14px}
+  .fav-count{font-size:12px;padding:1px 8px;border-radius:9px}
+  .sub-tabs{grid-column:1/-1;flex-basis:auto;width:auto;gap:10px;padding-top:2px}
+  .sub-tabs .chip{height:36px;font-size:13.5px;padding:7px 16px;border-radius:10px}
+  .sub-hint{display:none}
+  [data-theme="dark"] .icon-btn:hover{color:#90BFFF}
+  [data-theme="dark"] .auth-nav-btn{background:transparent;color:#90BFFF;border-color:#5A9BFF}
+  [data-theme="dark"] .auth-nav-btn:hover{background:#2463EB;color:#fff}
+  [data-theme="dark"] .hnav button.active{color:#90BFFF}
+  [data-theme="dark"] .hnav button.active::after{background:#60A5FA}
+}
+.theme-ic,.lang-ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#themeBtn{transition:background .16s ease,color .16s ease,border-color .16s ease}
+#themeBtn[aria-pressed="true"]{background:#243B53;border-color:#5A9BFF;color:#FFD166}
+#themeBtn:focus-visible,.header-actions .icon-btn:focus-visible,.lang-btn:focus-visible{outline:3px solid #60A5FA;outline-offset:2px}
+/* Язык: одна иконка планеты, список перевода - в выпадающей панели */
+.lang-dd{min-width:0}
+.lang-btn{display:inline-flex;align-items:center;justify-content:center}
+.lang-panel{padding:0}
+.dd.open .lang-panel{max-height:none;overflow:visible;width:210px;padding:10px}
+.lang-panel .gtrans{display:block;max-width:none}
+.lang-panel .gtrans select{width:100%;max-width:none;height:44px;font-size:15px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);padding:0 10px}

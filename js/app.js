@@ -131,13 +131,16 @@ async function syncProfilesFromAPI(){
       const isSelf=(authAccount&&sessionToken()&&authAccount.profileId===p.id)||p.id===curPid();
       const base={num:0,username:"",email:"",phone:"",role:"owner",city:"",bio:"",public:false};
       // Чужой профиль доверяем серверу: он уже отфильтровал приватные поля.
-      const merged=isSelf?Object.assign(base,prev||{},p):Object.assign(base,p,{remote:true});
-      if(!prev)merged.remote=true;
+      // Свой профиль в общем списке приходит маскированным (имя/роль скрыты) - локальной версии доверяем больше,
+      // полную свою версию подтягиваем ниже из /auth/me.
+      const merged=isSelf?Object.assign(base,prev||{}):Object.assign(base,p,{remote:true});
+      if(!prev&&!isSelf)merged.remote=true;
       map.set(p.id,merged);
     });
     for(const [id,p] of [...map])if(p&&p.remote&&!ids.has(id)&&id!==curPid())map.delete(id);
     localStorage.setItem("rh_profiles",JSON.stringify([...map.values()]));
     ensureProfileNums();
+    if(sessionToken())await loadMyProfileFromServer();
   }catch(e){}
 }
 function ensureProfileNums(){try{const l=JSON.parse(localStorage.getItem("rh_profiles")||"[]");if(Array.isArray(l)&&l.length&&l.some(p=>!p||!p.num)){l.forEach((p,i)=>{if(p&&!p.num)p.num=i+1;});localStorage.setItem("rh_profiles",JSON.stringify(l));}}catch(e){}}
@@ -174,7 +177,7 @@ function applyServerProfile(pr){
   const list=loadProfilesRaw();
   let it=list.find(x=>x.id===pr.id);
   if(!it){it={id:pr.id,createdAt:Date.now()};list.push(it);}
-  ["num","name","username","email","phone","verification","alias","whatsapp","telegram","website","instagram","facebook","city","address","certificate","bio","roles","role","publicFields","password","avatar"].forEach(k=>{if(pr[k]!==undefined)it[k]=pr[k];});
+  ["num","name","username","email","phone","verification","alias","whatsapp","telegram","website","instagram","facebook","city","address","certificate","bio","roles","role","publicFields","password","avatar","verified","admin"].forEach(k=>{if(pr[k]!==undefined)it[k]=pr[k];});
   it.public_fields=Array.isArray(it.publicFields)?it.publicFields.slice():[];
   it.public=it.public_fields.length>0;
   try{localStorage.setItem("rh_profiles",JSON.stringify(list));}catch(e){}
@@ -227,16 +230,39 @@ async function initSession(){
   renderProfiles();
   renderAuth();
 }
+let authMode="register";
+function authError(msg){const e=$("authError");if(!e)return;if(msg){e.textContent=msg;e.classList.remove("hidden");}else{e.textContent="";e.classList.add("hidden");}}
+function setAuthMode(mode){
+  authMode=mode==="login"?"login":"register";
+  const reg=authMode==="register";
+  const tl=$("authTabLogin"),tr=$("authTabRegister");
+  if(tl)tl.classList.toggle("active",!reg);
+  if(tr)tr.classList.toggle("active",reg);
+  const nw=$("authNameWrap");if(nw)nw.classList.toggle("hidden",!reg);
+  const sb=$("authSubmit");if(sb)sb.textContent=reg?"Создать аккаунт":"Войти";
+  const ti=$("authTitle");if(ti)ti.textContent=reg?"Создать аккаунт":"С возвращением";
+  const su=$("authSub");if(su)su.textContent=reg?"Минута - и ваши объекты сохраняются на сервере":"Войдите, чтобы видеть свои объекты с любого устройства";
+  const pw=$("authPass");if(pw)pw.autocomplete=reg?"new-password":"current-password";
+  authError("");
+}
+function openAuthPanel(mode){
+  setAuthMode(mode||"register");
+  const ov=$("authOverlay");if(ov)ov.classList.remove("hidden");
+  setTimeout(()=>{const el=(authMode==="register"?$("authName"):$("authLogin"))||$("authLogin");if(el)el.focus();},80);
+}
+function closeAuth(){const ov=$("authOverlay");if(ov)ov.classList.add("hidden");authError("");}
 async function doAuth(kind){
   const login=(($("authLogin")||{}).value||"").trim();
   const password=(($("authPass")||{}).value||"");
   const name=(($("authName")||{}).value||"").trim();
-  if(!login||!password){notify("Введите логин и пароль");return;}
-  if(password.length<4){notify("Пароль минимум 4 символа");return;}
+  if(!login||!password){authError("Введите логин и пароль");return;}
+  const btn=$("authSubmit");if(btn){btn.disabled=true;btn.textContent="Подождите…";}
   const j=await apiPost(kind==="register"?"/auth/register":"/auth/login",{login,password,name});
-  if(!j||!j.ok){notify((j&&j.error)||"Сервер не ответил");return;}
+  if(btn){btn.disabled=false;setAuthMode(authMode);}
+  if(!j||!j.ok){authError((j&&j.error)||"Сервер не ответил");return;}
   try{localStorage.setItem("rh_session",j.token);}catch(e){}
   applyAuthAccount(j.account);
+  closeAuth();
   await loadMyProfileFromServer();
   await loadCabinetFromServer();
   renderProfiles();
@@ -264,6 +290,32 @@ async function doAuthLogout(){
   try{localStorage.setItem(favKey(),JSON.stringify([]));}catch(e){}
   renderAuth();renderProfiles();render();notify("Вы вышли из аккаунта");
 }
+// Служебный блок кабинета (профили устройства, копия, очистка) - только для админов.
+const ADMIN_KEYS=["ap340966","baliguru"];
+function isCabAdmin(){
+  if(isAdminUser())return true;
+  const login=String((authAccount&&authAccount.login)||"").toLowerCase();
+  const p=curProfile();
+  const email=String((p&&p.email)||"").toLowerCase();
+  return ADMIN_KEYS.some(k=>login===k||email.split("@")[0]===k);
+}
+// Пометки на профиле: роль администратора и статус верификации ставит сервер.
+function profileBadges(p){
+  if(!p)return "";
+  return (p.admin?' <span class="badge admin">Админ</span>':"")
+    +(p.verified?' <span class="badge ver-yes">Верифицирован</span>':' <span class="badge ver-no">Не верифицирован</span>');
+}
+let adminToolsRef=null,adminToolsParent=null,adminToolsAnchor=null;
+function applyAdminGate(){
+  if(!adminToolsRef)adminToolsRef=$("cabAdminTools");
+  const el=adminToolsRef;if(!el)return;
+  if(isCabAdmin()){
+    if(!el.parentNode&&adminToolsParent)adminToolsParent.insertBefore(el,adminToolsAnchor);
+    el.classList.remove("hidden");
+  }else if(el.parentNode){
+    adminToolsParent=el.parentNode;adminToolsAnchor=el.nextSibling;el.remove();
+  }
+}
 function renderAuth(){
   const logged=!!(authAccount&&sessionToken());
   const out=$("authLoggedOut"),inn=$("authLoggedIn");
@@ -272,17 +324,9 @@ function renderAuth(){
   if($("authWho"))$("authWho").textContent=logged?("Вы вошли как "+(authAccount.login||authAccount.name)+" · профиль "+authAccount.profileId):"";
   if($("authIdLine"))$("authIdLine").textContent=logged?("ID пользователя: "+authAccount.profileId+" — ваши карточки сохраняются под этим ID"):"";
   const nav=$("authNavBtn");if(nav)nav.classList.toggle("hidden",logged);
-  const card=$("authCard");if(card&&!logged)card.open=true;
+  if(logged)closeAuth();
   const st=$("authStatus");if(st)st.textContent=logged?"Сессия хранится 365 дней":"Без входа данные остаются только в браузере";
-}
-function openAuthPanel(){
-  switchView("profile");
-  switchCabtab("profile");
-  const card=$("authCard");if(card)card.open=true;
-  setTimeout(()=>{
-    if(card)card.scrollIntoView({behavior:"smooth",block:"center"});
-    const el=$("authLogin")||$("authPass");if(el)el.focus();
-  },60);
+  applyAdminGate();
 }
 
 migrateProfiles();
@@ -333,28 +377,38 @@ async function persistMy(){
 }
 function getProfile(){const p=curProfile();return{name:(p&&p.name)||"",guestId:curPid()};}
 function renderProfiles(){
-  const box=$("profileList");if(!box)return;
+  const box=$("profileList");
   const cur=curPid();
   const all=loadProfiles();
   const list=all.filter(p=>!p.remote||p.id===cur);
   const canDel=isAdminUser();
+  if(box){
   box.innerHTML=list.length?list.map(p=>`<span style="display:inline-flex;gap:2px;align-items:center"><button type="button" class="chip${p.id===cur?" active":""}" data-profile="${p.id}">${(p.name||"Без имени").replace(/</g,"&lt;")}</button>${canDel?`<button type="button" class="btn-text" data-pdel="${p.id}" title="Удалить профиль">✕</button>`:""}</span>`).join(""):`<span class="muted">Нет профилей — создайте ниже</span>`;
   box.querySelectorAll("[data-profile]").forEach(b=>b.onclick=()=>switchProfile(b.dataset.profile));
   box.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>deleteProfile(b.dataset.pdel,b));
+  }
   const g=$("guestId");if(g)g.textContent=cur||"—";
   const p=curProfile();
   if($("pfName"))$("pfName").value=(p&&p.name)||"";
   if($("pfNum"))$("pfNum").textContent=(p&&p.num)?("№ "+p.num):"—";
-  if($("pfNameView"))$("pfNameView").textContent=(p&&p.name)||"Без имени";
+  if($("pfNameView"))$("pfNameView").innerHTML=esc((p&&p.name)||"Без имени")+profileBadges(p);
+  if($("pfVerified"))$("pfVerified").textContent=p?(p.verified?"Подтверждена":"Не подтверждена"):"—";
+  const gv=$("pfGeoView");
+  if(gv)gv.innerHTML=(p&&p.geoLat!=null&&p.geoLng!=null)
+    ?`<a href="https://www.google.com/maps?q=${p.geoLat},${p.geoLng}" target="_blank" rel="noopener">Открыть точку</a>`
+    :"Нет точки";
   if($("pfIdView"))$("pfIdView").textContent=(authAccount&&sessionToken())?authAccount.profileId:(cur||"—");
   if($("pfBalance"))$("pfBalance").textContent=Number((p&&p.balance)||0).toLocaleString("ru-RU")+" IDR";
   if($("pfEmail"))$("pfEmail").value=(p&&p.email)||"";
   if($("pfPhone"))$("pfPhone").value=(p&&p.phone)||"";
   if($("pfCity"))$("pfCity").value=(p&&p.city)||"";
+  if($("pfGeoLink"))$("pfGeoLink").value=(p&&p.geoLink)||"";
   if($("pfBio"))$("pfBio").value=(p&&p.bio)||"";
   if($("pfApiBase"))$("pfApiBase").value=localStorage.getItem("rh_api_base")||"";
   if($("pfAdminToken"))$("pfAdminToken").value=localStorage.getItem("rh_admin_token")||"";
   if($("pfAvatar"))$("pfAvatar").src=(p&&p.avatar)||"https://i.pravatar.cc/120?img=12";
+  const navImg=document.querySelector("#profileBtn .pf-nav-img");
+  if(navImg)navImg.src=(p&&p.avatar)||"https://i.pravatar.cc/150?img=12";
   // заполнение полей входа (верификация, номер профиля)
   if($("authVerification"))$("authVerification").value=(p&&p.verification)||"email";
   if($("authNum"))$("authNum").textContent=(p&&p.num)?("№ "+p.num):"—";
@@ -370,6 +424,7 @@ const REQ_FIELDS=[
   {key:"whatsapp",label:"WhatsApp",type:"text"},
   {key:"telegram",label:"Telegram",type:"text"},
   {key:"email",label:"Email",type:"text"},
+  {key:"phone",label:"Телефон",type:"text"},
   {key:"website",label:"Сайт",type:"text"},
   {key:"instagram",label:"Instagram",type:"text"},
   {key:"facebook",label:"Facebook",type:"text"},
@@ -385,7 +440,7 @@ function profileReqValues(p){
   const roles=Array.isArray(p&&p.roles)&&p.roles.length?p.roles.slice():((p&&p.role)?[p.role]:[]);
   return {
     name:v("name"),alias:v("alias"),
-    whatsapp:v("whatsapp"),telegram:v("telegram"),email:v("email"),website:v("website"),
+    whatsapp:v("whatsapp"),telegram:v("telegram"),email:v("email"),phone:v("phone"),website:v("website"),
     instagram:v("instagram"),facebook:v("facebook"),city:v("city"),address:v("address"),
     certificate:v("certificate"),bio:v("bio"),roles,public_fields:pub
   };
@@ -481,6 +536,15 @@ async function savePrivacy(){
   const p=curProfile();
   if(!p){notify("Сначала войдите или создайте профиль");return false;}
   reqCollect();
+  // поля аккаунта сверху и строки реквизитов редактируют одни и те же ключи:
+  // перекрываем черновик только теми полями аккаунта, которые пользователь реально менял
+  const pfMap={name:"pfName",email:"pfEmail",phone:"pfPhone",city:"pfCity",bio:"pfBio",geoLink:"pfGeoLink"};
+  Object.keys(pfMap).forEach(k=>{
+    const el=$(pfMap[k]);if(!el)return;
+    const val=String(el.value||"").trim();
+    const stored=String(p[k]==null?"":p[k]).trim();
+    if(val!==stored)reqDraft[k]=val;
+  });
   const list=loadProfilesRaw();
   let it=list.find(x=>x.id===p.id);
   if(!it){it={id:p.id,createdAt:Date.now()};list.push(it);}
@@ -491,11 +555,13 @@ async function savePrivacy(){
     whatsapp:String(reqDraft.whatsapp||"").trim(),
     telegram:String(reqDraft.telegram||"").trim(),
     email:String(reqDraft.email||"").trim(),
+    phone:String(reqDraft.phone||"").trim().slice(0,30),
     website:String(reqDraft.website||"").trim(),
     instagram:String(reqDraft.instagram||"").trim(),
     facebook:String(reqDraft.facebook||"").trim(),
     city:String(reqDraft.city||"").trim(),
     address:String(reqDraft.address||"").trim(),
+    geoLink:String(reqDraft.geoLink||"").trim().slice(0,500),
     certificate:reqDraft.certificate||"",
     bio:String(reqDraft.bio||"").trim().slice(0,1000),
     roles:Array.isArray(reqDraft.roles)?reqDraft.roles.slice():[],
@@ -732,9 +798,42 @@ function timeAgo(ts){
 function pTypeLabel(v){return t("t_"+v)||v;}
 function locLabel(it){return state.lang==="ru"?it.location:it.locationEn||it.location;}
 function waNum(it){
-  let p=String((it&&it.phone)||"+6281337341275").replace(/\D/g,"");
-  if(p.startsWith("0"))p="62"+p.slice(1);
+  const c=apiAuthorContacts(it),a=contactAuthor(it)||{};
+  let p=String((it&&it.phone)||(c&&c.whatsapp)||a.whatsapp||a.phone||(c&&c.phone)||"+6281337341275").replace(/\D/g,"");
+  if(p.startsWith("0")&&!p.startsWith("62"))p="62"+p.slice(1);
   return p||"6281337341275";
+}
+function contactAuthor(it){
+  const oid=it&&it.owner;
+  if(!oid||oid==="admin")return null;
+  if(oid===curPid())return curProfile();
+  return loadProfilesRaw().find(p=>p&&p.id===oid)||null;
+}
+const authorContacts=new Map(),authorContactsPending=new Set();
+function apiAuthorContacts(it){
+  if(!it||!it.owner||it.owner==="admin")return null;
+  return authorContacts.get(String(it.id))||null;
+}
+function refreshListingContacts(it){
+  if(!API||!it||!it.owner||it.owner==="admin")return;
+  const k=String(it.id);
+  if(authorContacts.has(k)){repaintContactMenu(k);return;}
+  if(authorContactsPending.has(k))return;
+  authorContactsPending.add(k);
+  apiGet("/listing-contacts/"+encodeURIComponent(k)).then(j=>{
+    authorContactsPending.delete(k);
+    if(j&&j.ok&&j.contacts){
+      authorContacts.set(k,j.contacts);
+      if(state.view==="detail"&&String(detailId)===k){const b=document.querySelector(".btn-wa-left");if(b)b.href="https://wa.me/"+waNum(it);}
+      repaintContactMenu(k);
+    }
+  }).catch(()=>{authorContactsPending.delete(k);});
+}
+function repaintContactMenu(k){
+  if(!contactMenuCtx||contactMenuCtx.kind!=="obj")return;
+  if(String(contactMenuCtx.item&&contactMenuCtx.item.id)!==k)return;
+  if(!contactMenuEl||contactMenuEl.classList.contains("hidden"))return;
+  showContactMenu(contactMenuCtx.btn,contactMenuCtx.kind,contactMenuCtx.item);
 }
 const SVG_PIN='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
 const SVG_EYE='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -996,7 +1095,7 @@ function countActiveFilters(){
 }
 function openSheet(){$("filtersBar").classList.add("open");$("sheetBg").classList.remove("hidden");}
 function closeSheet(){$("filtersBar").classList.remove("open");$("sheetBg").classList.add("hidden");}
-function fileToPhoto(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const s=Math.min(1,800/Math.max(img.width,img.height));const w=Math.max(1,Math.round(img.width*s)),h=Math.max(1,Math.round(img.height*s));const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",0.7));};img.src=r.result;};r.readAsDataURL(file);});}
+function fileToPhoto(file,max){if(!max)max=800;return new Promise(res=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const s=Math.min(1,max/Math.max(img.width,img.height));const w=Math.max(1,Math.round(img.width*s)),h=Math.max(1,Math.round(img.height*s));const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",0.7));};img.src=r.result;};r.readAsDataURL(file);});}
 let nlPhotos=[],nlRemote=[];
 const AMEN_ALL=["Бассейн","Wi-Fi","Кондиционер","Кухня","Парковка","Сад","Холодильник","Телевизор","Стиральная машина","Плита","Завтраки","Общая кухня","Электричество","Вода"];
 function paintNlAmen(def){
@@ -1253,7 +1352,7 @@ function paintMarket(){
     if(p.username)c.push("@"+p.username);
     if(p.phone)c.push(p.phone);
     if(p.email)c.push(p.email);
-    return `<button type="button" class="lrow" data-open-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${esc(p.name||"Без имени")}${partnerIds.has(p.id)?' <span class="badge partner">Партнёр</span>':""}</div><div class="lrow-sub muted">${esc(p.role||"")}${p.city?", "+esc(p.city):""}${p.bio?" · "+esc(p.bio):""}</div>${c.length?`<div class="lrow-sub">${c.map(esc).join(" · ")}</div>`:""}</div></button>`;
+    return `<button type="button" class="lrow" data-open-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${esc(p.name||"Без имени")}${partnerIds.has(p.id)?' <span class="badge partner">Партнёр</span>':""}${profileBadges(p)}</div><div class="lrow-sub muted">${esc(p.role||"")}${p.city?", "+esc(p.city):""}${p.bio?" · "+esc(p.bio):""}</div>${c.length?`<div class="lrow-sub">${c.map(esc).join(" · ")}</div>`:""}</div></button>`;
   }).join("");
   box.querySelectorAll("[data-open-user]").forEach(b=>b.onclick=()=>openUser(b.dataset.openUser));
 }
@@ -1270,7 +1369,7 @@ function paintPeople(){
     if(p.phone)c.push(p.phone);
     if(p.email)c.push(p.email);
     const n=shared(p.id);
-    return `<button type="button" class="lrow" data-open-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${esc(p.name||"Без имени")} <span class="badge partner">Партнёр</span></div><div class="lrow-sub muted">${esc(p.role||"")}${p.city?", "+esc(p.city):""}${n?` · общих проектов: ${n}`:""}</div>${c.length?`<div class="lrow-sub">${c.map(esc).join(" · ")}</div>`:""}</div></button>`;
+    return `<button type="button" class="lrow" data-open-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${esc(p.name||"Без имени")} <span class="badge partner">Партнёр</span>${profileBadges(p)}</div><div class="lrow-sub muted">${esc(p.role||"")}${p.city?", "+esc(p.city):""}${n?` · общих проектов: ${n}`:""}</div>${c.length?`<div class="lrow-sub">${c.map(esc).join(" · ")}</div>`:""}</div></button>`;
   }).join(""):`<span class="muted">Партнёров пока нет — заключите договор, и участник появится здесь</span>`;
   box.querySelectorAll("[data-open-user]").forEach(b=>b.onclick=()=>openUser(b.dataset.openUser));
 }
@@ -1291,8 +1390,24 @@ function openUser(pid){
   const contacts=canSeeContacts?[u.username?("Логин: @"+u.username):"",u.email?("Почта: "+u.email):"",u.phone?("Телефон: "+u.phone):""].filter(Boolean):[];
   const hiddenNote=canSeeContacts?"":`<p class="muted" style="font-size:12px">Профиль не публичный. Контакты откроются, когда вы заключите договор.</p>`;
   const contractBlock=myContracts.length?`<h3 style="margin-top:12px">Договор${myContracts.length>1?"ы":""} (${myContracts.length})</h3><div style="display:grid;gap:6px">${myContracts.map(c=>`<div class="lrow" style="width:100%;text-align:left"><div class="lrow-main"><div class="lrow-title">Договор ${esc(c.id)}</div><div class="lrow-sub muted">Заключён ${c.createdAt?fmtDT(c.createdAt):"—"} · участников: ${c.parties.length} · общих проектов: ${c.projects.length}</div></div></div>`).join("")}</div>`:"";
-  $("userContent").innerHTML=`<h3>#${u.num||"—"} ${esc(u.name||"Без имени")}${isPartner?' <span class="badge partner">Партнёр</span>':(u.public?' <span class="badge verified">Публичный</span>':'')}</h3>${hiddenNote}${contacts.length?`<p class="muted" style="font-size:13px">${contacts.map(esc).join("<br>")}</p>`:(canSeeContacts?`<p class="muted">Контактов нет</p>`:"")}${u.bio?`<p style="font-size:13px">${esc(u.bio)}</p>`:""}${contractBlock}<h3 style="margin-top:10px">Общие проекты (${projects.length})</h3>${projects.length?`<div style="display:grid;gap:6px">`+projectCards.join("")+`</div>`:`<p class="muted">Общих проектов нет</p>`}`;
+  const verifyBlock=isCabAdmin()?`<div class="verify-row"><label><input type="checkbox" id="uvToggle"${u.verified?" checked":""}> Верификация подтверждена</label><span class="muted" id="uvNote">Статус виден всем пользователям.</span></div>`:"";
+  $("userContent").innerHTML=`<h3>#${u.num||"—"} ${esc(u.name||"Без имени")}${isPartner?' <span class="badge partner">Партнёр</span>':(u.public?' <span class="badge verified">Публичный</span>':'')}${profileBadges(u)}</h3>${verifyBlock}${u.geoLat!=null&&u.geoLng!=null?`<p style="font-size:13px"><a href="https://www.google.com/maps?q=${u.geoLat},${u.geoLng}" target="_blank" rel="noopener">Точка на карте</a></p>`:""}${hiddenNote}${contacts.length?`<p class="muted" style="font-size:13px">${contacts.map(esc).join("<br>")}</p>`:(canSeeContacts?`<p class="muted">Контактов нет</p>`:"")}${u.bio?`<p style="font-size:13px">${esc(u.bio)}</p>`:""}${contractBlock}<h3 style="margin-top:10px">Общие проекты (${projects.length})</h3>${projects.length?`<div style="display:grid;gap:6px">`+projectCards.join("")+`</div>`:`<p class="muted">Общих проектов нет</p>`}`;
   $("userModal").classList.remove("hidden");
+  const uv=$("uvToggle");
+  if(uv)uv.onchange=async()=>{
+    const note=$("uvNote"),want=uv.checked;
+    uv.disabled=true;if(note)note.textContent="Сохраняю…";
+    const j=await apiPost("/profile-verified",{id:pid,verified:want},sessionToken()||adminToken());
+    if(j&&j.ok){
+      const list=loadProfilesRaw(),it=list.find(x=>x&&x.id===pid);
+      if(it){it.verified=want;try{localStorage.setItem("rh_profiles",JSON.stringify(list));}catch(e){}}
+      if(note)note.textContent="Сохранено.";
+      paintMarket();paintPeople();renderProfiles();
+    }else{
+      uv.checked=!want;uv.disabled=false;
+      if(note)note.textContent="Не сохранено: "+((j&&j.error)||"сервер не ответил");
+    }
+  };
 }
 function syncNlRoleView(){
   const isReq=$("nlRole")&&$("nlRole").value==="request";
@@ -1732,6 +1847,7 @@ function moneyIDR(v){return state.currency==="USD"?"$ "+Math.round(v/RATE).toLoc
 function openDetail(id){
   const it=findAnywhere(id);if(!it)return;
   detailId=it.id;detailIdx=0;
+  refreshListingContacts(it);
   const term=it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term"));
   const dep=it.dealType==="rent"?(it.category==="yearly"?Math.round(it.price/12):it.price):0;
   const rows=[
@@ -1792,7 +1908,7 @@ function openDetail(id){
   if($("dEdit"))$("dEdit").onclick=()=>fillEditForm(it.id);
 }
 /* ===== Контекстное меню способов связи на детальной карточке ===== */
-let contactMenuEl=null,contactMenuKind=null;
+let contactMenuEl=null,contactMenuKind=null,contactMenuCtx=null;
 function ensureContactMenu(){
   if(contactMenuEl)return contactMenuEl;
   const el=document.createElement("div");
@@ -1805,20 +1921,26 @@ function ensureContactMenu(){
     if(!contactMenuEl||contactMenuEl.classList.contains("hidden"))return;
     const wrap=el.querySelector(".contact-menu-wrap");
     if(wrap&&wrap.contains(e.target))return;
+    if(e.target.closest&&e.target.closest("[data-contact-menu],[data-contact]"))return;
     hideContactMenu();
   });
   return el;
 }
-function buildContactMenu(kind){
-  const it=findListing(detailId);
-  const phone=String(it&&it.phone||"").trim();
+function buildContactMenu(kind,it){
+  if(!it)it=findListing(detailId);
+  const a=contactAuthor(it)||{};
+  const c=apiAuthorContacts(it)||{};
+  const phone=String((it&&it.phone)||a.phone||c.phone||c.whatsapp||"").trim();
+  const wa=String((it&&it.phone)||c.whatsapp||a.whatsapp||phone||"").trim();
+  const tg=String(c.telegram||a.telegram||"").trim().replace(/^@/,"");
+  const email=String((it&&it.email)||a.email||c.email||"").trim();
   const items=[];let title="";
   if(kind==="obj"){
     title="Связаться с владельцем объекта";
-    if(phone)items.push({label:"WhatsApp",icon:"💬",href:"https://wa.me/"+waNum(it)});
-    items.push({label:"Telegram",icon:"📩",href:"https://t.me/BaliLegalVilla"});
+    if(wa)items.push({label:"WhatsApp",icon:"💬",href:"https://wa.me/"+waNum(it)});
+    items.push({label:"Telegram",icon:"📩",href:tg?"https://t.me/"+tg:"https://t.me/BaliLegalVilla"});
     if(phone)items.push({label:"Позвонить",icon:"📞",href:"tel:"+phone});
-    if(it.email)items.push({label:"Email",icon:"✉",href:"mailto:"+String(it.email).replace(/&/g,"&amp;").replace(/</g,"&lt;")});
+    if(email)items.push({label:"Email",icon:"✉",href:"mailto:"+String(email).replace(/&/g,"&amp;").replace(/</g,"&lt;")});
     if(!items.length)items.push({label:"Контакты не указаны",icon:"—",href:"#"});
   } else {
     title="Связаться с RentHome";
@@ -1830,9 +1952,9 @@ function buildContactMenu(kind){
   }
   return{title,items};
 }
-function showContactMenu(btn,kind){
-  const el=ensureContactMenu();contactMenuKind=kind;
-  const d=buildContactMenu(kind);
+function showContactMenu(btn,kind,item){
+  const el=ensureContactMenu();contactMenuKind=kind;contactMenuCtx={btn,kind,item};
+  const d=buildContactMenu(kind,item);
   const titleEl=$("contactMenuTitle");if(titleEl)titleEl.textContent=d.title;
   const list=$("contactMenuList");
   list.innerHTML=d.items.map(it=>{
@@ -1896,11 +2018,11 @@ document.addEventListener("click",e=>{
   const o=e.target.closest("[data-offer]");
   if(o){e.stopPropagation();notify(state.lang==="ru"?"Заявка отправлена владельцу запроса!":"Proposal sent!");return;}
   const ct=e.target.closest("[data-contact]");
-  if(ct){e.stopPropagation();const it=LISTINGS.find(x=>x.id===+ct.dataset.contact);const nm=it&&it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");notify(state.lang==="ru"?"Свяжемся с "+nm+" в течение часа!":"We will contact "+nm);return;}
+  if(ct){e.stopPropagation();const it=findListing(+ct.dataset.contact);showContactMenu(ct,"obj",it);refreshListingContacts(it);return;}
   const cmi=e.target.closest(".contact-menu-item");
   if(cmi){hideContactMenu();return;}
   const cmb=e.target.closest("[data-contact-menu]");
-  if(cmb){e.preventDefault();e.stopPropagation();showContactMenu(cmb,cmb.dataset.contactMenu);return;}
+  if(cmb){e.preventDefault();e.stopPropagation();const k=cmb.dataset.contactMenu;showContactMenu(cmb,k,k==="obj"?findListing(detailId):null);return;}
   const p=e.target.closest("[data-page]");
   if(p){state.page=+p.dataset.page;render();window.scrollTo({top:0,behavior:"smooth"});return;}
   const cr=e.target.closest("[data-crumb]");
@@ -2027,13 +2149,14 @@ if($("advIconBtn"))$("advIconBtn").onclick=()=>$("advBtn").click();
 $("filtersClose").onclick=()=>$("filtersModal").classList.add("hidden");
 $("filtersModalApply").onclick=()=>{$("filtersModal").classList.add("hidden");$("applyBtn").click();};
 $("currencySelect").onchange=e=>{state.currency=e.target.value;render();};
-$("themeBtn").onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme==="dark";r.dataset.theme=dark?"":"dark";$("themeBtn").textContent=dark?"○":"●";};
+$("themeBtn").onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme==="dark";const btn=$("themeBtn");r.dataset.theme=dark?"":"dark";btn.setAttribute("aria-pressed",String(!dark));btn.setAttribute("aria-label",dark?"Включить тёмную тему":"Включить светлую тему");btn.title=btn.getAttribute("aria-label");btn.innerHTML=dark?"<svg class=\"theme-ic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42\"/></svg>":"<svg class=\"theme-ic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z\"/></svg>";};
 $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
+const langDD=$("langDD"),langBtn=$("langBtn");if(langBtn&&langDD)langBtn.onclick=e=>{e.stopPropagation();const was=langDD.classList.contains("open");closeAllDD();langDD.classList.toggle("open",!was);langBtn.setAttribute("aria-expanded",String(!was));};
 (function initCabinetBoot(){
   fillDistricts();
   renderProfiles();
   initSession().catch(()=>{});
-  if($("pfSave"))$("pfSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.name=(($("pfName")||{}).value||"").trim().slice(0,60)||it.name;it.email=(($("pfEmail")||{}).value||"").trim().slice(0,80);it.phone=(($("pfPhone")||{}).value||"").trim().slice(0,30);it.city=(($("pfCity")||{}).value||"").trim();if($("pfRole"))it.role=($("pfRole").value||it.role||"owner");if($("pfPublic"))it.public=!!$("pfPublic").checked;it.bio=(($("pfBio")||{}).value||"").trim().slice(0,200);saveProfiles(list);}renderProfiles();notify("Профиль сохранён");};
+  if($("pfSave"))$("pfSave").onclick=async()=>{const ok=await savePrivacy();if(ok)notify("Профиль сохранён");};
   if($("reqSave"))$("reqSave").onclick=async()=>{const ok=await savePrivacy();if(ok)notify("Реквизиты сохранены");};
   if($("authSave"))$("authSave").onclick=()=>{const p=curProfile();if(!p){notify("Сначала выберите или создайте профиль");return;}const list=loadProfilesRaw();const it=list.find(x=>x.id===p.id);if(it){it.verification=$("authVerification").value;}saveProfiles(list);renderProfiles();notify("Аккаунт сохранён");};
   if($("reqHideAll"))$("reqHideAll").onclick=async()=>{
@@ -2055,9 +2178,15 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     else{if(st)st.textContent="Сервер недоступен или токен неверный";notify("Сервер не ответил — проверьте адрес и токен");}
   };
   if($("pfCreate"))$("pfCreate").onclick=async()=>{const nm=(($("pfNewName")||{}).value||"").trim().slice(0,60)||"Гость";const id="g-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);const list=loadProfilesRaw();list.push({id,num:Math.max(0,...list.map(p=>p.num||0))+1,name:nm,createdAt:Date.now()});saveProfiles(list);if($("pfNewName"))$("pfNewName").value="";await switchProfile(id);};
-  if($("authLoginBtn"))$("authLoginBtn").onclick=()=>doAuth("login");
-  if($("authRegisterBtn"))$("authRegisterBtn").onclick=()=>doAuth("register");
-  if($("authNavBtn"))$("authNavBtn").onclick=openAuthPanel;
+  if($("authOpenBtn"))$("authOpenBtn").onclick=()=>openAuthPanel("login");
+  if($("authNavBtn"))$("authNavBtn").onclick=()=>openAuthPanel("register");
+  if($("authTabLogin"))$("authTabLogin").onclick=()=>setAuthMode("login");
+  if($("authTabRegister"))$("authTabRegister").onclick=()=>setAuthMode("register");
+  if($("authCloseBtn"))$("authCloseBtn").onclick=closeAuth;
+  if($("authOverlay"))$("authOverlay").addEventListener("click",e=>{if(e.target===$("authOverlay"))closeAuth();});
+  if($("authEye"))$("authEye").onclick=()=>{const p=$("authPass");if(p)p.type=p.type==="password"?"text":"password";};
+  if($("authForm"))$("authForm").onsubmit=e=>{e.preventDefault();doAuth(authMode);};
+  ["authLogin","authPass","authName"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",()=>authError(""));});
   if($("authLogoutBtn"))$("authLogoutBtn").onclick=()=>doAuthLogout();
   if($("pfLogout"))$("pfLogout").onclick=async()=>{
     await persistMy();
@@ -2067,7 +2196,7 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
     resetNlForm();renderProfiles();render();notify("Вы вышли из профиля");
   };
   if($("pfAvatar"))$("pfAvatar").onclick=()=>{if(!curProfile()){notify("Сначала выберите или создайте профиль");return;}const f=$("pfAvatarInput");if(f)f.click();};
-  if($("pfAvatarInput"))$("pfAvatarInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const url=await fileToPhoto(f);const list=loadProfilesRaw();const p=list.find(x=>x.id===curPid());if(p){p.avatar=url;saveProfiles(list);renderProfiles();notify("Фото профиля обновлено");}}catch(_){notify("Не смог прочитать фото");}e.target.value="";});
+  if($("pfAvatarInput"))$("pfAvatarInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const url=await fileToPhoto(f,256);const list=loadProfilesRaw();const p=list.find(x=>x.id===curPid());if(p){p.avatar=url;saveProfiles(list);renderProfiles();notify("Фото профиля обновлено");}}catch(_){notify("Не смог прочитать фото");}e.target.value="";});
   paintNlAmen((AM[$("nlType").value]||[]).slice(0,4));syncNlDeal();
   if($("nlType"))$("nlType").addEventListener("change",()=>paintNlAmen((AM[$("nlType").value]||[]).slice(0,4)));
   if($("nlDeal"))$("nlDeal").addEventListener("change",syncNlDeal);
@@ -2307,9 +2436,7 @@ function docIdFromUrl(url){
     notify("Не хватает: "+(miss.length?miss.join(", "):"данные")+". Напишите это в чат — заполню сам.");
   }
 let submitBusy=false,lastCreatedId=0,lastTplSnap=null;
-async function submitForm(auto,opts){
-    if(!curProfile()){notify("Сначала выберите или создайте профиль");switchView("profile");switchCabtab("profile");return false;}
-    if(submitBusy){notify("Уже сохраняю...");return false;}submitBusy=true;
+async function composeListing(opts){
     const old=editingId?LISTINGS.find(x=>x.id===editingId):null;
     let title=$("nlTitle").value.trim();let price=parseFloat($("nlPrice").value);let priceMin=0;
     if(old){if(!title)title=old.title||"";if(isNaN(price))price=old.price||0;}
@@ -2343,15 +2470,14 @@ async function submitForm(auto,opts){
     else{const c=DIST_CENTER[dk]||[-8.65,115.17];lat=c[0];lng=c[1];}
     const acc=$("nlAcc").value||"exact";
     if(acc==="approx"){lat=+(lat+(Math.random()-.5)*0.006).toFixed(5);lng=+(lng+(Math.random()-.5)*0.006).toFixed(5);}
-    const pool=POOL[pt]||POOL.villa;
     const allPhotos=[...nlRemote,...nlPhotos,...((opts&&opts.photos)||[])];
     const amen=[...document.querySelectorAll("#nlAmen input:checked")].map(c=>c.value);
     const partiesArr=buildParties();
     const num=(id,fb)=>{const v=$(id)?$(id).value:"";return(v===""&&old)?fb:(parseFloat(v)||0);};
     const leaseY=num("nlLease",old?old.leaseYears||0:0);
     const contactPhone=($("nlContactPhone")&&$("nlContactPhone").value.trim())||(curProfile()&&curProfile().phone)||"";
-    if(!contactPhone){notify("Укажите контактный телефон");return false;}
-    const it={id:editingId||Date.now(),type:role,dealType:deal,category:$("nlCat").value,title,price,priceMin:priceMin,currency:"IDR",
+    if(!contactPhone){notify("Укажите контактный телефон");return null;}
+    const it={id:editingId||Date.now(),type:role,role:role,dealType:deal,category:$("nlCat").value,title,price,priceMin:priceMin,currency:"IDR",
       propertyType:pt,bedrooms:num("nlBed",old?old.bedrooms||0:0),bathrooms:num("nlBath",old?old.bathrooms||0:0),
       area:num("nlArea",old?old.area||0:0),landArea:num("nlLand",old?old.landArea||0:0),floors:0,
       yearBuilt:0,furnished:true,
@@ -2363,6 +2489,15 @@ async function submitForm(auto,opts){
       living:num("nlLiving",old?old.living||0:0),parking:num("nlPark",old?old.parking||0:0),leaseYears:leaseY,
       available:$("nlAvail").value?$("nlAvail").value+"-01":(old?old.available||null:null),
       amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:old?old.moveIn||null:null,desc:$("nlDesc").value.trim()||(old?old.desc||"":""),parties:partiesArr,history:(editingId&&old?mergeHistory(old.history,old.parties,partiesArr):[{name:(partiesArr.find(p=>p.role==="admin")||{}).name||((curProfile()||{}).name||"Вы"),action:"join",at:Date.now()}])};
+    return it;
+}
+async function submitForm(auto,opts){
+    if(!curProfile()){notify("Сначала выберите или создайте профиль");switchView("profile");switchCabtab("profile");return false;}
+    if(opts&&opts.mode==="publish"&&!authToken()){notify("Чтобы разместить объект на платформе, зарегистрируйтесь или войдите в аккаунт");openAuthPanel();return false;}
+    if(submitBusy){notify("Уже сохраняю...");return false;}submitBusy=true;
+    const it=await composeListing(opts);
+    if(!it){submitBusy=false;return false;}
+    const deal=it.dealType,role=it.type,partiesArr=it.parties||[];
     let backendSaved=true;
     const tplSnap=snapForm();
     if(editingId){
@@ -2389,7 +2524,7 @@ async function submitForm(auto,opts){
         render();
         const prev=$("nlPreview");if(prev)prev.disabled=false;
         lastCreatedId=it.id;lastTplSnap=tplSnap||null;
-        notify(backendSaved?"Черновик сохранён — в «Мои проекты»":"Черновик сохранён только в браузере");
+        notify(backendSaved?"Черновик сохранён - в «Проекты»":"Черновик сохранён только в браузере");
       } else {
         state.deal=deal;state.role=role;state.page=1;syncRoleTabs();syncDealTabs();
         resetNlForm();render();
@@ -2402,6 +2537,53 @@ async function submitForm(auto,opts){
     submitBusy=false;
     return true;
   }
+/* ===== Заказ клиента: несколько объектов от одного заказчика ===== */
+let nlOrder=[];
+function renderNlOrder(){
+  const box=$("nlOrderBox"),list=$("nlOrderList");if(!box||!list)return;
+  box.classList.toggle("hidden",!nlOrder.length);
+  const cnt=$("nlOrderCount");if(cnt)cnt.textContent=String(nlOrder.length);
+  const pub=$("nlPublishOrder");if(pub)pub.textContent="📢 Опубликовать заказ ("+nlOrder.length+")";
+  list.innerHTML=nlOrder.map((it,i)=>{
+    const area=(it.propertyType==="land"?(it.landArea||0):(it.area||0));
+    const deal=it.dealType==="sale"?"покупка":"аренда";
+    const role=it.type==="request"?"ищу":"предлагаю";
+    const title=(it.title||pTypeLabel(it.propertyType)).replace(/</g,"&lt;");
+    return `<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:8px;padding:8px 10px">
+      <span style="font-size:13px"><b>${pTypeLabel(it.propertyType)}</b> · ${role} · ${deal}${area?" · "+area+" м²":""}<br><span class="muted">${title}</span></span>
+      <button type="button" class="btn-text" data-orddel="${i}" title="Убрать из заказа">✕</button></div>`;
+  }).join("");
+  list.querySelectorAll("[data-orddel]").forEach(b=>b.onclick=()=>{nlOrder.splice(+b.dataset.orddel,1);renderNlOrder();});
+}
+async function addToOrder(){
+  if(!curProfile()){notify("Сначала выберите или создайте профиль");switchView("profile");switchCabtab("profile");return;}
+  const it=await composeListing({});
+  if(!it)return;
+  it.status="draft";it.id=Date.now()+Math.floor(Math.random()*100000);
+  nlOrder.push(it);renderNlOrder();
+  const ph=$("nlContactPhone")?$("nlContactPhone").value:"";
+  const role=$("nlRole")?$("nlRole").value:"offer";
+  resetNlForm();
+  if($("nlContactPhone"))$("nlContactPhone").value=ph;
+  if($("nlRole")){$("nlRole").value=role;syncNlRoleView();}
+  notify("Добавлено в заказ: "+(it.title||pTypeLabel(it.propertyType))+". Заполните следующий объект или опубликуйте заказ.");
+}
+async function publishOrder(){
+  if(!nlOrder.length){notify("Заказ пуст: добавьте хотя бы один объект");return;}
+  if(!curProfile()){notify("Сначала выберите или создайте профиль");switchView("profile");switchCabtab("profile");return;}
+  if(!authToken()){notify("Чтобы разместить заказ на платформе, зарегистрируйтесь или войдите в аккаунт");openAuthPanel();return;}
+  const items=nlOrder.map(it=>Object.assign({},it,{status:"published",owner:curPid(),mine:true,user:true}));
+  const r=await apiPost("/listings",{items},authToken());
+  const okServer=!!(r&&r.ok);
+  if(okServer&&Array.isArray(r.results))r.results.forEach((res,i)=>{if(res&&res.ok){if(res.code)items[i].code=res.code;if(res.id)items[i].id=res.id;}});
+  items.forEach(it=>LISTINGS.unshift(it));
+  try{localStorage.setItem(myKey(),JSON.stringify(LISTINGS.filter(x=>x.user)));}catch(e){}
+  const n=items.length;
+  nlOrder=[];renderNlOrder();
+  state.role=items[0].type;state.deal=items[0].dealType;state.page=1;syncRoleTabs();syncDealTabs();
+  resetNlForm();render();
+  notify(okServer?("Заказ опубликован: "+n+" "+plural(n,["объект","объекта","объектов"])+" видны всем."):"Заказ сохранён только в этом браузере.");
+}
 function showAfterSave(id,snap){
   lastCreatedId=id;lastTplSnap=snap||null;
   const bar=$("afterSave");if(!bar)return;
@@ -2433,6 +2615,9 @@ function saveTpl(name,data){
 }
   if($("nlDraft"))$("nlDraft").onclick=()=>submitForm(false,{mode:"draft"});
   if($("nlPublish"))$("nlPublish").onclick=()=>submitForm(false,{mode:"publish"});
+  if($("nlAddOrder"))$("nlAddOrder").onclick=()=>addToOrder();
+  if($("nlPublishOrder"))$("nlPublishOrder").onclick=()=>publishOrder();
+  renderNlOrder();
   if($("nlPreview"))$("nlPreview").onclick=()=>{if(lastCreatedId)openDetail(lastCreatedId);};
   const addPanel=document.querySelector('[data-cabpanel="add"]');
   if(addPanel){const dirty=()=>{if(lastCreatedId){const pv=$("nlPreview");if(pv)pv.disabled=true;}};addPanel.addEventListener("input",dirty);addPanel.addEventListener("change",dirty);}
