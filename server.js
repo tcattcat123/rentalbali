@@ -244,12 +244,13 @@ app.post('/api/auth/register', async (req, res) => {
     const login = String(b.login || '').trim().toLowerCase();
     const password = String(b.password || '');
     const name = String(b.name || '').trim().slice(0, 120) || login;
-    if (!/^[a-z0-9._-]{3,40}$/.test(login)) {
-      return res.status(400).json({ ok: false, error: 'Логин: 3–40 символов, латиница, цифры, точка, дефис или подчёркивание' });
+    if (login.length < 2 || login.length > 80 || /\s/.test(login)) {
+      return res.status(400).json({ ok: false, error: 'Логин: от 2 до 80 символов, без пробелов (телефон, почта или имя)' });
     }
     if (password.length < 4) {
       return res.status(400).json({ ok: false, error: 'Пароль должен быть не короче 4 символов' });
     }
+    if (accountIsAdmin(login)) return res.status(409).json({ ok: false, error: 'Такой логин уже занят' });
     const [dup] = await pool.query('SELECT id FROM accounts WHERE login = ? LIMIT 1', [login]);
     if (dup.length) return res.status(409).json({ ok: false, error: 'Такой логин уже занят' });
 
@@ -306,7 +307,7 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
   try {
     const a = req.auth.account;
     const [s] = await pool.query('SELECT expires_at FROM sessions WHERE token = ? LIMIT 1', [req.auth.token]);
-    const [p] = await pool.query('SELECT * FROM profiles WHERE id = ? LIMIT 1', [a.profileId]);
+    const [p] = await pool.query(PROFILE_SELECT + ' WHERE p.id = ? LIMIT 1', [a.profileId]);
     res.json({
       ok: true,
       admin: false,
@@ -324,7 +325,8 @@ app.post('/api/profile', requireAuth, async (req, res) => {
   if (!req.auth.account) return res.status(400).json({ ok: false, error: 'admin account has no profile' });
   try {
     const b = Object.assign({}, req.body || {}, { id: req.auth.account.profileId });
-    await upsertProfile(b);
+    await upsertProfile(b, req.auth);
+    await syncProfileGeo(req.auth.account.profileId, b);
     const newPass = String(b.password || b.pass_plain || '');
     if (newPass.length >= 4) {
       await pool.query('UPDATE accounts SET pass_hash = ?, name = ? WHERE id = ?', [
@@ -495,9 +497,25 @@ app.delete('/api/listings/:code', authOrAdmin, async (req, res) => {
 // ============ PROFILES ============
 // Ключи публичных реквизитов (совпадают с полями на странице «Приватность»).
 const PROFILE_PUBLIC_KEYS = [
-  'alias', 'name', 'whatsapp', 'telegram', 'email',
+  'alias', 'name', 'whatsapp', 'telegram', 'email', 'phone',
   'website', 'instagram', 'facebook', 'city', 'address', 'certificate', 'bio', 'roles', 'num',
 ];
+
+// Администраторы кабинета: по логину аккаунта, логину профиля или лока-part почты.
+const ADMIN_KEYS = ['ap340966', 'baliguru'];
+function accountIsAdmin(login) {
+  return ADMIN_KEYS.indexOf(String(login || '').toLowerCase().trim()) >= 0;
+}
+function isCabAdminRow(p) {
+  return accountIsAdmin(p && p.account_login);
+}
+function adminWriteAllowed(auth) {
+  if (!auth) return false;
+  if (auth.admin) return true;
+  return !!(auth.account && accountIsAdmin(auth.account.login));
+}
+// Логин аккаунта нужен, чтобы пометка «Админ» не зависела от заполненности профиля.
+const PROFILE_SELECT = 'SELECT p.*, a.login AS account_login FROM profiles p LEFT JOIN accounts a ON a.profile_id = p.id';
 
 function normalizeProfile(p, opts) {
   const o = opts || {};
@@ -522,6 +540,10 @@ function normalizeProfile(p, opts) {
     roles: jsonArr(p.roles),
     role: p.role || 'owner',
     public: !!p.public,
+    verified: !!p.verified,
+    admin: isCabAdminRow(p),
+    geoLat: p.geo_lat == null ? null : Number(p.geo_lat),
+    geoLng: p.geo_lng == null ? null : Number(p.geo_lng),
     publicFields: jsonArr(p.public_fields).map(String),
     avatar: p.avatar || '',
     createdAt: p.created_at,
@@ -545,6 +567,9 @@ function publicProfile(p, full) {
     name: 'Пользователь #' + (all.num || '—'),
     public: keys.size > 0,
     publicFields: [...keys],
+    // Статусы видимы всем: по ним люди решают, можно ли доверять профилю.
+    verified: all.verified,
+    admin: all.admin,
     role: keys.has('roles') ? all.roles[0] || all.role : '',
   };
   if (keys.has('verification')) out.verification = all.verification;
@@ -554,6 +579,7 @@ function publicProfile(p, full) {
   if (keys.has('whatsapp')) out.whatsapp = all.whatsapp;
   if (keys.has('telegram')) out.telegram = all.telegram;
   if (keys.has('email')) out.email = all.email;
+  if (keys.has('phone')) out.phone = all.phone;
   if (keys.has('website')) out.website = all.website;
   if (keys.has('instagram')) out.instagram = all.instagram;
   if (keys.has('facebook')) out.facebook = all.facebook;
@@ -606,7 +632,7 @@ function visibleProfile(row, ctx) {
 
 app.get('/api/profiles', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM profiles ORDER BY created_at DESC LIMIT 300');
+    const [rows] = await pool.query(PROFILE_SELECT + ' ORDER BY p.created_at DESC LIMIT 300');
     const ctx = await viewerPrivacyContext(req);
     const items = rows.map((p) => visibleProfile(p, ctx)).filter(Boolean);
     res.json({ ok: true, items, count: items.length });
@@ -617,12 +643,201 @@ app.get('/api/profiles', async (req, res) => {
 
 app.get('/api/profiles/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM profiles WHERE id=? LIMIT 1', [req.params.id]);
+    const [rows] = await pool.query(PROFILE_SELECT + ' WHERE p.id = ? LIMIT 1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ ok: false, error: 'not found' });
     const ctx = await viewerPrivacyContext(req);
     const item = visibleProfile(rows[0], ctx);
     if (!item) return res.status(404).json({ ok: false, error: 'hidden profile' });
     res.json({ ok: true, profile: item });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e.message).slice(0, 200) });
+  }
+});
+
+// Статус верификации ставит только админ: сам себе его не выдать.
+async function requireCabAdmin(req, res, next) {
+  const token = bearer(req);
+  if (token && token === ADMIN_TOKEN) return next();
+  if (!req.auth || !req.auth.account) return res.status(401).json({ ok: false, error: 'auth required' });
+  try {
+    const [rows] = await pool.query(PROFILE_SELECT + ' WHERE p.id = ? LIMIT 1', [req.auth.account.profileId]);
+    if (rows.length && isCabAdminRow(rows[0])) return next();
+    res.status(403).json({ ok: false, error: 'недостаточно прав' });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e.message).slice(0, 200) });
+  }
+}
+
+app.post('/api/profile-verified', requireCabAdmin, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const id = String(b.id || '').trim();
+    const val = bool(b.verified);
+    if (!id) return res.status(400).json({ ok: false, error: 'нужен id профиля' });
+    const [r] = await pool.query('UPDATE profiles SET verified = ?, updated_at = NOW() WHERE id = ?', [val, id]);
+    if (!r.affectedRows) return res.status(404).json({ ok: false, error: 'профиль не найден' });
+    res.json({ ok: true, id, verified: !!val });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e.message).slice(0, 200) });
+  }
+});
+
+// Контакты автора объявления: публикация объекта означает согласие связаться по ним.
+app.get('/api/listing-contacts/:id', async (req, res) => {
+  try {
+    const [lr] = await pool.query(
+      'SELECT owner FROM listings WHERE id = ? OR code = ? LIMIT 1',
+      [req.params.id, req.params.id]
+    );
+    if (!lr.length) return res.status(404).json({ ok: false, error: 'listing not found' });
+    const owner = String(lr[0].owner || '');
+    if (!owner || owner === 'admin') return res.json({ ok: true, contacts: {} });
+    const [pr] = await pool.query('SELECT whatsapp, telegram, phone, email FROM profiles WHERE id = ? LIMIT 1', [owner]);
+    if (!pr.length) return res.json({ ok: true, contacts: {} });
+    const g = (v) => String(v || '').trim().slice(0, 120);
+    res.json({
+      ok: true,
+      contacts: {
+        whatsapp: g(pr[0].whatsapp),
+        telegram: g(pr[0].telegram),
+        phone: g(pr[0].phone),
+        email: g(pr[0].email),
+      },
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e.message).slice(0, 200) });
+  }
+});
+
+// ============ GEO: ссылка Google Maps -> координаты объекта ============
+// Без ключей и оплаты: точка берётся из самой ссылки, из редиректа короткой ссылки
+// или из разметки страницы Google Maps; последний вариант — адрес через Nominatim.
+const GEO_BOUNDS = { latMin: -9.3, latMax: -7.8, lngMin: 114.2, lngMax: 116.4 };
+const GEO_TTL = 10 * 60 * 1000;
+const geoCache = new Map();
+
+function geoHostAllowed(host) {
+  return /^(www\.|maps\.app\.)?google\.[a-z]{2,6}(\.[a-z]{2,3})?$|^maps\.app\.goo\.gl$|^goo\.gl$/i.test(String(host || ''));
+}
+function geoSafeDecode(s) {
+  try { return decodeURIComponent(String(s)); } catch (e) { return String(s); }
+}
+function geoOk(lat, lng) {
+  if (!isFinite(lat) || !isFinite(lng)) return null;
+  if (lat < GEO_BOUNDS.latMin || lat > GEO_BOUNDS.latMax) return null;
+  if (lng < GEO_BOUNDS.lngMin || lng > GEO_BOUNDS.lngMax) return null;
+  return { lat: +lat.toFixed(6), lng: +lng.toFixed(6) };
+}
+function geoFromText(s) {
+  const t = String(s || '');
+  const re = [
+    /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/,
+    /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/,
+    /(?:[?&](?:q|query|destination)=)(-?\d+(?:\.\d+)?)[,;]%2C?(-?\d+(?:\.\d+)?)/,
+    /[?&](?:q|query|destination)=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/,
+  ];
+  for (const r of re) {
+    const m = t.match(r);
+    if (m) {
+      const hit = geoOk(Number(m[1]), Number(m[2]));
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+function geoAddressText(url) {
+  let m = String(url || '').match(/\/maps\/(?:place|search)\/([^/?]+)/);
+  if (!m) m = String(url || '').match(/[?&](?:q|query|destination)=([^&]+)/);
+  if (!m) return '';
+  return geoSafeDecode(m[1]).replace(/[+\-_]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+}
+async function geoFromGoogle(raw, deadline) {
+  let cur;
+  try { cur = new URL(raw); } catch (e) { return null; }
+  const headers = { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64)', Cookie: 'CONSENT=YES+cb' };
+  for (let hop = 0; hop < 4 && Date.now() < deadline; hop++) {
+    let r;
+    try {
+      r = await fetch(cur.href, {
+        redirect: 'manual', headers,
+        signal: AbortSignal.timeout(Math.max(300, deadline - Date.now())),
+      });
+    } catch (e) { return null; }
+    const loc = String(r.headers.get('location') || '');
+    if (loc) {
+      let next = null;
+      try { next = new URL(loc, cur.href); } catch (e) {}
+      if (next && /^https?:$/.test(next.protocol) && geoHostAllowed(next.hostname)) {
+        cur = next;
+        const hit = geoFromText(next.href) || geoFromText(geoSafeDecode(next.href)) || geoFromText(loc);
+        if (hit) return hit;
+        continue;
+      }
+    }
+    try { return geoFromText((await r.text()).slice(0, 300000)); } catch (e) { return null; }
+  }
+  return null;
+}
+async function geoFromAddress(text, deadline) {
+  const q = String(text || '').trim();
+  if (q.length < 3 || Date.now() >= deadline) return null;
+  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=id&q=' + encodeURIComponent(q);
+  try {
+    const r = await fetch(url, {
+      headers: { 'User-Agent': 'RentHomeBali/1.0 (balilegalvilla.com)' },
+      signal: AbortSignal.timeout(Math.max(300, deadline - Date.now())),
+    });
+    const j = await r.json();
+    const it = Array.isArray(j) && j[0];
+    if (!it) return null;
+    return geoOk(Number(it.lat), Number(it.lon));
+  } catch (e) { return null; }
+}
+
+// Общая точка входа для гео: ссылка -> координаты (кэш, лимит времени, только Google).
+async function geoResolveUrl(raw, ms) {
+  if (!/^https?:\/\//i.test(raw)) return null;
+  let host = '';
+  try { host = new URL(raw).hostname; } catch (e) { return null; }
+  if (!geoHostAllowed(host)) return null;
+  const cached = geoCache.get(raw);
+  if (cached && Date.now() - cached.at < GEO_TTL) return { lat: cached.lat, lng: cached.lng };
+  const deadline = Date.now() + (ms || 4200);
+  let hit = geoFromText(raw) || geoFromText(geoSafeDecode(raw));
+  if (!hit) hit = await geoFromGoogle(raw, deadline);
+  if (!hit) hit = await geoFromAddress(geoAddressText(raw), deadline);
+  if (!hit) return null;
+  if (geoCache.size > 300) geoCache.clear();
+  geoCache.set(raw, Object.assign({ at: Date.now() }, hit));
+  return hit;
+}
+
+// Привязка профиля к точке: по ссылке на карту, а если своей точки ещё нет - по адресу и городу.
+async function syncProfileGeo(id, b) {
+  try {
+    const [rows] = await pool.query('SELECT geo_lat, address, city FROM profiles WHERE id = ? LIMIT 1', [id]);
+    if (!rows.length) return;
+    const prev = rows[0];
+    let hit = await geoResolveUrl(String(b.geoLink || '').trim().slice(0, 2000));
+    if (!hit && prev.geo_lat == null) {
+      const text = [String(b.address || prev.address || '').trim(), String(b.city || prev.city || '').trim()].filter(Boolean).join(', ');
+      if (text) hit = await geoFromAddress(text + ', Bali, Indonesia', Date.now() + 4200);
+    }
+    if (!hit) return;
+    await pool.query('UPDATE profiles SET geo_lat = ?, geo_lng = ? WHERE id = ?', [hit.lat, hit.lng, id]);
+  } catch (_) {}
+}
+
+app.get('/api/geo', async (req, res) => {
+  try {
+    const raw = String(req.query.url || '').trim().slice(0, 2000);
+    if (!/^https?:\/\//i.test(raw)) return res.json({ ok: false, error: 'нужна ссылка на карту' });
+    let host = '';
+    try { host = new URL(raw).hostname; } catch (e) { return res.json({ ok: false, error: 'ссылка не разобрана' }); }
+    if (!geoHostAllowed(host)) return res.json({ ok: false, error: 'только ссылки Google Maps' });
+    const hit = await geoResolveUrl(raw);
+    if (!hit) return res.json({ ok: false, error: 'точку не удалось получить' });
+    res.json({ ok: true, lat: hit.lat, lng: hit.lng });
   } catch (e) {
     res.status(500).json({ ok: false, error: String(e.message).slice(0, 200) });
   }
@@ -635,19 +850,19 @@ app.post('/api/profiles', adminOnly, async (req, res) => {
       let saved = 0;
       for (const p of b.profiles) {
         if (!p || !p.id) continue;
-        await upsertProfile(p);
+        await upsertProfile(p, req.auth);
         saved++;
       }
       return res.json({ ok: true, batch: true, saved });
     }
-    const id = await upsertProfile(b);
+    const id = await upsertProfile(b, req.auth);
     res.json({ ok: true, id });
   } catch (e) {
     res.status(400).json({ ok: false, error: String(e.message).slice(0, 200) });
   }
 });
 
-async function upsertProfile(b) {
+async function upsertProfile(b, auth) {
   const id = String(b.id || '').trim() || 'u' + Date.now();
   const [exRows] = await pool.query('SELECT * FROM profiles WHERE id = ? LIMIT 1', [id]);
   const prev = exRows[0] || null;
@@ -659,7 +874,9 @@ async function upsertProfile(b) {
   const derivedNum = /^u(\d+)$/.test(id) ? +id.slice(1) : 0;
   const num = Number(pick('num', derivedNum) || derivedNum) || derivedNum;
 
-  const rolesArr = b.roles !== undefined ? jsonArr(b.roles) : jsonArr(prev && prev.roles);
+  const allowAdmin = adminWriteAllowed(auth);
+  const rolesArrRaw = b.roles !== undefined ? jsonArr(b.roles) : jsonArr(prev && prev.roles);
+  const rolesArr = allowAdmin ? rolesArrRaw : rolesArrRaw.filter((r) => String(r).toLowerCase() !== 'admin');
   const publicFields = (b.public_fields !== undefined ? jsonArr(b.public_fields) : jsonArr(prev && prev.public_fields))
     .map(String)
     .filter((k) => PROFILE_PUBLIC_KEYS.includes(k));
@@ -671,7 +888,11 @@ async function upsertProfile(b) {
         : prev
           ? prev.pass_plain || ''
           : '';
-  const role = String(b.role || rolesArr[0] || (prev && prev.role) || 'owner');
+  let role = String(b.role || rolesArr[0] || (prev && prev.role) || 'owner');
+  if (!allowAdmin && String(role).toLowerCase() === 'admin') {
+    const prevRole = String((prev && prev.role) || '');
+    role = prevRole && prevRole.toLowerCase() !== 'admin' ? prevRole : 'owner';
+  }
 
   await pool.query(
     `INSERT INTO profiles

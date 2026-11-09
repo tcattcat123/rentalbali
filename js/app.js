@@ -295,9 +295,9 @@ const ADMIN_KEYS=["ap340966","baliguru"];
 function isCabAdmin(){
   if(isAdminUser())return true;
   const login=String((authAccount&&authAccount.login)||"").toLowerCase();
+  if(login&&ADMIN_KEYS.indexOf(login)>=0)return true;
   const p=curProfile();
-  const email=String((p&&p.email)||"").toLowerCase();
-  return ADMIN_KEYS.some(k=>login===k||email.split("@")[0]===k);
+  return !!(p&&p.admin);
 }
 // Пометки на профиле: роль администратора и статус верификации ставит сервер.
 function profileBadges(p){
@@ -448,7 +448,7 @@ function profileReqValues(p){
 function reqInputHtml(f){
   const v=reqDraft[f.key]||"";
   if(f.type==="roles"){
-    return '<div class="req-roles">'+REQ_ROLES.map(([k,l])=>'<label><input type="checkbox" data-reqrole="'+k+'"'+((Array.isArray(reqDraft.roles)&&reqDraft.roles.includes(k))?' checked':'')+'>'+l+'</label>').join("")+'</div>';
+    return '<div class="req-roles">'+REQ_ROLES.filter(([k])=>k!=="admin"||isCabAdmin()).map(([k,l])=>'<label><input type="checkbox" data-reqrole="'+k+'"'+((Array.isArray(reqDraft.roles)&&reqDraft.roles.includes(k))?' checked':'')+'>'+l+'</label>').join("")+'</div>';
   }
   if(f.type==="select"){
     return '<select data-req="'+f.key+'">'+f.options.map(([k,l])=>'<option value="'+k+'"'+(String(v)===k?' selected':'')+'>'+l+'</option>').join("")+'</select>';
@@ -564,7 +564,7 @@ async function savePrivacy(){
     geoLink:String(reqDraft.geoLink||"").trim().slice(0,500),
     certificate:reqDraft.certificate||"",
     bio:String(reqDraft.bio||"").trim().slice(0,1000),
-    roles:Array.isArray(reqDraft.roles)?reqDraft.roles.slice():[],
+    roles:(Array.isArray(reqDraft.roles)?reqDraft.roles.slice():[]).filter((r)=>r!=="admin"||isCabAdmin()),
     publicFields:reqDraft.public_fields.filter(k=>k!=="password"&&k!=="verification"&&k!=="username")
   });
   it.public_fields=it.publicFields.slice();
@@ -758,7 +758,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="139";
+const APP_V="2.84";const APP_BUILD="140";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
