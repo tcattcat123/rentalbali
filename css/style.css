@@ -500,10 +500,8 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .d-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .btn-wa-left{display:grid;place-items:center;background:#25D366;color:#fff;border:1px solid #25D366;border-radius:8px;height:44px;flex:1;min-width:0;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
 .btn-wa-left:hover{background:#1DA851}
-.btn-contact{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--acc);color:var(--acc-dark);background:var(--card);border-radius:8px;height:44px;flex:1;min-width:0;font-size:11.5px;font-weight:800;cursor:pointer;text-decoration:none;padding:6px 4px;line-height:1.1}
+.btn-contact{display:grid;place-items:center;border:1px solid var(--acc);color:var(--acc-dark);background:var(--card);border-radius:8px;height:44px;flex:1;min-width:0;font-size:14px;font-weight:700;cursor:pointer;padding:0 8px}
 .btn-contact:hover{background:var(--acc-soft)}
-.btn-contact-top{font-size:12px;font-weight:900}
-.btn-contact-icons{font-size:17px;line-height:1;letter-spacing:2px}
 .btn-renthome{display:grid;place-items:center;background:var(--acc);color:#fff;border:none;border-radius:8px;height:44px;flex:1;min-width:0;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none}
 .btn-renthome:hover{background:var(--acc-dark)}
 .d-addr{display:flex;gap:6px;align-items:center;font-size:13.5px;color:var(--ink2);margin-top:8px;flex-wrap:wrap}

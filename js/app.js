@@ -758,7 +758,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="138";
+const APP_V="2.84";const APP_BUILD="139";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -1882,7 +1882,7 @@ function openDetail(id){
     ${it.addr?`<div class="d-addr">${SVG_PIN} ${it.addr} ${it.geoAcc==="approx"?'<span class="acc-badge">Ориентир</span>':'<span class="acc-badge ok">Точный адрес</span>'}</div>`:""}
     <div class="d-actions">
       <a class="btn-wa-left" href="https://wa.me/${waNum(it)}" target="_blank" rel="noopener">WhatsApp</a>
-      <button class="btn-contact" data-contact-menu="obj"><div class="btn-contact-top">связаться</div><div class="btn-contact-icons">📩✉📞</div></button>
+      <button class="btn-contact" data-contact-menu="obj">Связаться</button>
       <button class="btn-renthome" data-contact-menu="rh">спросить RentHome</button>
     </div>
     ${it.desc?`<div class="desc-block open"><div class="desc-body"><div class="desc-in"><div class="desc-text"></div></div></div></div>`:""}
