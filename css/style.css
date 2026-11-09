@@ -789,7 +789,10 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 /* Язык: одна иконка планеты, список перевода - в выпадающей панели */
 .lang-dd{min-width:0}
 .lang-btn{display:inline-flex;align-items:center;justify-content:center}
-.lang-panel{padding:0}
-.dd.open .lang-panel{max-height:none;overflow:visible;width:210px;padding:10px}
-.lang-panel .gtrans{display:block;max-width:none}
-.lang-panel .gtrans select{width:100%;max-width:none;height:44px;font-size:15px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);padding:0 10px}
+.lang-panel{padding:0;border-radius:14px}
+.dd.open .lang-panel{max-height:none;overflow:visible;width:264px;padding:6px}
+.lang-panel .gtrans{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;opacity:0}
+.lang-list{display:block;max-height:340px;overflow-y:auto}
+.lang-opt{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;font-size:15px;color:var(--ink2);border-radius:10px;cursor:pointer;white-space:nowrap}
+.lang-opt:hover{background:var(--acc-soft);color:var(--acc-dark)}
+.lang-opt.on{color:var(--acc-dark);font-weight:700}

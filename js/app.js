@@ -758,12 +758,12 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="133";
+const APP_V="2.84";const APP_BUILD="138";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
     const b=document.createElement("div");b.className="upd-banner";
-    b.innerHTML=`<span>Доступна новая версия — обновите страницу</span><div class="upd-actions"><button type="button" class="upd-refresh">Обновить</button><button type="button" class="upd-dismiss">Отменить</button></div>`;
+    b.innerHTML=`<span>Доступна новая версия - обновите страницу</span><div class="upd-actions"><button type="button" class="upd-refresh">Обновить</button><button type="button" class="upd-dismiss">Отменить</button></div>`;
     b.querySelector(".upd-refresh").onclick=()=>location.reload();
     b.querySelector(".upd-dismiss").onclick=()=>b.remove();
     document.body.prepend(b);
@@ -2151,7 +2151,43 @@ $("filtersModalApply").onclick=()=>{$("filtersModal").classList.add("hidden");$(
 $("currencySelect").onchange=e=>{state.currency=e.target.value;render();};
 $("themeBtn").onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme==="dark";const btn=$("themeBtn");r.dataset.theme=dark?"":"dark";btn.setAttribute("aria-pressed",String(!dark));btn.setAttribute("aria-label",dark?"Включить тёмную тему":"Включить светлую тему");btn.title=btn.getAttribute("aria-label");btn.innerHTML=dark?"<svg class=\"theme-ic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42\"/></svg>":"<svg class=\"theme-ic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z\"/></svg>";};
 $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
-const langDD=$("langDD"),langBtn=$("langBtn");if(langBtn&&langDD)langBtn.onclick=e=>{e.stopPropagation();const was=langDD.classList.contains("open");closeAllDD();langDD.classList.toggle("open",!was);langBtn.setAttribute("aria-expanded",String(!was));};
+const langDD=$("langDD"),langBtn=$("langBtn"),langList=$("langList");
+const LANG_COMBO=()=>document.querySelector("#google_translate_element select");
+const LANG_TOP=[["","русский"],["en","английский"],["id","индонезийский"]];
+function langReset(){const paths=["/",location.pathname.replace(/[^/]*$/,"")];paths.forEach(pt=>{["max-age=0","expires=Thu, 01 Jan 1970 00:00:00 GMT"].forEach(tail=>{document.cookie="googtrans=;path="+pt+";"+tail;});document.cookie="googtrans=/ru/ru;path="+pt+";max-age=31536000;"});location.reload();}
+const LANG_COOKIE=()=>{const m=/(?:^|; )googtrans=\/[^\/;]+\/([^;]+)/.exec(document.cookie||"");return m?decodeURIComponent(m[1]):"";};
+function langPaint(){
+  if(!langList)return;
+  const combo=LANG_COMBO(),opts=combo?[...combo.options]:[];
+  const ck=LANG_COOKIE(),cur=(combo&&combo.value)||(ck==="ru"?"":ck);
+  const used={},rows=LANG_TOP.map(([v,name])=>{used[v]=1;return[v,name];});
+  opts.forEach(o=>{if(!used[o.value]){used[o.value]=1;rows.push([o.value,o.textContent]);}});
+  langList.innerHTML="";
+  rows.forEach(([v,name])=>{
+    const b=document.createElement("button");
+    b.type="button";b.className="lang-opt"+(v===cur?" on":"");b.textContent=name;
+    b.onclick=()=>{
+      if(v===""){langReset();return;}
+      const c=LANG_COMBO();if(c){c.value=v;c.dispatchEvent(new Event("change",{bubbles:true}));}
+      closeAllDD();
+    };
+    langList.append(b);
+  });
+}
+function langToggle(){
+  if(!langDD)return;
+  const was=langDD.classList.contains("open");
+  closeAllDD();
+  langDD.classList.toggle("open",!was);
+  langBtn.setAttribute("aria-expanded",String(!was));
+  if(was)return;
+  langPaint();
+  let n=0;
+  const tick=()=>{if(LANG_COMBO()){langPaint();return;}if(n++<12)setTimeout(tick,400);};
+  setTimeout(tick,400);
+}
+if(langBtn)langBtn.onclick=e=>{e.stopPropagation();langToggle();};
+document.addEventListener("change",e=>{if(e.target&&e.target.className==="goog-te-combo")langPaint();},true);
 (function initCabinetBoot(){
   fillDistricts();
   renderProfiles();
