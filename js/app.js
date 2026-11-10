@@ -324,6 +324,7 @@ function renderAuth(){
   if($("authWho"))$("authWho").textContent=logged?("Вы вошли как "+(authAccount.login||authAccount.name)+" · профиль "+authAccount.profileId):"";
   if($("authIdLine"))$("authIdLine").textContent=logged?("ID пользователя: "+authAccount.profileId+" — ваши карточки сохраняются под этим ID"):"";
   const nav=$("authNavBtn");if(nav)nav.classList.toggle("hidden",logged);
+  const pb=$("profileBtn");if(pb)pb.classList.toggle("hidden",!logged);
   if(logged)closeAuth();
   const st=$("authStatus");if(st)st.textContent=logged?"Сессия хранится 365 дней":"Без входа данные остаются только в браузере";
   applyAdminGate();
@@ -759,7 +760,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="144";
+const APP_V="2.84";const APP_BUILD="145";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
