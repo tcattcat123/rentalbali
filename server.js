@@ -717,7 +717,7 @@ const GEO_TTL = 10 * 60 * 1000;
 const geoCache = new Map();
 
 function geoHostAllowed(host) {
-  return /^(www\.|maps\.app\.)?google\.[a-z]{2,6}(\.[a-z]{2,3})?$|^maps\.app\.goo\.gl$|^goo\.gl$/i.test(String(host || ''));
+  return /^(www\.|maps\.|maps\.app\.)?google\.[a-z]{2,6}(\.[a-z]{2,3})?$|^maps\.app\.goo\.gl$|^goo\.gl$/i.test(String(host || ''));
 }
 function geoSafeDecode(s) {
   try { return decodeURIComponent(String(s)); } catch (e) { return String(s); }
