@@ -748,6 +748,7 @@ function enhanceMonth(input){
 }
 function syncDropdowns(){DDREG.forEach(r=>r.sync());}
 let map=null, markers=[],showMarkers=true;
+let mapSel=null,mapReturn=null;const mapMarkers=new Map();
 const $ = id=>document.getElementById(id);
 function notify(msg,ms){
   let box=$("toasts");
@@ -758,7 +759,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="141";
+const APP_V="2.84";const APP_BUILD="144";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -776,6 +777,12 @@ function convertPrice(v){return state.currency==="USD"?Math.round(v/RATE):v;}
 function fmtNum(v){return state.currency==="USD"?convertPrice(v).toLocaleString("en-US"):v.toLocaleString("ru-RU");}
 function curSuffix(){return state.currency;}
 function fmtMoney(v){return `${state.currency==="USD"?"$ ":""}${fmtNum(v)} ${curSuffix()}`;}
+function updDateHtml(it){
+  const s=it.updatedAt||it.createdAt; if(!s)return "";
+  const d=new Date(s); if(isNaN(d.getTime()))return "";
+  const ds=("0"+d.getDate()).slice(-2)+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+d.getFullYear();
+  return '<span class="upd-date">'+(state.lang==="ru"?"обновлено ":"updated ")+ds+'</span>';
+}
 function fmtPrice(it){
   if(it.type==="request"){
     const lo=it.priceMin||0,hi=it.price||0;
@@ -860,7 +867,7 @@ function rowHTML(it,i){
     <div class="lrow-main"><div class="lrow-title">${it.type==="request"?`<span class="badge want">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"}</span> `:""}${it.title||pTypeLabel(it.propertyType)}</div>
     ${p1?`<div class="lrow-sub">${p1}</div>`:""}
     ${p2?`<div class="lrow-sub muted">${p2}</div>`:""}</div>
-    <div class="lrow-side"><div class="price">${fmtPrice(it)}</div>
+    <div class="lrow-side"><div class="price">${fmtPrice(it)}${updDateHtml(it)}</div>
     <button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav" style="position:static;width:30px;height:30px">${fav?"♥":"♡"}</button></div></div>`;
 }
 function cardHTML(it,i){
@@ -898,7 +905,7 @@ function cardHTML(it,i){
       <button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav">${heart}</button>
       ${it.bedrooms>0?`<span class="bed-badge">${SVG_BED} ${it.bedrooms}</span>`:""}
       <div class="photo-titles"><div class="pt-title">${it.title||pTypeLabel(it.propertyType)}</div>${sub?`<div class="pt-sub">${sub}</div>`:""}</div></div>`:`<div style="position:relative;display:flex;gap:4px;flex-wrap:wrap;align-items:center;padding:8px 10px 0">${badges}<button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav" style="position:static;width:30px;height:30px">${heart}</button></div>`}
-    <div class="card-body">${hasPhoto?"":`<div class="title">${it.title||pTypeLabel(it.propertyType)}</div>`}<div class="price">${fmtPrice(it)}</div>
+    <div class="card-body">${hasPhoto?"":`<div class="title">${it.title||pTypeLabel(it.propertyType)}</div>`}<div class="price">${fmtPrice(it)}${updDateHtml(it)}</div>
       <div class="location-sm">${locLabel(it)}, Бали</div>
       ${it.code?`<div class="location-sm" style="opacity:.65">ID объекта: ${it.code} / ${shortId(it)}</div>`:""}
       ${specs}
@@ -998,7 +1005,8 @@ function render(){
   $("favGrid").innerHTML=favs.map(cardHTML).join("");
   $("favEmpty").style.display=favs.length?"none":"block";
   $("myGrid").innerHTML=[...LISTINGS.filter(x=>x.mine&&(cabProjFilter==="all"||x.type===cabProjFilter)),...syncMemberCache()].map(it=>`<div>${cardHTML(it)}${it.user?`<div class="my-actions"><button class="edit-btn" data-edit="${it.id}">✎ Редактировать</button><button class="del-btn" data-del="${it.id}">✕ Удалить</button></div>`:(it._member?`<div class="my-actions"><span class="param-chip">Участник</span><button class="btn-ghost sm" data-open="${it.id}">👁 Смотреть</button><button class="btn-text" data-leave="${it.id}">Покинуть проект</button></div>`:"")}</div>`).join("");
-  $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini" data-card="${x.id}"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>${locLabel(x)}</div>`).join("");
+  $("mapList").innerHTML=arr.slice(0,20).map(x=>`<div class="map-mini${x.id===mapSel?" sel":""}" data-card="${x.id}"><span class="mini-txt"><b>${fmtPrice(x)}</b> · ${pTypeLabel(x.propertyType)}<br>${locLabel(x)}</span>${((x.images&&x.images[0])||x.fb)?`<img class="mini-prev" data-prev="${x.id}" src="${(x.images&&x.images[0])||x.fb}" alt="" loading="lazy">`:""}</div>`).join("");
+  paintMapSel();
   paintUsers();
   const ap=$("allParties");
   if(ap){
@@ -1040,9 +1048,11 @@ function switchView(v,noHist){
 }
 function goBack(){
   const prev=viewHist.pop();
+  const ret=prev==="map"?mapReturn:null;
+  mapReturn=null;
   if(prev&&$("view-"+prev)){switchView(prev,true);if(prev==="profile")switchCabtab("profile");syncDealTabs();}
   else{switchView("list",true);syncDealTabs();}
-  window.scrollTo({top:0});
+  if(ret)restoreMapState(ret);else window.scrollTo({top:0});
 }
 function setDeal(d){
   if(d==="map"){switchView("map");syncDealTabs();return;}
@@ -1068,19 +1078,87 @@ function initMap(){
   loadLeaflet().then(()=>{
     if(map){updateMarkers();map.invalidateSize();return;}
     map=L.map("map").setView([-8.65,115.17],10);
+    map.on("movestart",hideHoverCard);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(map);
     updateMarkers();
   });
 }
+function pinIcon(sel){
+  const c=sel?"#F59E0B":"#2463EB";
+  return L.divIcon({className:"rh-pin"+(sel?" sel":""),html:'<svg viewBox="0 0 24 32" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20C24 5.4 18.6 0 12 0z" fill="'+c+'" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="11.5" r="4.5" fill="#fff"/></svg>',iconSize:[26,34],iconAnchor:[13,32],popupAnchor:[0,-30]});
+}
+function mapPopupHtml(it){
+  const ph=(it.images&&it.images[0])||it.fb||"";
+  return '<div class="map-pop">'+(ph?'<img class="map-prev" data-prev="'+it.id+'" src="'+ph+'" alt="" loading="lazy">':'<div class="map-prev no-ph" data-prev="'+it.id+'">'+(state.lang==="ru"?"Фото скоро появятся":"Photos coming soon")+'</div>')+'<div class="map-pop-txt"><b>'+fmtPrice(it)+'</b><span>'+pTypeLabel(it.propertyType)+" · "+locLabel(it)+'</span></div><button type="button" class="btn-primary" style="height:34px;font-size:13px" data-open="'+it.id+'">'+(state.lang==="ru"?"Просмотреть":"View")+'</button></div>';
+}
+function paintMapSel(){
+  document.querySelectorAll("#mapList .map-mini").forEach(el=>el.classList.toggle("sel",+el.dataset.card===mapSel));
+}
+function selectOnMap(id,source){
+  mapSel=id;paintMapSel();
+  mapMarkers.forEach((m,k)=>m.setIcon(pinIcon(k===id)));
+  const row=document.querySelector('#mapList .map-mini[data-card="'+id+'"]');
+  const m=mapMarkers.get(id);
+  if(source==="list"&&m){
+    const ll=m.getLatLng(),z=Math.max(map.getZoom(),13);
+    map.flyTo(ll,z,{duration:.6});
+    setTimeout(()=>{if(map.getZoom()!==z||map.getCenter().distanceTo(ll)>50)map.setView(ll,z,{animate:false});m.openPopup();},700);
+  }
+  if(source==="marker"&&row)row.scrollIntoView({block:"nearest",behavior:"smooth"});
+}
+function captureMapState(){
+  const ml=$("mapList");
+  return {y:window.scrollY,list:ml?ml.scrollTop:0,center:map?map.getCenter():null,zoom:map?map.getZoom():10,sel:mapSel};
+}
+function restoreMapState(r){
+  window.scrollTo({top:r.y});
+  const ml=$("mapList");if(ml)ml.scrollTop=r.list;
+  setTimeout(()=>{
+    if(map){if(r.center)map.setView(r.center,r.zoom,{animate:false});map.invalidateSize();}
+    if(r.sel!=null){mapSel=r.sel;paintMapSel();mapMarkers.forEach((m,k)=>m.setIcon(pinIcon(k===r.sel)));}
+  },90);
+}
+let hcTimer=null;
+function hoverCardEl(){
+  let el=$("hoverCard");
+  if(!el){
+    el=document.createElement("div");el.id="hoverCard";document.body.appendChild(el);
+    el.addEventListener("mouseenter",()=>clearTimeout(hcTimer));
+    el.addEventListener("mouseleave",()=>{hcTimer=setTimeout(hideHoverCard,180);});
+  }
+  return el;
+}
+function showHoverCard(it,anchor){
+  if(!it)return;
+  clearTimeout(hcTimer);
+  const el=hoverCardEl();
+  const ph=(it.images&&it.images[0])||it.fb||"";
+  const d=String(it.desc||"");
+  el.innerHTML=(ph?'<img src="'+ph+'" alt="">':"")+'<div class="hc-title">'+esc(it.title||"")+'</div><p class="hc-desc">'+esc(d.slice(0,160))+(d.length>160?"…":"")+'</p><div class="hc-price">'+fmtPrice(it)+'</div><button type="button" class="btn-primary" style="height:36px;font-size:13px;width:100%" data-open="'+it.id+'">'+(state.lang==="ru"?"Просмотреть объект":"View object")+'</button>';
+  el.dataset.for=String(it.id);
+  el.classList.add("on");
+  const r=anchor.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;
+  if(innerWidth<600){el.style.left="8px";el.style.right="8px";el.style.width="auto";el.style.top="auto";el.style.bottom="86px";}
+  else{
+    el.style.right="auto";el.style.bottom="auto";el.style.width="280px";
+    let left=r.right+10;if(left+w>innerWidth-8)left=r.left-w-10;if(left<8)left=8;
+    let top=Math.max(8,Math.min(r.top-h/2+r.height/2,innerHeight-h-8));
+    el.style.left=left+"px";el.style.top=top+"px";
+  }
+}
+function hideHoverCard(){const el=$("hoverCard");if(el)el.classList.remove("on");}
 function updateMarkers(){
   if(!map)return;
-  markers.forEach(m=>m.remove());markers=[];
+  markers.forEach(m=>m.remove());markers=[];mapMarkers.clear();
   if(!showMarkers)return;
   getFiltered().forEach(it=>{
-    const m=L.marker([it.lat,it.lng]).addTo(map);
-    m.bindPopup(`<b>${fmtPrice(it)}</b><br>${pTypeLabel(it.propertyType)}<br>${locLabel(it)}`);
-    markers.push(m);
+    if(!isFinite(+it.lat)||!isFinite(+it.lng))return;
+    const m=L.marker([+it.lat,+it.lng],{icon:pinIcon(it.id===mapSel)}).addTo(map);
+    m.bindPopup(mapPopupHtml(it),{maxWidth:250,className:"rh-pop"});
+    m.on("click",()=>selectOnMap(it.id,"marker"));
+    markers.push(m);mapMarkers.set(it.id,m);
   });
+  if(mapSel!=null&&!mapMarkers.has(mapSel)){mapSel=null;paintMapSel();}
 }
 function countActiveFilters(){
   let n=0;
@@ -1846,6 +1924,8 @@ function fillDistricts(){
 function moneyIDR(v){return state.currency==="USD"?"$ "+Math.round(v/RATE).toLocaleString("en-US"):Math.round(v).toLocaleString("ru-RU")+" IDR";}
 function openDetail(id){
   const it=findAnywhere(id);if(!it)return;
+  if(state.view==="map")mapReturn=captureMapState();
+  hideHoverCard();
   detailId=it.id;detailIdx=0;
   refreshListingContacts(it);
   const term=it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term"));
@@ -1868,12 +1948,12 @@ function openDetail(id){
   chips.push(`<span class="param-chip">${term}</span>`);
   $("detailContent").innerHTML=`
   <div class="d-layout"><div class="d-left">
-    <div><button type="button" class="back-link" data-back style="border:0;background:none;cursor:pointer">← ${state.lang==="ru"?"Назад в ленту":"Back to feed"}</button></div>
+    <div><button type="button" class="back-link" data-back style="border:0;background:none;cursor:pointer">← ${mapReturn?(state.lang==="ru"?"Назад к карте":"Back to map"):(state.lang==="ru"?"Назад в ленту":"Back to feed")}</button></div>
     ${it.type==="request"?`<div class="want-banner">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"} · ${term}</div>`:""}
     ${(it.images&&it.images.length)?`<div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
       ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
       <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>`:`<div class="main-photo no-photo-ph">📷 Фото скоро появятся</div>`}
-    <div class="d-price-row"><div class="price">${fmtPrice(it)}</div>
+    <div class="d-price-row"><div class="price">${fmtPrice(it)}${updDateHtml(it)}</div>
       <div class="d-icons"><button id="dShare" title="Скопировать ссылку"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M7 8l5-5 5 5"/><path d="M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg></button>
       <button id="dFav" class="${fav?"on":""}" title="В избранное">${fav?"♥":"♡"}</button>${canEditListing(it)?`<button id="dEdit" title="Редактировать">✎</button>`:""}</div></div>
     <div class="params">${chips.join("")}</div>
@@ -1975,7 +2055,7 @@ function hideContactMenu(){
   const el=$("contactMenu");if(el){el.classList.remove("show");el.classList.add("hidden");el.style.display="";}
   contactMenuKind=null;
 }
-function closeDetail(){try{history.replaceState(null,"",siteBase());}catch(e){}switchView("list");syncDealTabs();}
+function closeDetail(){mapReturn=null;hideHoverCard();try{history.replaceState(null,"",siteBase());}catch(e){}switchView("list");syncDealTabs();}
 function refreshDetail(){
   const it=findListing(detailId);if(!it||state.view!=="detail")return;
   const m=$("dMain");if(m){m.src=it.images[detailIdx%it.images.length];}
@@ -2035,6 +2115,8 @@ document.addEventListener("click",e=>{
   if(dn){const it=findListing(detailId);if(it){detailIdx=(detailIdx+(dn.dataset.dnav==="next"?1:-1)+it.images.length)%it.images.length;refreshDetail();}return;}
   const chip=e.target.closest("[data-chip]");
   if(chip){e.stopPropagation();if(chip.dataset.chip==="type")$("fType").value=chip.dataset.v;if(chip.dataset.chip==="bed")$("fRooms").value=chip.dataset.v;state.page=1;render();window.scrollTo({top:0,behavior:"smooth"});return;}
+  const mm=e.target.closest("#mapList .map-mini");
+  if(mm){selectOnMap(+mm.dataset.card,"list");return;}
   const card=e.target.closest("[data-card]");
   if(card&&!e.target.closest("button")){openDetail(card.dataset.card);return;}
   const bn=e.target.closest(".bn-item");
@@ -2163,6 +2245,7 @@ function langPaint(){
   const ck=LANG_COOKIE(),cur=(combo&&combo.value)||(ck==="ru"?"":ck);
   const used={},rows=LANG_TOP.map(([v,name])=>{used[v]=1;return[v,name];});
   opts.forEach(o=>{if(!used[o.value]){used[o.value]=1;rows.push([o.value,o.textContent]);}});
+  if(matchMedia("(max-width:767px)").matches)rows.splice(3);
   boxes.forEach(box=>{
     box.innerHTML="";
     rows.forEach(([v,name])=>{
@@ -2192,9 +2275,27 @@ function langToggle(){
   langPaint();langWaitPaint();
 }
 if(langBtn)langBtn.onclick=e=>{e.stopPropagation();langToggle();};
-const langMobCard=$("langMobCard");
-if(langMobCard)langMobCard.addEventListener("toggle",()=>{if(langMobCard.open){langPaint();langWaitPaint();}});
 document.addEventListener("change",e=>{if(e.target&&e.target.className==="goog-te-combo")langPaint();},true);
+document.addEventListener("mouseover",e=>{
+  if(matchMedia("(hover: none)").matches)return;
+  const p=e.target.closest(".map-prev,.mini-prev");
+  if(p)showHoverCard(findAnywhere(+p.dataset.prev),p);
+});
+document.addEventListener("mouseout",e=>{
+  const p=e.target.closest(".map-prev,.mini-prev");
+  if(p&&!(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest("#hoverCard"))){clearTimeout(hcTimer);hcTimer=setTimeout(hideHoverCard,180);}
+});
+document.addEventListener("click",e=>{
+  const p=e.target.closest(".map-prev,.mini-prev");
+  if(!p)return;
+  e.stopPropagation();
+  if(matchMedia("(hover: none)").matches){
+    const el=$("hoverCard");
+    if(el&&el.classList.contains("on")&&el.dataset.for===p.dataset.prev)hideHoverCard();
+    else showHoverCard(findAnywhere(+p.dataset.prev),p);
+  }
+},true);
+window.addEventListener("scroll",hideHoverCard,{passive:true,capture:true});
 (function initCabinetBoot(){
   fillDistricts();
   renderProfiles();

@@ -206,6 +206,7 @@ function rowToListing(r) {
     moveIn: r.move_in,
     views: r.views,
     createdAt: r.created_at ? new Date(r.created_at).toISOString() : new Date().toISOString(),
+    updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : null,
   };
 }
 

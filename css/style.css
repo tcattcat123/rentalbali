@@ -682,7 +682,9 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
   .logo-palm{width:20px;height:20px}
   .header-actions{gap:4px;margin-left:auto;flex:0 0 auto}
   #currencySelect,#google_translate_element,.gtrans{display:none}
-  .header-actions .dd{display:none}
+  .header-actions .dd:not(.lang-dd){display:none}
+  .header-actions .lang-btn{width:36px;height:36px;padding:0;border-radius:10px}
+  .header-actions .lang-ic{width:20px;height:20px}
   .pf-nav-label{display:none}
   #profileBtn{padding:2px;border:0;background:transparent}
   .pf-nav-img{width:32px;height:32px}
@@ -794,10 +796,37 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .lang-opt{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;font-size:15px;color:var(--ink2);border-radius:10px;cursor:pointer;white-space:nowrap}
 .lang-opt:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .lang-opt.on{color:var(--acc-dark);font-weight:700}
-/* Mobile: язык вынесен в настройки профиля, виджет переводчика остаётся живым */
+/* Mobile: планета языка в шапке, список - только 3 языка */
 @media(max-width:767px){
-  .header-actions .lang-dd{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;opacity:0}
+  .dd.open .lang-panel{width:min(264px,86vw)}
+  .lang-dd .dd-panel{left:auto;right:0}
 }
-#langMobCard .lang-list{max-height:none;columns:2;column-gap:8px}
-#langMobCard .lang-opt{break-inside:avoid;padding:8px 10px;font-size:14px}
-#langMobCard .lang-opt.on{background:var(--acc-soft)}
+
+/* Карта: единый цвет выделения - янтарный #F59E0B */
+.map-mini{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.map-mini .mini-txt{min-width:0}
+.map-mini.sel{border-color:#F59E0B;background:rgba(245,158,11,.12);box-shadow:inset 3px 0 0 #F59E0B}
+[data-theme="dark"] .map-mini.sel{background:rgba(245,158,11,.18)}
+.mini-prev{display:none;width:56px;height:44px;object-fit:cover;border-radius:6px;flex:0 0 auto;cursor:pointer}
+.map-mini.sel .mini-prev{display:block}
+.rh-pin{background:none;border:0}
+.rh-pin svg{width:26px;height:34px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.rh-pin.sel svg{transform:scale(1.18);transform-origin:50% 100%}
+.map-pop{display:grid;gap:8px;min-width:190px}
+.map-prev{width:100%;height:96px;object-fit:cover;border-radius:8px;cursor:pointer;display:block}
+.map-prev.no-ph{display:grid;place-items:center;background:var(--acc-soft);color:var(--ink2);font-size:12px;text-align:center;padding:6px}
+.map-pop-txt{display:grid;gap:2px;font-size:13px;line-height:1.35}
+.map-pop-txt span{color:var(--ink2)}
+.rh-pop .leaflet-popup-content{margin:10px 12px}
+[data-theme="dark"] .leaflet-popup-content-wrapper,[data-theme="dark"] .leaflet-popup-tip{background:var(--card);color:var(--ink)}
+#hoverCard{position:fixed;z-index:1200;width:280px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,.25);padding:10px;display:none}
+#hoverCard.on{display:block}
+#hoverCard img{width:100%;height:120px;object-fit:cover;border-radius:8px;display:block}
+.hc-title{font-weight:700;font-size:14px;margin:8px 0 4px}
+.hc-desc{font-size:12.5px;color:var(--ink2);margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hc-price{font-weight:700;color:var(--acc-dark);margin-bottom:8px}
+.map-side::-webkit-scrollbar,.map-list::-webkit-scrollbar{width:8px}
+.map-side::-webkit-scrollbar-track,.map-list::-webkit-scrollbar-track{background:var(--acc-soft);border-radius:8px}
+.map-side::-webkit-scrollbar-thumb,.map-list::-webkit-scrollbar-thumb{background:var(--acc);border-radius:8px}
+.map-side::-webkit-scrollbar-thumb:hover,.map-list::-webkit-scrollbar-thumb:hover{background:var(--acc-dark)}
+.price .upd-date{display:inline-block;margin-left:8px;font-size:11px;font-weight:400;opacity:.65;white-space:nowrap}
