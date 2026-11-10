@@ -758,7 +758,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="140";
+const APP_V="2.84";const APP_BUILD="141";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -2157,22 +2157,30 @@ const LANG_TOP=[["","русский"],["en","английский"],["id","ин�
 function langReset(){const paths=["/",location.pathname.replace(/[^/]*$/,"")];paths.forEach(pt=>{["max-age=0","expires=Thu, 01 Jan 1970 00:00:00 GMT"].forEach(tail=>{document.cookie="googtrans=;path="+pt+";"+tail;});document.cookie="googtrans=/ru/ru;path="+pt+";max-age=31536000;"});location.reload();}
 const LANG_COOKIE=()=>{const m=/(?:^|; )googtrans=\/[^\/;]+\/([^;]+)/.exec(document.cookie||"");return m?decodeURIComponent(m[1]):"";};
 function langPaint(){
-  if(!langList)return;
+  const boxes=[...document.querySelectorAll(".lang-list")];
+  if(!boxes.length)return;
   const combo=LANG_COMBO(),opts=combo?[...combo.options]:[];
   const ck=LANG_COOKIE(),cur=(combo&&combo.value)||(ck==="ru"?"":ck);
   const used={},rows=LANG_TOP.map(([v,name])=>{used[v]=1;return[v,name];});
   opts.forEach(o=>{if(!used[o.value]){used[o.value]=1;rows.push([o.value,o.textContent]);}});
-  langList.innerHTML="";
-  rows.forEach(([v,name])=>{
-    const b=document.createElement("button");
-    b.type="button";b.className="lang-opt"+(v===cur?" on":"");b.textContent=name;
-    b.onclick=()=>{
-      if(v===""){langReset();return;}
-      const c=LANG_COMBO();if(c){c.value=v;c.dispatchEvent(new Event("change",{bubbles:true}));}
-      closeAllDD();
-    };
-    langList.append(b);
+  boxes.forEach(box=>{
+    box.innerHTML="";
+    rows.forEach(([v,name])=>{
+      const b=document.createElement("button");
+      b.type="button";b.className="lang-opt"+(v===cur?" on":"");b.textContent=name;
+      b.onclick=()=>{
+        if(v===""){langReset();return;}
+        const c=LANG_COMBO();if(c){c.value=v;c.dispatchEvent(new Event("change",{bubbles:true}));}
+        closeAllDD();langPaint();
+      };
+      box.append(b);
+    });
   });
+}
+function langWaitPaint(){
+  let n=0;
+  const tick=()=>{if(LANG_COMBO()){langPaint();return;}if(n++<12)setTimeout(tick,400);};
+  setTimeout(tick,400);
 }
 function langToggle(){
   if(!langDD)return;
@@ -2181,12 +2189,11 @@ function langToggle(){
   langDD.classList.toggle("open",!was);
   langBtn.setAttribute("aria-expanded",String(!was));
   if(was)return;
-  langPaint();
-  let n=0;
-  const tick=()=>{if(LANG_COMBO()){langPaint();return;}if(n++<12)setTimeout(tick,400);};
-  setTimeout(tick,400);
+  langPaint();langWaitPaint();
 }
 if(langBtn)langBtn.onclick=e=>{e.stopPropagation();langToggle();};
+const langMobCard=$("langMobCard");
+if(langMobCard)langMobCard.addEventListener("toggle",()=>{if(langMobCard.open){langPaint();langWaitPaint();}});
 document.addEventListener("change",e=>{if(e.target&&e.target.className==="goog-te-combo")langPaint();},true);
 (function initCabinetBoot(){
   fillDistricts();

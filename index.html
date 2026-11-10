@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="140">
+<meta name="app-build" content="141">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=147">');})();</script>
+<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=148">');})();</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -190,6 +190,13 @@
           <button id="authLogoutBtn" class="btn-ghost" type="button">Выйти</button>
         </div>
         <p class="hint">Без входа данные остаются только в этом браузере. С аккаунтом — объекты, избранное, договора и шаблоны хранятся на сервере и доступны с любого устройства.</p>
+      </div>
+    </details>
+    <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px" id="langMobCard">
+      <summary style="cursor:pointer;font-weight:700">Язык страницы</summary>
+      <div style="margin-top:10px">
+        <p class="hint" style="margin:0 0 8px">Текущий язык отмечен. Русский - без перевода.</p>
+        <div class="lang-list" id="langListMob"></div>
       </div>
     </details>
     <details class="card cab-form" data-cabpanel="profile" style="margin-bottom:10px;padding:12px 14px">
@@ -479,7 +486,7 @@
   </div>
 </div>
 
-<script>document.write('<script src="js/app.js?v=157"><\/script>');</script>
+<script>document.write('<script src="js/app.js?v=158"><\/script>');</script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

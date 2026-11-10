@@ -794,3 +794,10 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .lang-opt{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;font-size:15px;color:var(--ink2);border-radius:10px;cursor:pointer;white-space:nowrap}
 .lang-opt:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .lang-opt.on{color:var(--acc-dark);font-weight:700}
+/* Mobile: язык вынесен в настройки профиля, виджет переводчика остаётся живым */
+@media(max-width:767px){
+  .header-actions .lang-dd{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;opacity:0}
+}
+#langMobCard .lang-list{max-height:none;columns:2;column-gap:8px}
+#langMobCard .lang-opt{break-inside:avoid;padding:8px 10px;font-size:14px}
+#langMobCard .lang-opt.on{background:var(--acc-soft)}
