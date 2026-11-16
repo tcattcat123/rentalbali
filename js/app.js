@@ -638,7 +638,7 @@ ru:{topbar:"Проверенные объекты Бали · прозрачна
 en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",tab_service:"Services",sub_hint:"offer / wanted / services",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",nav_want:"Wanted",nav_partners:"Partners",nav_contracts:"Contracts",nav_market:"Market people",nav_services:"Services",nav_community:"Community",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",service_h:"Services",t_service:"Service",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_room:"Rooms",t_invest:"Investment projects",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
 };
 
-const state = {deal:"rent",role:"offer",rentCat:"",tenure:"",query:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem(favKey())||"[]")),carIdx:{},districts:new Set()};
+const state = {deal:"rent",role:"offer",rentCat:"",tenure:"",query:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:(function(){var l=localStorage.getItem("rh_lang");return (l==="en"||l==="id")?l:"ru";})(),currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem(favKey())||"[]")),carIdx:{},districts:new Set()};
 const DIST_TREE=[
  {key:"Canggu",ru:"Чангу",kids:[["Berawa","Берава"],["BatuBolong","Бату Болонг"],["TumbakBayuh","Тумбак Баюх"]]},
  {key:"Pererenan",ru:"Переренан",kids:[]},
@@ -780,7 +780,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="148";
+const APP_V="2.84";const APP_BUILD="149";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -2347,57 +2347,31 @@ $("currencySelect").onchange=e=>{state.currency=e.target.value;render();};
 $("themeBtn").onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme==="dark";const btn=$("themeBtn");r.dataset.theme=dark?"":"dark";btn.setAttribute("aria-pressed",String(!dark));btn.setAttribute("aria-label",dark?"Включить тёмную тему":"Включить светлую тему");btn.title=btn.getAttribute("aria-label");btn.innerHTML=dark?"<svg class=\"theme-ic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42\"/></svg>":"<svg class=\"theme-ic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z\"/></svg>";};
 $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
 const langDD=$("langDD"),langBtn=$("langBtn"),langList=$("langList");
-const LANG_COMBO=()=>document.querySelector("#google_translate_element select");
+function setLang(v){
+  state.lang=v||"ru";
+  try{localStorage.setItem("rh_lang",state.lang);}catch(e){}
+  render();
+}
 const LANG_TOP=[["","русский"],["en","английский"],["id","индонезийский"]];
-function langReset(){
-  langPending="";
-  // googtrans живёт в двух cookie: host-only и доменной (их пишет сам виджет) - удаляем обе, иначе после перезагрузки язык вернётся
-  const parts=(location.hostname||"").split("."),hosts=[""];
-  for(let i=0;i<parts.length-1;i++)hosts.push(parts.slice(i).join("."));
-  const seg=location.pathname.split("/").slice(0,-1),dirs=["/"];
-  for(let i=seg.length;i>0;i--){dirs.push("/"+seg.slice(0,i).join("/"));dirs.push("/"+seg.slice(0,i).join("/")+"/");}
-  hosts.forEach(h=>dirs.forEach(d=>{
-    const at=h?";domain="+h:"";
-    document.cookie="googtrans=;path="+d+at+";max-age=0";
-    document.cookie="googtrans=;path="+d+at+";expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  }));
-  document.cookie="googtrans=/ru/ru;path=/;max-age=31536000";
-  location.reload();
-}
-const LANG_COOKIE=()=>{const m=/(?:^|; )googtrans=\/[^\/;]+\/([^;]+)/.exec(document.cookie||"");return m?decodeURIComponent(m[1]):"";};
-// Виджет подгружается асинхронно: выбор сделанный до готовности, применяем, когда он появится
-let langPending="";
-function langApply(v){
-  const c=LANG_COMBO();if(!c)return false;
-  c.value=v;c.dispatchEvent(new Event("change",{bubbles:true}));
-  langPending="";langPaint();return true;
-}
+
+
 function langPaint(){
   const boxes=[...document.querySelectorAll(".lang-list")];
   if(!boxes.length)return;
-  const combo=LANG_COMBO(),opts=combo?[...combo.options]:[];
-  const ck=LANG_COOKIE(),cur=(combo&&combo.value)||(ck==="ru"?"":ck);
-  const used={},rows=LANG_TOP.map(([v,name])=>{used[v]=1;return[v,name];});
-  opts.forEach(o=>{if(!used[o.value]){used[o.value]=1;rows.push([o.value,o.textContent]);}});
-  rows.splice(3);
+  const cur=state.lang==="ru"?"":state.lang;
+  const rows=LANG_TOP.slice(0,3);
   boxes.forEach(box=>{
     box.innerHTML="";
     rows.forEach(([v,name])=>{
       const b=document.createElement("button");
       b.type="button";b.className="lang-opt"+(v===cur?" on":"");b.textContent=name;
       b.onclick=()=>{
-        if(v===""){langPending="";langReset();return;}
-        if(!langApply(v))langPending=v;
+        setLang(v);
         closeAllDD();
       };
       box.append(b);
     });
   });
-}
-function langWaitPaint(){
-  let n=0;
-  const tick=()=>{if(LANG_COMBO()){if(langPending)langApply(langPending);else langPaint();return;}if(n++<30)setTimeout(tick,400);};
-  setTimeout(tick,400);
 }
 function langToggle(){
   if(!langDD)return;
@@ -2406,10 +2380,10 @@ function langToggle(){
   langDD.classList.toggle("open",!was);
   langBtn.setAttribute("aria-expanded",String(!was));
   if(was)return;
-  langPaint();langWaitPaint();
+  langPaint();
 }
 if(langBtn)langBtn.onclick=e=>{e.stopPropagation();langToggle();};
-document.addEventListener("change",e=>{if(e.target&&e.target.className==="goog-te-combo")langPaint();},true);
+
 document.addEventListener("mouseover",e=>{
   if(matchMedia("(hover: none)").matches)return;
   const p=e.target.closest(".map-prev,.mini-prev");
@@ -2435,7 +2409,6 @@ window.addEventListener("scroll",hideHoverCard,{passive:true,capture:true});
   renderProfiles();
   // состояние шапки по сохранённому токену - до любого обращения к серверу
   renderAuth();
-  langWaitPaint();
   initSession().catch(()=>{});
   if($("pfSave"))$("pfSave").onclick=async()=>{const ok=await savePrivacy();if(ok)notify("Профиль сохранён");};
   if($("reqSave"))$("reqSave").onclick=async()=>{const ok=await savePrivacy();if(ok)notify("Реквизиты сохранены");};
