@@ -64,11 +64,11 @@ async function apiGet(path,token,retries=1){
     try{
       const r=await fetchWithTimeout(path,{cache:"no-store",headers:h},15000);
       const j=await r.json().catch(()=>({}));
-      if(!r.ok)return {ok:false,error:j.error||("HTTP "+r.status)};
+      if(!r.ok)return {ok:false,http:r.status,error:j.error||("HTTP "+r.status)};
       return j;
-    }catch(e){if(i===retries)return {ok:false,error:"Сеть"};await new Promise(x=>setTimeout(x,1200));}
+    }catch(e){if(i===retries)return {ok:false,net:true,error:"Сеть"};await new Promise(x=>setTimeout(x,1200));}
   }
-  return {ok:false,error:"Сеть"};
+  return {ok:false,net:true,error:"Сеть"};
 }
 async function apiPost(path,body,token,retries=1){
   const h={"Content-Type":"application/json"};if(token)h["Authorization"]="Bearer "+token;
@@ -76,11 +76,11 @@ async function apiPost(path,body,token,retries=1){
     try{
       const r=await fetchWithTimeout(path,{method:"POST",headers:h,body:JSON.stringify(body)},15000);
       const j=await r.json().catch(()=>({}));
-      if(!r.ok)return {ok:false,error:j.error||("HTTP "+r.status)};
+      if(!r.ok)return {ok:false,http:r.status,error:j.error||("HTTP "+r.status)};
       return j;
-    }catch(e){if(i===retries)return {ok:false,error:"Сеть"};await new Promise(x=>setTimeout(x,1200));}
+    }catch(e){if(i===retries)return {ok:false,net:true,error:"Сеть"};await new Promise(x=>setTimeout(x,1200));}
   }
-  return {ok:false,error:"Сеть"};
+  return {ok:false,net:true,error:"Сеть"};
 }
 async function apiDelete(path,token,retries=1){
   const h={};if(token)h["Authorization"]="Bearer "+token;
@@ -88,11 +88,11 @@ async function apiDelete(path,token,retries=1){
     try{
       const r=await fetchWithTimeout(path,{method:"DELETE",headers:h},15000);
       const j=await r.json().catch(()=>({}));
-      if(!r.ok)return {ok:false,error:j.error||("HTTP "+r.status)};
+      if(!r.ok)return {ok:false,http:r.status,error:j.error||("HTTP "+r.status)};
       return j;
-    }catch(e){if(i===retries)return {ok:false,error:"Сеть"};await new Promise(x=>setTimeout(x,1200));}
+    }catch(e){if(i===retries)return {ok:false,net:true,error:"Сеть"};await new Promise(x=>setTimeout(x,1200));}
   }
-  return {ok:false,error:"Сеть"};
+  return {ok:false,net:true,error:"Сеть"};
 }
 async function apiListings(){const j=await apiGet("/listings");return j&&j.ok?j.items:null;}
 async function apiProfiles(){const j=await apiGet("/profiles");return j&&j.ok?j.items:null;}
@@ -222,7 +222,12 @@ async function initSession(){
   const token=sessionToken();
   if(!token){renderAuth();return;}
   const j=await apiGet("/auth/me",token);
-  if(!j||!j.ok){try{localStorage.removeItem("rh_session");}catch(e){}renderAuth();return;}
+  // Токен выбрасываем только когда сервер сказал «не годен» (401/403).
+  // Обрыв сети, таймаут или 5xx разлогинивали пользователя, и у вошедшего снова горила «Регистрация».
+  if(!j||!j.ok){
+    if(j&&(j.http===401||j.http===403)){try{localStorage.removeItem("rh_session");}catch(e){}}
+    renderAuth();return;
+  }
   if(j.admin){authAccount=null;renderAuth();return;}
   applyAuthAccount(j.account);
   if(j.profile)applyServerProfile(j.profile);
@@ -317,16 +322,19 @@ function applyAdminGate(){
   }
 }
 function renderAuth(){
-  const logged=!!(authAccount&&sessionToken());
+  // Вошёл = есть токен сессии или админ-токен. Раньше требовалась пара «authAccount + токен»,
+  // поэтому при админ-сессии (сервер отвечает admin:true, account:null), при сетевом сбое
+  // и до ответа /auth/me шапка показывала «Регистрацию» у вошедшего.
+  const hasSession=!!sessionToken(),logged=hasSession||!!adminToken();
   const out=$("authLoggedOut"),inn=$("authLoggedIn");
-  if(out)out.classList.toggle("hidden",logged);
-  if(inn)inn.classList.toggle("hidden",!logged);
-  if($("authWho"))$("authWho").textContent=logged?("Вы вошли как "+(authAccount.login||authAccount.name)+" · профиль "+authAccount.profileId):"";
-  if($("authIdLine"))$("authIdLine").textContent=logged?("ID пользователя: "+authAccount.profileId+" — ваши карточки сохраняются под этим ID"):"";
+  if(out)out.classList.toggle("hidden",hasSession);
+  if(inn)inn.classList.toggle("hidden",!hasSession);
+  if($("authWho"))$("authWho").textContent=hasSession&&authAccount?("Вы вошли как "+(authAccount.login||authAccount.name||"")+" · профиль "+authAccount.profileId):"";
+  if($("authIdLine"))$("authIdLine").textContent=hasSession&&authAccount?("ID пользователя: "+authAccount.profileId+" — ваши карточки сохраняются под этим ID"):"";
   const nav=$("authNavBtn");if(nav)nav.classList.toggle("hidden",logged);
   const pb=$("profileBtn");if(pb)pb.classList.toggle("hidden",!logged);
-  if(logged)closeAuth();
-  const st=$("authStatus");if(st)st.textContent=logged?"Сессия хранится 365 дней":"Без входа данные остаются только в браузере";
+  if(hasSession)closeAuth();
+  const st=$("authStatus");if(st)st.textContent=hasSession?"Сессия хранится 365 дней":"Без входа данные остаются только в этом браузере";
   applyAdminGate();
 }
 
@@ -349,13 +357,25 @@ try{(JSON.parse(localStorage.getItem(myKey())||"[]")||[]).forEach(o=>{if(o&&o.id
   // Глубокая ссылка вида /prodazha/<id>: открываем деталь после того, как лента подгрузилась
   try{
     if(state.view!=="detail"){
-      const rr=location.pathname.match(/(?:arenda|prodazha|ischu)\/(\d+)\/?$/);
-      if(rr){const it=findAnywhere(+rr[1]);if(it)openDetail(it.id);}
+      const rr=location.pathname.match(/(?:arenda|prodazha|ischu|usluga)\/(\d+)\/?$/);
+      if(rr){const it=findAnywhere(+rr[1]);if(it){const sec=/(?:arenda|prodazha|ischu|usluga)\/\d+/.exec(location.pathname);if(sec&&sec[0].split('/')[0]!==listingSection(it)){try{history.replaceState(null,"",listingPath(it));}catch(_){}}state.role=it.type;if(it.type!=="service")state.deal=it.dealType||state.deal;syncRoleTabs();syncDealTabs();openDetail(it.id);}}
     }
   }catch(e){}
 })().catch(()=>{});
 
 function getGuestId(){return curPid()||"g-none";}
+/* После публикации сервер выдаёт свой числовой id. Пока карточка живёт с временным id,
+   скопированный адрес /раздел/<id> ни у кого не откроется - переносим id и все ссылки на него. */
+function relinkListingId(oldId,newId){
+  if(!(newId>0)||oldId===newId)return;
+  const it=LISTINGS.find(x=>x.id===oldId);if(it)it.id=newId;
+  if(state.fav.has(oldId)){state.fav.delete(oldId);state.fav.add(newId);try{localStorage.setItem(favKey(),JSON.stringify([...state.fav]));}catch(e){}}
+  if(oldId in state.carIdx){state.carIdx[newId]=state.carIdx[oldId];delete state.carIdx[oldId];}
+  if(typeof detailId!=="undefined"&&detailId===oldId)detailId=newId;
+  if(typeof lastCreatedId!=="undefined"&&lastCreatedId===oldId)lastCreatedId=newId;
+  if(typeof mapSel!=="undefined"&&mapSel===oldId)mapSel=newId;
+  try{const cs=loadContracts();let ch=false;cs.forEach(c=>{const p=c.projects||[];if(p.indexOf(oldId)>=0){c.projects=p.map(i=>i===oldId?newId:i);ch=true;}});if(ch)saveContracts(cs);}catch(e){}
+}
 async function persistMy(){
   const items=LISTINGS.filter(x=>x.user);
   const saveLocal=(list)=>{try{localStorage.setItem(myKey(),JSON.stringify(list));return true;}catch(e){return false;}};
@@ -369,7 +389,7 @@ async function persistMy(){
   if(token){
     let allOk=true;
     for(const it of items){
-      try{const r=await apiSaveListing(it);if(r&&r.ok){if(r.code)it.code=r.code;}else allOk=false;}catch(e){allOk=false;}
+      try{const r=await apiSaveListing(it);if(r&&r.ok){if(r.code)it.code=r.code;if(r.id>0&&+r.id!==it.id)relinkListingId(it.id,+r.id);}else allOk=false;}catch(e){allOk=false;}
     }
     if(!allOk){notify("Сервер не сохранил часть объектов — они остались в браузере");return false;}
     try{localStorage.setItem(myKey(),JSON.stringify(items));}catch(e){}
@@ -614,8 +634,8 @@ function fmtDT(ts){try{return new Date(ts).toLocaleString("ru-RU",{day:"2-digit"
 let detailId=null,detailIdx=0;
 
 const I18N = {
-ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",sub_hint:"предлагаю / ищу",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",nav_want:"Ищу",nav_partners:"Партнёры",nav_contracts:"Договора",nav_market:"Участники рынка",nav_services:"Услуги",nav_community:"Сообщество",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",t_villa:"Вилла",t_house:"Дом",t_apartment:"Апарты",t_room:"Комнаты",t_invest:"Инвестпроекты",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
-en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",sub_hint:"offer / wanted",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",nav_want:"Wanted",nav_partners:"Partners",nav_contracts:"Contracts",nav_market:"Market people",nav_services:"Services",nav_community:"Community",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_room:"Rooms",t_invest:"Investment projects",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
+ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",tab_service:"Услуги",sub_hint:"предлагаю / ищу / услуги",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",nav_want:"Ищу",nav_partners:"Партнёры",nav_contracts:"Договора",nav_market:"Участники рынка",nav_services:"Услуги",nav_community:"Сообщество",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",service_h:"Услуги",t_service:"Услуга",t_villa:"Вилла",t_house:"Дом",t_apartment:"Апарты",t_room:"Комнаты",t_invest:"Инвестпроекты",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
+en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",tab_service:"Services",sub_hint:"offer / wanted / services",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",nav_want:"Wanted",nav_partners:"Partners",nav_contracts:"Contracts",nav_market:"Market people",nav_services:"Services",nav_community:"Community",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",service_h:"Services",t_service:"Service",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_room:"Rooms",t_invest:"Investment projects",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
 };
 
 const state = {deal:"rent",role:"offer",rentCat:"",tenure:"",query:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:"ru",currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem(favKey())||"[]")),carIdx:{},districts:new Set()};
@@ -646,12 +666,12 @@ const DIST_TREE=[
 ];
 /* ===== Object ID: 2 letters (type+region) + 5-digit sequence, e.g. vb00001.
    Letter codes are changeable here as needed. Counter resets via setIdSeq(0). ===== */
-const ID_TYPE={villa:"v",house:"r",apartment:"a",room:"o",invest:"i",homestay:"h",land:"l",townhouse:"t",boarding:"k",commercial:"c"};
-const ID_SHORT={villa:"V",house:"H",apartment:"A",room:"O",invest:"I",homestay:"P",land:"L",townhouse:"T",boarding:"K",commercial:"C"};
+const ID_TYPE={villa:"v",house:"r",apartment:"a",room:"o",invest:"i",homestay:"h",land:"l",townhouse:"t",boarding:"k",commercial:"c",service:"u"};
+const ID_SHORT={villa:"V",house:"H",apartment:"A",room:"O",invest:"I",homestay:"P",land:"L",townhouse:"T",boarding:"K",commercial:"C",service:"S"};
 function shortId(it){const m=/^[a-z]{2}(\d+)$/.exec((it&&it.code)||"");if(!m)return "—";return (ID_SHORT[it.propertyType]||"X")+(+m[1]);}
 /* Ссылка на объект: /arenda/12, /prodazha/17, /ischu/11 (от корня сайта, с учётом подкаталога /bali/) */
-function listingSection(it){return it.type==="request"?"ischu":(it.dealType==="sale"?"prodazha":"arenda");}
-function siteBase(){const m=location.pathname.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/);return (m?m[1]:location.pathname.replace(/[^\/]*$/,""))||"/";}
+function listingSection(it){return it.type==="service"?"usluga":(it.type==="request"?"ischu":(it.dealType==="sale"?"prodazha":"arenda"));}
+function siteBase(){const m=location.pathname.match(/^(.*?)(?:arenda|prodazha|ischu|usluga)\/\d+\/?$/);return (m?m[1]:location.pathname.replace(/[^\/]*$/,""))||"/";}
 function listingPath(it){return siteBase()+listingSection(it)+"/"+it.id;}
 function listingUrl(it){return location.origin+listingPath(it);}
 const ID_REGION={Canggu:"c",Berawa:"c",BatuBolong:"c",TumbakBayuh:"c",Pererenan:"c",Umalas:"c",Kerobokan:"c",Seseh:"c",Buduk:"c",Seminyak:"s",BeachsideCenter:"s",ResidentialSide:"s",Oberoi:"s",Legian:"s",Petitenget:"s",Kuta:"s",TanahLot:"w",Kedungu:"w",Cemagi:"w",Uluwatu:"b",Bingin:"b",Balangan:"b",Jimbaran:"b",NusaDua:"b",Ungasan:"b",Pecatu:"b",Ubud:"u",Mas:"u",Payangan:"u",Denpasar:"d",Sanur:"d",Gianyar:"u",Sukawati:"u",Tabanan:"w",Mengwi:"w",Lovina:"n",Singaraja:"n",Pemuteran:"n",Amed:"e",Candidasa:"e",Sidemen:"e",NusaPenida:"e",NusaLembongan:"e"};
@@ -760,7 +780,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="146";
+const APP_V="2.84";const APP_BUILD="147";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -785,6 +805,10 @@ function updDateHtml(it){
   return '<span class="upd-date">'+(state.lang==="ru"?"обновлено ":"updated ")+ds+'</span>';
 }
 function fmtPrice(it){
+  if(it.type==="service"){
+    if(!(it.price>0))return "Цена по запросу";
+    return `${state.currency==="USD"?"$ ":""}${fmtNum(it.price)} ${curSuffix()}`;
+  }
   if(it.type==="request"){
     const lo=it.priceMin||0,hi=it.price||0;
     const tail=it.dealType==="sale"?" "+t("total"):(it.dealType==="rent"?" "+(it.category==="yearly"?t("year_per"):t("month")):"");
@@ -878,6 +902,7 @@ function cardHTML(it,i){
   const heart=fav?"♥":"♡";
   let badges="";
   if(it.type==="request")badges+=`<span class="badge want">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"}</span>`;
+  if(it.type==="service")badges+=`<span class="badge want">${state.lang==="ru"?"🛠 УСЛУГА":"🛠 SERVICE"}</span>`;
   if(it.dealType==="sale"&&it.tenure)badges+=`<span class="badge tenure">${it.tenure==="freehold"?"Hak Milik":"Hak Sewa"}</span>`;
   if(it.isVerified)badges+=`<span class="badge verified">${SVG_SHIELD} ${t("verified")}</span>`;
   if(it.isTop)badges+=`<span class="badge top">${SVG_CUP} ${t("top")}</span>`;
@@ -887,10 +912,10 @@ function cardHTML(it,i){
   if(it.isUrgent)badges+=`<span class="badge urgent">${t("urgent")}</span>`;
   if(it.ai)badges+=`<span class="badge ai-badge">🤖 AI</span>`;
   const areaV=it.area>0?it.area:it.landArea;
-  const sub=it.propertyType==="land"?`Участок ${it.landArea} м²`:(it.amenities||[]).slice(0,3).join(" · ");
+  const sub=it.type==="service"?(locLabel(it)||""):(it.propertyType==="land"?`Участок ${it.landArea} м²`:(it.amenities||[]).slice(0,3).join(" · "));
   const am=(it.amenities||[]).concat(["—","—"]);
   const agent=it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");
-  const specs=`<div class="specs">
+  const specs=it.type==="service"?"":`<div class="specs">
     <div class="spec">${SVG_BED}<b>${it.bedrooms||"—"}</b><span>${plural(it.bedrooms||0,["спальня","спальни","спален"])}</span></div>
     <div class="spec">${SVG_BATH}<b>${it.bathrooms||"—"}</b><span>${plural(it.bathrooms||0,["ванная","ванные","ванных"])}</span></div>
     <div class="spec">${SVG_AREA}<b>${areaV||"—"}${areaV?" м²":""}</b><span>площадь</span></div>
@@ -920,7 +945,8 @@ function convToIDR(v){ // input in current currency -> IDR for compare
 }
 
 function getFiltered(){
-  let arr=LISTINGS.filter(x=>x.dealType===state.deal&&x.type===state.role&&x.status==="published");
+  // у услуги нет сделки «аренда/продажа», поэтому для неё deal не участвует
+  let arr=LISTINGS.filter(x=>x.type===state.role&&x.status==="published"&&(state.role==="service"||x.dealType===state.deal));
   const gv=id=>$(id)?$(id).value.trim():"";
   const pMin=convToIDR(gv("priceMin")),pMax=convToIDR(gv("priceMax"));
   const lMin=parseFloat(gv("landMin")),lMax=parseFloat(gv("landMax"));
@@ -928,8 +954,10 @@ function getFiltered(){
   const fT=gv("fType"),fR=gv("fRooms");
   const fFl=gv("fFloors"),fY=parseFloat(gv("fYear")),fFu=gv("furnQ"),fP=gv("fPark");
   const fAv=gv("fAvail"),fLv=gv("fLiving"),fAm=gv("fAmen");
-  if(state.deal==="rent"&&state.rentCat)arr=arr.filter(x=>(x.category||"monthly")===state.rentCat);
-  if(state.deal==="sale"&&state.tenure)arr=arr.filter(x=>x.tenure===state.tenure);
+  if(state.role!=="service"){
+    if(state.deal==="rent"&&state.rentCat)arr=arr.filter(x=>(x.category||"monthly")===state.rentCat);
+    if(state.deal==="sale"&&state.tenure)arr=arr.filter(x=>x.tenure===state.tenure);
+  }
   if(!isNaN(pMin))arr=arr.filter(x=>x.price>=pMin);
   if(!isNaN(pMax))arr=arr.filter(x=>x.price<=pMax);
   if(fT)arr=arr.filter(x=>x.propertyType===fT);
@@ -967,7 +995,7 @@ function getFiltered(){
 
 function renderCrumbs(){
   const dealName=state.deal==="sale"?t("sale_h"):(state.rentCat==="yearly"?t("year_rent"):t("long_rent"));
-  const roleName=state.role==="offer"?t("offer_h"):t("request_h");
+  const roleName=state.role==="service"?t("service_h"):(state.role==="offer"?t("offer_h"):t("request_h"));
   const typeName=$("fType").value?pTypeLabel($("fType").value):"—";
   const ds=[...state.districts].map(locName);
   const distName=ds.length===0?"—":ds.length<=2?ds.join(", "):`${ds[0]} +${ds.length-1}`;
@@ -1035,14 +1063,17 @@ function switchView(v,noHist){
   if(!noHist&&state.view&&state.view!==v){viewHist.push(state.view);if(viewHist.length>20)viewHist.shift();}
   state.view=v;
   if(was==="detail"&&v!=="detail"){try{history.replaceState(null,"",siteBase());}catch(e){}}
-  ["list","map","fav","profile","people","detail"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
+  // «Услуги» и «Сообщество» живут в одном блоке view-people
+  const showPeople=(v==="people"||v==="services"||v==="community");
+  ["list","map","fav","profile","detail"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
+  $("view-people").classList.toggle("hidden",!showPeople);
   document.querySelectorAll(".bn-item").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   if(v==="map")setTimeout(initMap,50);
   if(v==="profile")setTimeout(requireAgreement,50);
   if(v==="people"||v==="services"||v==="community"){
     const pt=$("peopleTitle");
-    if(v==="services"){if(pt)pt.textContent=t("nav_services");marketMode="services";}
-    else{if(pt)pt.textContent=t("nav_community");marketMode="all";}
+    if(v==="services"){if(pt)pt.textContent=t("nav_services");marketMode="services";const ph=$("peopleHint");if(ph)ph.textContent="Опубликованные объявления услуг и открытые профили специалистов.";}
+    else{if(pt)pt.textContent=t("nav_community");marketMode="all";const ph=$("peopleHint");if(ph)ph.textContent="Открытые профили: агенты, нотариусы, консультанты, операторы, администраторы, владельцы и покупатели. Ваши партнёры отмечены зелёным.";}
     setTimeout(paintMarket,50);
   }
   if(v==="contracts")setTimeout(paintContracts,50);
@@ -1075,15 +1106,49 @@ function loadLeaflet(){
   });
   return leafletReady;
 }
+const CARTO_KEY="cb1_55vw_1_8e46228f0df0d8d660eebf53";
+const TILE_SOURCES=[
+  {url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png",attr:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &middot; <a href="https://www.openstreetmap.org/fixthemap">report an issue</a>'},
+  {url:CARTO_KEY?"https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key="+CARTO_KEY:"",attr:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attribution/">CARTO</a>'}
+];
+let tileLayer=null,tileIdx=0,tileErrs=0;
+function mapBadge(kind){
+  const box=$("map");if(!box)return;
+  let el=$("mapBadge");
+  if(!el){el=document.createElement("div");el.id="mapBadge";box.appendChild(el);}
+  if(!kind){el.classList.remove("on","load");el.innerHTML="";return;}
+  el.classList.add("on");el.classList.toggle("load",kind==="load");
+  el.innerHTML=kind==="load"?(state.lang==="ru"?"Карта загружается…":"Loading map…")
+    :((state.lang==="ru"?"Карту не удалось загрузить — видны только метки":"Map tiles did not load — only pins are visible")+' <button type="button" id="mapRetry">'+(state.lang==="ru"?"Повторить":"Retry")+'</button>');
+  const b=$("mapRetry");if(b)b.onclick=()=>{tileErrs=0;tileIdx=0;addTileLayer();};
+}
+function addTileLayer(){
+  if(tileLayer){map.removeLayer(tileLayer);tileLayer=null;}
+  const src=TILE_SOURCES[tileIdx];
+  if(!src||!src.url){mapBadge("err");return;}
+  tileLayer=L.tileLayer(src.url,{maxZoom:18,attribution:src.attr,updateWhenIdle:true});
+  tileLayer.on("loading",()=>mapBadge(tileErrs>=4?"err":"load"));
+  tileLayer.on("load",()=>mapBadge(tileErrs>=4?"err":null));
+  tileLayer.on("tileload",()=>{tileErrs=0;});
+  tileLayer.on("tileerror",()=>{
+    tileErrs++;
+    if(tileErrs<4)return;
+    const next=TILE_SOURCES[tileIdx+1];
+    if(next&&next.url){tileIdx++;tileErrs=0;addTileLayer();}
+    else mapBadge("err");
+  });
+  tileLayer.addTo(map);
+}
 function initMap(){
   loadLeaflet().then(()=>{
     if(map){updateMarkers();map.invalidateSize();return;}
     map=L.map("map").setView([-8.65,115.17],10);
     map.on("movestart",hideHoverCard);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(map);
+    addTileLayer();
     updateMarkers();
   });
 }
+window.addEventListener("resize",()=>{if(map)map.invalidateSize();});
 function pinIcon(sel){
   const c=sel?"#F59E0B":"#2463EB";
   return L.divIcon({className:"rh-pin"+(sel?" sel":""),html:'<svg viewBox="0 0 24 32" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20C24 5.4 18.6 0 12 0z" fill="'+c+'" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="11.5" r="4.5" fill="#fff"/></svg>',iconSize:[26,34],iconAnchor:[13,32],popupAnchor:[0,-30]});
@@ -1416,6 +1481,23 @@ function contractParties(meId,themId,projectId){
   return c;
 }
 let peopleFilter="all",marketFilter="all",contractFilter="all",marketMode="all";
+// аватар в плашке участника: фото из профиля, иначе буква имени
+function initialOf(p){return ((p&&p.name)||"").trim().charAt(0).toUpperCase()||"?";}
+function avatarHTML(p){
+  const a=String((p&&p.avatar)||"");
+  if(/^(data:image\/|https?:\/\/)/i.test(a)){
+    return `<img class="pav" src="${a.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}" data-init="${esc(initialOf(p))}" alt="">`;
+  }
+  return `<span class="pav init" aria-hidden="true">${esc(initialOf(p))}</span>`;
+}
+// битое фото (переехал/пропал URL) не показываем — замена на букву имени
+function bindAvatarFallback(box){
+  box.querySelectorAll("img.pav").forEach(i=>{
+    const drop=()=>{const s=document.createElement("span");s.className="pav init";s.setAttribute("aria-hidden","true");s.textContent=i.dataset.init||"?";i.replaceWith(s);};
+    i.onerror=drop;
+    if(i.complete&&i.naturalWidth===0)drop();
+  });
+}
 function paintMarket(){
   const box=$("marketList");if(!box)return;
   const meId=curPid(),me=curProfile(),meName=me?me.name:"";
@@ -1425,15 +1507,22 @@ function paintMarket(){
   const partnerIds=contractPartnerIds(meId);
   list.sort((a,b)=>{const aP=partnerIds.has(a.id)?0:1;const bP=partnerIds.has(b.id)?0:1;if(aP!==bP)return aP-bP;return (a.num||0)-(b.num||0);});
   const empty=$("marketEmpty");
-  if(empty)empty.classList.toggle("hidden",list.length>0);
-  box.innerHTML=list.map(p=>{
+  // раздел «Услуги»: сверху опубликованные объявления услуг, ниже - специалисты
+  let svcBlock="";
+  if(marketMode==="services"){
+    const svc=LISTINGS.filter(x=>x.type==="service"&&x.status==="published").sort((a,b)=>b.createdAt-a.createdAt);
+    if(svc.length)svcBlock=`<h3 style="margin:2px 0 8px">Объявления услуг</h3><div class="grid" style="margin-bottom:16px">${svc.map(it=>`<div>${cardHTML(it)}</div>`).join("")}</div><h3 style="margin:2px 0 8px">Специалисты</h3>`;
+  }
+  if(empty)empty.classList.toggle("hidden",list.length>0||!!svcBlock);
+  box.innerHTML=svcBlock+list.map(p=>{
     const c=[];
     if(p.username)c.push("@"+p.username);
     if(p.phone)c.push(p.phone);
     if(p.email)c.push(p.email);
-    return `<button type="button" class="lrow" data-open-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${esc(p.name||"Без имени")}${partnerIds.has(p.id)?' <span class="badge partner">Партнёр</span>':""}${profileBadges(p)}</div><div class="lrow-sub muted">${esc(p.role||"")}${p.city?", "+esc(p.city):""}${p.bio?" · "+esc(p.bio):""}</div>${c.length?`<div class="lrow-sub">${c.map(esc).join(" · ")}</div>`:""}</div></button>`;
+    return `<button type="button" class="lrow" data-open-user="${p.id}" style="width:100%;text-align:left;font:inherit;cursor:pointer">${avatarHTML(p)}<div class="lrow-main"><div class="lrow-title">#${p.num||"—"} ${esc(p.name||"Без имени")}${partnerIds.has(p.id)?' <span class="badge partner">Партнёр</span>':""}${profileBadges(p)}</div><div class="lrow-sub muted">${esc(p.role||"")}${p.city?", "+esc(p.city):""}${p.bio?" · "+esc(p.bio):""}</div>${c.length?`<div class="lrow-sub">${c.map(esc).join(" · ")}</div>`:""}</div></button>`;
   }).join("");
   box.querySelectorAll("[data-open-user]").forEach(b=>b.onclick=()=>openUser(b.dataset.openUser));
+  bindAvatarFallback(box);
 }
 function paintPeople(){
   const box=$("peopleList");if(!box)return;
@@ -1489,18 +1578,25 @@ function openUser(pid){
   };
 }
 function syncNlRoleView(){
-  const isReq=$("nlRole")&&$("nlRole").value==="request";
+  const role=$("nlRole")&&$("nlRole")?$("nlRole").value:"offer";
+  const isReq=role==="request",isSvc=role==="service";
   if($("nlPriceToWrap"))$("nlPriceToWrap").style.display=isReq?"":"none";
-  if($("nlLocCustomWrap"))$("nlLocCustomWrap").style.display=isReq?"":"none";
-  if($("nlPriceLabel"))$("nlPriceLabel").textContent=isReq?"Бюджет от":"Цена";
-  if($("nlPhotosLabel"))$("nlPhotosLabel").textContent=isReq?"Фото (до 6, необязательно)":"Фото (до 6)";
+  if($("nlLocCustomWrap"))$("nlLocCustomWrap").style.display=(isReq||isSvc)?"":"none";
+  if($("nlPriceLabel"))$("nlPriceLabel").textContent=isReq?"Бюджет от":(isSvc?"Цена услуги":"Цена");
+  if($("nlPhotosLabel"))$("nlPhotosLabel").textContent=isReq?"Фото (до 6, необязательно)":(isSvc?"Фото услуги (до 6)":"Фото (до 6)");
+  ["nlDeal","nlType","nlCat","nlTenure","nlLease","nlBed","nlBath","nlArea","nlLand","nlLiving","nlPark","nlAvail","nlAmenToggle"].forEach(id=>{
+    const el=$(id),g=el&&el.closest(".filter-group");
+    if(g)g.style.display=isSvc?"none":"";
+  });
+  if(!isSvc)syncNlDeal();
 }
 function syncNlDeal(){
+  const svc=$("nlRole")&&$("nlRole").value==="service";
   const sale=$("nlDeal").value==="sale";
-  if($("nlTenureWrap"))$("nlTenureWrap").style.display=sale?"":"none";
-  if($("nlCat"))$("nlCat").closest(".filter-group").style.display=sale?"none":"";
+  if($("nlTenureWrap"))$("nlTenureWrap").style.display=(sale&&!svc)?"":"none";
+  if($("nlCat"))$("nlCat").closest(".filter-group").style.display=(svc||sale)?"none":"";
   const lh=$("nlTenure")&&$("nlTenure").value==="leasehold";
-  if($("nlLeaseWrap"))$("nlLeaseWrap").style.display=(sale&&lh)?"":"none";
+  if($("nlLeaseWrap"))$("nlLeaseWrap").style.display=(sale&&lh&&!svc)?"":"none";
 }
 function paintNlPreview(){
   const all=[...nlRemote.map((s,i)=>({s,k:"r"+i})),...nlPhotos.map((s,i)=>({s,k:"p"+i}))];
@@ -1927,11 +2023,17 @@ function openDetail(id){
   const it=findAnywhere(id);if(!it)return;
   if(state.view==="map")mapReturn=captureMapState();
   hideHoverCard();
+  // «Назад в ленту» из карточки услуги должен вести во вкладку услуг, а не в сдачу
+  if(it.type==="service"&&state.role!=="service"){state.role="service";state.page=1;syncRoleTabs();}
   detailId=it.id;detailIdx=0;
   refreshListingContacts(it);
-  const term=it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term"));
+  const term=it.type==="service"?(state.lang==="ru"?"Услуга":"Service"):(it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term")));
   const dep=it.dealType==="rent"?(it.category==="yearly"?Math.round(it.price/12):it.price):0;
-  const rows=[
+  const rows=it.type==="service"?[
+    [state.lang==="ru"?"ID объекта":"Object ID",(it.code?it.code+" / "+shortId(it):"—")],
+    [state.lang==="ru"?"Тип":"Type",state.lang==="ru"?"Услуга":"Service"],
+    [state.lang==="ru"?"Локация":"Location",locLabel(it)||"—"]]
+   :[
     [state.lang==="ru"?"ID объекта":"Object ID",(it.code?it.code+" / "+shortId(it):"—")],
     [state.lang==="ru"?"Тип":"Type",pTypeLabel(it.propertyType)],
     [state.lang==="ru"?"Спальни":"Bedrooms",it.bedrooms||"—"],
@@ -2150,7 +2252,7 @@ function applyQuick(key){
   state.page=1;switchView("list");syncDealTabs();render();highlightQuick();window.scrollTo({top:0,behavior:"smooth"});
 }
 function highlightQuick(){document.querySelectorAll("#quickLinks button").forEach(b=>b.classList.toggle("active",b.dataset.q===activeQuick));}
-function syncRoleTabs(){$("tabOffer").classList.toggle("active",state.role==="offer");$("tabRequest").classList.toggle("active",state.role==="request");}
+function syncRoleTabs(){$("tabOffer").classList.toggle("active",state.role==="offer");$("tabRequest").classList.toggle("active",state.role==="request");const ts=$("tabService");if(ts)ts.classList.toggle("active",state.role==="service");}
 function openCredit(){$("creditModal").classList.remove("hidden");calcCredit();}
 function calcCredit(){
   const P=parseFloat($("simPrice").value)||0, dp=parseFloat($("simDP").value)||0, rate=parseFloat($("simRate").value)||0, yrs=parseFloat($("simYears").value)||0;
@@ -2170,6 +2272,7 @@ $("sortSelect").onchange=e=>{state.sort=e.target.value;state.page=1;render();};
 document.querySelectorAll("[data-deal]").forEach(b=>b.onclick=()=>setDeal(b.dataset.deal));
 $("tabOffer").onclick=()=>{state.role="offer";state.page=1;$("tabOffer").classList.add("active");$("tabRequest").classList.remove("active");render();updateMarkersSafe();};
 $("tabRequest").onclick=()=>{state.role="request";state.page=1;$("tabRequest").classList.add("active");$("tabOffer").classList.remove("active");render();updateMarkersSafe();};
+{const ts=$("tabService");if(ts)ts.onclick=()=>{state.role="service";state.page=1;syncRoleTabs();render();updateMarkersSafe();};}
 document.querySelectorAll(".seg-btn").forEach(b=>b.onclick=()=>{if(b.dataset.cat){state.rentCat=state.rentCat===b.dataset.cat?"":b.dataset.cat;}if(b.dataset.tenure){state.tenure=state.tenure===b.dataset.tenure?"":b.dataset.tenure;}state.page=1;render();});
 $("favHeaderBtn").onclick=()=>{switchView("fav");syncDealTabs();};
 $("profileBtn").onclick=()=>{switchView("profile");switchCabtab("profile");syncDealTabs();};
@@ -2212,7 +2315,16 @@ if($("seeAll"))$("seeAll").onclick=()=>{resetFilters();state.rentCat="";render()
   document.querySelectorAll("[data-imptab]").forEach(b=>b.onclick=()=>switchImptab(b.dataset.imptab));
   document.querySelectorAll("[data-cabtab]").forEach(b=>b.onclick=()=>switchCabtab(b.dataset.cabtab));
   document.querySelectorAll("[data-pf]").forEach(b=>b.onclick=()=>{cabProjFilter=b.dataset.pf;document.querySelectorAll("[data-pf]").forEach(x=>x.classList.toggle("active",x===b));render();});
-  if($("pfAddProj"))$("pfAddProj").onclick=()=>{resetNlForm();switchView("profile");switchCabtab("add");const ap=document.querySelector('#view-profile [data-cabpanel="add"]');if(ap)ap.scrollIntoView({behavior:"smooth"});};
+  if($("pfAddProj"))$("pfAddProj").onclick=()=>{if($("addTypeModal"))$("addTypeModal").classList.remove("hidden");else{resetNlForm();switchView("profile");switchCabtab("add");}};
+  if($("addTypeClose"))$("addTypeClose").onclick=()=>$("addTypeModal").classList.add("hidden");
+  if($("addTypeModal"))$("addTypeModal").addEventListener("click",e=>{if(e.target.id==="addTypeModal")$("addTypeModal").classList.add("hidden");});
+  document.querySelectorAll("[data-addtype]").forEach(b=>b.onclick=()=>{
+    if($("addTypeModal"))$("addTypeModal").classList.add("hidden");
+    resetNlForm();
+    if($("nlRole")){$("nlRole").value=b.dataset.addtype;syncNlRoleView();}
+    switchView("profile");switchCabtab("add");
+    const ap=document.querySelector('#view-profile [data-cabpanel="add"]');if(ap)ap.scrollIntoView({behavior:"smooth"});
+  });
   document.querySelectorAll("[data-usort]").forEach(b=>b.onclick=()=>{userSort=b.dataset.usort;paintUsers();});
   document.querySelectorAll("[data-psort]").forEach(b=>b.onclick=()=>{peopleFilter=b.dataset.psort;document.querySelectorAll("[data-psort]").forEach(x=>x.classList.toggle("active",x===b));paintPeople();});
   document.querySelectorAll("[data-msort]").forEach(b=>b.onclick=()=>{marketFilter=b.dataset.msort;document.querySelectorAll("[data-msort]").forEach(x=>x.classList.toggle("active",x===b));paintMarket();});
@@ -2237,8 +2349,29 @@ $("creditClose").onclick=()=>$("creditModal").classList.add("hidden");
 const langDD=$("langDD"),langBtn=$("langBtn"),langList=$("langList");
 const LANG_COMBO=()=>document.querySelector("#google_translate_element select");
 const LANG_TOP=[["","русский"],["en","английский"],["id","индонезийский"]];
-function langReset(){const paths=["/",location.pathname.replace(/[^/]*$/,"")];paths.forEach(pt=>{["max-age=0","expires=Thu, 01 Jan 1970 00:00:00 GMT"].forEach(tail=>{document.cookie="googtrans=;path="+pt+";"+tail;});document.cookie="googtrans=/ru/ru;path="+pt+";max-age=31536000;"});location.reload();}
+function langReset(){
+  langPending="";
+  // googtrans живёт в двух cookie: host-only и доменной (их пишет сам виджет) - удаляем обе, иначе после перезагрузки язык вернётся
+  const parts=(location.hostname||"").split("."),hosts=[""];
+  for(let i=0;i<parts.length-1;i++)hosts.push(parts.slice(i).join("."));
+  const seg=location.pathname.split("/").slice(0,-1),dirs=["/"];
+  for(let i=seg.length;i>0;i--){dirs.push("/"+seg.slice(0,i).join("/"));dirs.push("/"+seg.slice(0,i).join("/")+"/");}
+  hosts.forEach(h=>dirs.forEach(d=>{
+    const at=h?";domain="+h:"";
+    document.cookie="googtrans=;path="+d+at+";max-age=0";
+    document.cookie="googtrans=;path="+d+at+";expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  }));
+  document.cookie="googtrans=/ru/ru;path=/;max-age=31536000";
+  location.reload();
+}
 const LANG_COOKIE=()=>{const m=/(?:^|; )googtrans=\/[^\/;]+\/([^;]+)/.exec(document.cookie||"");return m?decodeURIComponent(m[1]):"";};
+// Виджет подгружается асинхронно: выбор сделанный до готовности, применяем, когда он появится
+let langPending="";
+function langApply(v){
+  const c=LANG_COMBO();if(!c)return false;
+  c.value=v;c.dispatchEvent(new Event("change",{bubbles:true}));
+  langPending="";langPaint();return true;
+}
 function langPaint(){
   const boxes=[...document.querySelectorAll(".lang-list")];
   if(!boxes.length)return;
@@ -2253,9 +2386,9 @@ function langPaint(){
       const b=document.createElement("button");
       b.type="button";b.className="lang-opt"+(v===cur?" on":"");b.textContent=name;
       b.onclick=()=>{
-        if(v===""){langReset();return;}
-        const c=LANG_COMBO();if(c){c.value=v;c.dispatchEvent(new Event("change",{bubbles:true}));}
-        closeAllDD();langPaint();
+        if(v===""){langPending="";langReset();return;}
+        if(!langApply(v))langPending=v;
+        closeAllDD();
       };
       box.append(b);
     });
@@ -2263,7 +2396,7 @@ function langPaint(){
 }
 function langWaitPaint(){
   let n=0;
-  const tick=()=>{if(LANG_COMBO()){langPaint();return;}if(n++<12)setTimeout(tick,400);};
+  const tick=()=>{if(LANG_COMBO()){if(langPending)langApply(langPending);else langPaint();return;}if(n++<30)setTimeout(tick,400);};
   setTimeout(tick,400);
 }
 function langToggle(){
@@ -2300,6 +2433,9 @@ window.addEventListener("scroll",hideHoverCard,{passive:true,capture:true});
 (function initCabinetBoot(){
   fillDistricts();
   renderProfiles();
+  // состояние шапки по сохранённому токену - до любого обращения к серверу
+  renderAuth();
+  langWaitPaint();
   initSession().catch(()=>{});
   if($("pfSave"))$("pfSave").onclick=async()=>{const ok=await savePrivacy();if(ok)notify("Профиль сохранён");};
   if($("reqSave"))$("reqSave").onclick=async()=>{const ok=await savePrivacy();if(ok)notify("Реквизиты сохранены");};
@@ -2601,8 +2737,8 @@ async function composeListing(opts){
     }
     if(!(price>0)&&!(isReq&&priceMin>0)){price=0;}
     if($("nlCur")&&$("nlCur").value==="USD"){price=Math.round(price*RATE);priceMin=Math.round(priceMin*RATE);}
-    const deal=$("nlDeal").value,role=$("nlRole").value,pt=$("nlType").value;
-    const customLoc=isReq&&$("nlLocCustom")?$("nlLocCustom").value.trim():"";
+    const deal=$("nlDeal").value,role=$("nlRole").value,pt=role==="service"?"service":$("nlType").value;
+    const customLoc=(isReq||role==="service")&&$("nlLocCustom")?$("nlLocCustom").value.trim():"";
     const dk=customLoc?"":($("nlDistrict").value||((old&&old.locationEn)||""));
     const rl=customLoc?customLoc:(dk?locName(dk):"Бали");
     let lat=null,lng=null;
@@ -2633,7 +2769,7 @@ async function composeListing(opts){
       legal:false,rating:0,reviews:0,views:1,mine:true,user:true,tenure:deal==="sale"?$("nlTenure").value:"",
       living:num("nlLiving",old?old.living||0:0),parking:num("nlPark",old?old.parking||0:0),leaseYears:leaseY,
       available:$("nlAvail").value?$("nlAvail").value+"-01":(old?old.available||null:null),
-      amenities:amen.length?amen:(AM[pt]||AM.villa).slice(0,4),moveIn:old?old.moveIn||null:null,desc:$("nlDesc").value.trim()||(old?old.desc||"":""),parties:partiesArr,history:(editingId&&old?mergeHistory(old.history,old.parties,partiesArr):[{name:(partiesArr.find(p=>p.role==="admin")||{}).name||((curProfile()||{}).name||"Вы"),action:"join",at:Date.now()}])};
+      amenities:role==="service"?[]:(amen.length?amen:(AM[pt]||AM.villa).slice(0,4)),moveIn:old?old.moveIn||null:null,desc:$("nlDesc").value.trim()||(old?old.desc||"":""),parties:partiesArr,history:(editingId&&old?mergeHistory(old.history,old.parties,partiesArr):[{name:(partiesArr.find(p=>p.role==="admin")||{}).name||((curProfile()||{}).name||"Вы"),action:"join",at:Date.now()}])};
     return it;
 }
 async function submitForm(auto,opts){
@@ -2643,13 +2779,15 @@ async function submitForm(auto,opts){
     const it=await composeListing(opts);
     if(!it){submitBusy=false;return false;}
     const deal=it.dealType,role=it.type,partiesArr=it.parties||[];
+    let mode=(opts&&opts.mode)||"publish";
+    const svc=role==="service";
     let backendSaved=true;
     const tplSnap=snapForm();
     if(editingId){
       const ix=LISTINGS.findIndex(x=>x.id===editingId);
       if(ix>=0){const old=LISTINGS[ix];it.id=old.id;it.createdAt=old.createdAt;it.views=old.views;it.rating=old.rating;it.reviews=old.reviews;it.owner=old.owner||getGuestId();it.ai=old.ai||it.ai;LISTINGS[ix]=it;}
       backendSaved=await persistMy();
-      if(opts&&opts.mode==="publish"){
+      if(mode==="publish"){
         state.deal=deal;state.role=role;state.page=1;syncRoleTabs();syncDealTabs();
         resetNlForm();render();
         const meId=curPid();
@@ -2660,11 +2798,11 @@ async function submitForm(auto,opts){
         render();
         const prev=$("nlPreview");if(prev)prev.disabled=false;
         lastCreatedId=it.id;lastTplSnap=tplSnap||null;
-        notify(backendSaved?"Изменения сохранены":"Изменения сохранены только в браузере");
+        notify(svc?(backendSaved?"Услуга обновлена и видна всем":"Услуга обновлена только в этом браузере"):(backendSaved?"Изменения сохранены":"Изменения сохранены только в браузере"));
       }
     } else {
       LISTINGS.unshift(it);backendSaved=await persistMy();
-      if(opts&&opts.mode==="draft"){
+      if(mode==="draft"){
         editingId=it.id;
         render();
         const prev=$("nlPreview");if(prev)prev.disabled=false;
@@ -2692,7 +2830,7 @@ function renderNlOrder(){
   list.innerHTML=nlOrder.map((it,i)=>{
     const area=(it.propertyType==="land"?(it.landArea||0):(it.area||0));
     const deal=it.dealType==="sale"?"покупка":"аренда";
-    const role=it.type==="request"?"ищу":"предлагаю";
+    const role=it.type==="request"?"ищу":(it.type==="service"?"услуга":"предлагаю");
     const title=(it.title||pTypeLabel(it.propertyType)).replace(/</g,"&lt;");
     return `<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:8px;padding:8px 10px">
       <span style="font-size:13px"><b>${pTypeLabel(it.propertyType)}</b> · ${role} · ${deal}${area?" · "+area+" м²":""}<br><span class="muted">${title}</span></span>
@@ -3344,7 +3482,7 @@ $("simCalc").onclick=calcCredit;
 render();syncDealTabs();highlightQuick();document.body.dataset.settled="1";
   if($("appVer"))$("appVer").textContent="v"+APP_V;
   const fh=$("folderHint");if(fh)fh.style.display=API?"none":"";
-try{const h=location.hash.match(/#listing-(\d+)/),r=h?null:location.pathname.match(/(?:arenda|prodazha|ischu)\/(\d+)\/?$/);if(h)openDetail(+h[1]);else if(r)openDetail(+r[1]);}catch(e){}
+try{const h=location.hash.match(/#listing-(\d+)/),r=h?null:location.pathname.match(/(?:arenda|prodazha|ischu|usluga)\/(\d+)\/?$/);if(h)openDetail(+h[1]);else if(r)openDetail(+r[1]);}catch(e){}
 
 
 

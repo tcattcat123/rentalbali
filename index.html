@@ -9,9 +9,9 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="146">
+<meta name="app-build" content="147">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
-<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=153">');})();</script>
+<script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu|usluga)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=155">');})();</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false},theme:{extend:{colors:{brand:{DEFAULT:'#0066FF',dark:'#0052CC',soft:'#E6F0FF'}}}}}</script>
 </head>
@@ -29,17 +29,18 @@
       <select id="currencySelect" class="mini-select" title="Валюта"><option value="IDR">IDR</option><option value="USD">USD</option></select>
       <div class="dd lang-dd" id="langDD">
         <button id="langBtn" class="dd-btn lang-btn" type="button" title="Язык страницы" aria-label="Язык страницы" aria-haspopup="true" aria-expanded="false"><svg class="lang-ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg></button>
-        <div class="dd-panel lang-panel"><div id="google_translate_element" class="gtrans"></div><div class="lang-list" id="langList"></div></div>
+        <div class="dd-panel lang-panel"><div id="google_translate_element" class="gtrans"></div><div class="lang-list" id="langList" translate="no"></div></div>
       </div>
       <button id="themeBtn" class="icon-btn" title="Включить тёмную тему" aria-label="Включить тёмную тему" aria-pressed="false"><svg class="theme-ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg></button>
       <button id="favHeaderBtn" class="icon-btn" title="Избранное"><svg class="fav-ic" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true" focusable="false"><path d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8l0-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5l0 3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20-.1-.1s0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5l0 3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2l0-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z"/></svg><span id="favCount" class="fav-count">0</span></button>
-      <button id="authNavBtn" class="icon-btn auth-nav-btn" title="Регистрация / Вход">Регистрация</button>
+      <button id="authNavBtn" class="icon-btn auth-nav-btn hidden" title="Регистрация / Вход">Регистрация</button>
       <button id="profileBtn" class="icon-btn profile active" title="Профиль"><img src="https://i.pravatar.cc/150?img=12" class="pf-nav-img" alt="Профиль"><span class="pf-nav-label">Профиль</span></button>
     </div>
     <div class="sub-tabs">
       <button class="chip active" id="tabOffer" data-type="offer" data-i18n="tab_offer">Сдам / Продам</button>
       <button class="chip" id="tabRequest" data-type="request" data-i18n="tab_request">Сниму / Куплю</button>
-      <span class="sub-hint" data-i18n="sub_hint">предлагаю / ищу</span>
+      <button class="chip" id="tabService" data-type="service" data-i18n="tab_service">Услуги</button>
+      <span class="sub-hint" data-i18n="sub_hint">предлагаю / ищу / услуги</span>
     </div>
   </div>
 </header>
@@ -249,7 +250,7 @@
         <p class="hint">Без токена объекты сохраняются только в этом браузере. С токеном публикуются в общую базу на сервере.</p>
       </div>
     </details>
-    <div class="my-head hidden" data-cabpanel="projects"><div class="my-title-row"><h3>Проекты</h3><button type="button" class="btn-primary" id="pfAddProj">Добавить объявление</button></div><div class="my-chips"><button type="button" class="chip active" data-pf="all">Все</button><button type="button" class="chip" data-pf="offer">Предлагаю</button><button type="button" class="chip" data-pf="request">Ищу</button></div></div>
+    <div class="my-head hidden" data-cabpanel="projects"><div class="my-title-row"><h3>Проекты</h3><button type="button" class="btn-primary" id="pfAddProj">Добавить объявление</button></div><div class="my-chips"><button type="button" class="chip active" data-pf="all">Все</button><button type="button" class="chip" data-pf="offer">Предлагаю</button><button type="button" class="chip" data-pf="request">Ищу</button><button type="button" class="chip" data-pf="service">Услуга</button></div></div>
     <div class="card cab-form hidden" data-cabpanel="add">
     <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px">
     <h3 style="margin:0" id="nlFormTitle">Новый проект</h3>
@@ -283,7 +284,7 @@
     <div class="imp-panel" data-imppanel="manual">
     <div class="calc-grid">
     <div class="filter-group"><label>Сделка</label><select id="nlDeal"><option value="rent">Аренда</option><option value="sale">Покупка</option></select></div>
-    <div class="filter-group"><label>Тип заявки</label><select id="nlRole"><option value="offer">Предлагаю</option><option value="request">Ищу</option></select></div>
+    <div class="filter-group"><label>Тип заявки</label><select id="nlRole"><option value="offer">Предлагаю</option><option value="request">Ищу</option><option value="service">Услуга</option></select></div>
     <div class="filter-group"><label>Тип недвижимости</label><select id="nlType"><option value="villa">Вилла</option><option value="house">Дом</option><option value="apartment">Апарт</option><option value="room">Комната</option><option value="invest">Инвестпроект</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="townhouse">Таунхаус</option><option value="boarding">Sewa Kos</option><option value="commercial">Коммерческая</option></select></div>
     <div class="filter-group"><label>Район *</label><select id="nlDistrict"></select></div>
     <div class="filter-group" id="nlLocCustomWrap" style="display:none"><label>Своя локация (вручную)</label><input id="nlLocCustom" placeholder="Например: рядом с пляжем"></div>
@@ -372,7 +373,7 @@
 
   <section id="view-people" class="hidden">
     <div class="sec-head"><h2 id="peopleTitle" data-i18n="nav_community">Сообщество</h2></div>
-    <p class="muted" style="font-size:12px;margin:0 2px 10px">Открытые профили: агенты, нотариусы, консультанты, операторы, администраторы, владельцы и покупатели. Ваши партнёры отмечены зелёным.</p>
+    <p class="muted" id="peopleHint" style="font-size:12px;margin:0 2px 10px">Открытые профили: агенты, нотариусы, консультанты, операторы, администраторы, владельцы и покупатели. Ваши партнёры отмечены зелёным.</p>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
       <button type="button" class="chip active" data-msort="all">Все</button>
       <button type="button" class="chip" data-msort="agent">Агенты</button>
@@ -416,6 +417,13 @@
 </div></div>
 <div id="filtersModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="filtersClose">✕</button><h3 data-i18n="filters">Фильтры</h3><p class="muted" data-i18n="filters_hint">Задайте значения и нажмите Показать.</p><button id="filtersModalApply" class="btn-primary block" data-i18n="apply">Показать</button></div></div>
 <div id="userModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="userClose">✕</button><div id="userContent"></div></div></div>
+<div id="addTypeModal" class="modal hidden"><div class="modal-box"><button class="modal-close" id="addTypeClose">✕</button>
+<h3>Добавить объявление</h3><p class="muted" style="font-size:12px;margin:4px 0 12px">Выберите тип — в форме его можно поменять.</p>
+<div style="display:grid;gap:8px">
+<button type="button" class="lrow" data-addtype="offer" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">Предлагаю</div><div class="lrow-sub muted">Сдаю или продаю свой объект</div></div></button>
+<button type="button" class="lrow" data-addtype="request" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">Ищу</div><div class="lrow-sub muted">Ищу объект для себя или клиента</div></div></button>
+<button type="button" class="lrow" data-addtype="service" style="width:100%;text-align:left;font:inherit;cursor:pointer"><div class="lrow-main"><div class="lrow-title">Услуга</div><div class="lrow-sub muted">Уборка, трансфер, юрист, виза</div></div></button>
+</div></div></div>
 <div id="agreeModal" class="modal hidden"><div class="modal-box wide"><button class="modal-close" id="agreeClose">✕</button>
   <h3>Пользовательский договор</h3>
   <p class="muted" style="font-size:12px">Для входа в личный кабинет необходимо прочитать и принять договор.</p>
@@ -479,7 +487,8 @@
   </div>
 </div>
 
-<script>document.write('<script src="js/app.js?v=163"><\/script>');</script>
+<script>document.write('<script src="js/app.js?v=175"><\/script>');</script>
+<script>(function(){try{if(/googtrans=\/[^\/;]+\/(?!ru)/.test(document.cookie||"")){["/",location.pathname.replace(/[^/]*$/,"")].forEach(function(pt){["max-age=0","expires=Thu, 01 Jan 1970 00:00:00 GMT"].forEach(function(t){document.cookie="googtrans=;path="+pt+";"+t;});});}}catch(e){}})();</script>
 <script>function googleTranslateElementInit(){try{new google.translate.TranslateElement({pageLanguage:"ru",autoDisplay:false},"google_translate_element");}catch(e){}}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

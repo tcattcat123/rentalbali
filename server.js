@@ -386,11 +386,14 @@ async function upsertListing(b, auth) {
     [existing] = await pool.query('SELECT id, owner FROM listings WHERE code = ? LIMIT 1', [code]);
   }
 
+  const roleVal = b.role === 'request' ? 'request' : b.role === 'service' ? 'service' : 'offer';
+  const svc = roleVal === 'service';
+
   const values = [
     title,
     b.dealType === 'sale' ? 'sale' : 'rent',
-    b.role === 'request' ? 'request' : 'offer',
-    b.propertyType || 'villa',
+    roleVal,
+    svc ? 'service' : b.propertyType || 'villa',
     b.district || b.locationEn || '',
     b.location || '',
     b.address || b.addr || '',

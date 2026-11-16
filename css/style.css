@@ -182,6 +182,8 @@ a{-webkit-tap-highlight-color:transparent}
 .lrow-sub.muted{color:var(--mut)}
 .lrow-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .lrow-side .price{font-size:14px;white-space:nowrap}
+.pav{width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--line)}
+.pav.init{display:flex;align-items:center;justify-content:center;background:var(--acc);color:#fff;font-size:16px;font-weight:700;line-height:1}
 .property-card.no-photo .card-body{padding:8px 10px}
 .property-card.no-photo .price{font-size:15px}
 .property-card.no-photo .specs{display:none}
@@ -830,3 +832,9 @@ button.param-chip:hover{background:var(--acc-soft);color:var(--acc-dark)}
 .map-side::-webkit-scrollbar-thumb,.map-list::-webkit-scrollbar-thumb{background:var(--acc);border-radius:8px}
 .map-side::-webkit-scrollbar-thumb:hover,.map-list::-webkit-scrollbar-thumb:hover{background:var(--acc-dark)}
 .price .upd-date{display:inline-block;margin-left:8px;font-size:11px;font-weight:400;opacity:.65;white-space:nowrap}
+
+#mapBadge{position:absolute;z-index:900;left:8px;top:8px;display:none;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;box-shadow:var(--sh-h)}
+#mapBadge.on{display:flex}
+#mapBadge.load{opacity:0;animation:mbIn .18s .35s forwards}
+@keyframes mbIn{to{opacity:1}}
+#mapBadge button{height:26px;padding:0 10px;border:1px solid var(--acc);background:var(--acc);color:#fff;border-radius:6px;font-size:12px;cursor:pointer}
