@@ -780,7 +780,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="147";
+const APP_V="2.84";const APP_BUILD="148";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -2379,7 +2379,7 @@ function langPaint(){
   const ck=LANG_COOKIE(),cur=(combo&&combo.value)||(ck==="ru"?"":ck);
   const used={},rows=LANG_TOP.map(([v,name])=>{used[v]=1;return[v,name];});
   opts.forEach(o=>{if(!used[o.value]){used[o.value]=1;rows.push([o.value,o.textContent]);}});
-  if(matchMedia("(max-width:767px)").matches)rows.splice(3);
+  rows.splice(3);
   boxes.forEach(box=>{
     box.innerHTML="";
     rows.forEach(([v,name])=>{
