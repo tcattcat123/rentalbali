@@ -9,7 +9,7 @@
 <meta property="og:description" content="Аренда и покупка недвижимости на Бали — стильно, быстро, прозрачно.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0066ff">
-<meta name="app-build" content="149">
+<meta name="app-build" content="150">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230066FF'/%3E%3Cpath d='M18 32 32 18l14 14' stroke='white' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='32' width='16' height='14' rx='2' fill='%23BFD9FF'/%3E%3C/svg%3E">
 <script>(function(){var p=location.pathname,m=p.match(/^(.*?)(?:arenda|prodazha|ischu|usluga)\/\d+\/?$/),b=m?m[1]:p.replace(/[^\/]*$/,"");if(b&&b.slice(-1)!=="/")b+="/";document.write('<base href="'+(b||"/")+'"><link rel="stylesheet" href="css/style.css?v=156">');})();</script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -21,9 +21,9 @@
   <div class="header-inner">
     <a class="logo" href="#" id="logoBtn">RentHome <em>Bali</em><svg class="logo-palm" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="28" rx="12" ry="3" fill="#F2C94C"/><g class="palm-top"><path d="M16 27C15.5 20 15.5 14 17.5 8" stroke="#8B5A2B" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="10.5" cy="9" rx="6.5" ry="2.6" fill="#27AE60" transform="rotate(-24 10.5 9)"/><ellipse cx="23.5" cy="9" rx="6.5" ry="2.6" fill="#27AE60" transform="rotate(24 23.5 9)"/><ellipse cx="17" cy="6" rx="5" ry="2.2" fill="#2FBF71"/><g class="nuts"><circle cx="15.5" cy="10" r="1.6" fill="#6B4226"/><circle cx="19" cy="10" r="1.6" fill="#6B4226"/></g></g></svg></a>
     <nav class="hnav" aria-label="Deal type">
-      <button data-deal="rent" class="active">Аренда</button>
-      <button data-deal="sale">Купить</button>
-      <button data-deal="map">Карта</button>
+      <button data-deal="rent" class="active" data-i18n="seg_rent">Аренда</button>
+      <button data-deal="sale" data-i18n="deal_buy">Купить</button>
+      <button data-deal="map" data-i18n="deal_map">Карта</button>
     </nav>
     <div class="header-actions">
       <select id="currencySelect" class="mini-select" title="Валюта"><option value="IDR">IDR</option><option value="USD">USD</option></select>
@@ -54,19 +54,19 @@
     </div>
 
     <section id="msearch" class="msearch">
-      <div class="mseg"><button data-mdeal="rent" class="active">Аренда</button><button data-mdeal="sale">Купить</button></div>
+      <div class="mseg"><button data-mdeal="rent" class="active" data-i18n="seg_rent">Аренда</button><button data-mdeal="sale" data-i18n="deal_buy">Купить</button></div>
       <div class="msearch-input"><span>⌕</span><input id="mquery" placeholder="Район, объект или бюджет" autocomplete="off"></div>
       <div class="mchips" id="mchips">
       </div>
-      <button id="mshow" class="btn-primary">Показать варианты</button>
-      <div class="mrow"><button id="mfilterBtn">☰ Фильтры <span id="fcount" class="fav-count hidden">0</span></button><button id="mreset" class="btn-text">Сбросить все</button></div>
+      <button id="mshow" class="btn-primary" data-i18n="show_variants">Показать варианты</button>
+      <div class="mrow"><button id="mfilterBtn">☰ Фильтры <span id="fcount" class="fav-count hidden">0</span></button><button id="mreset" class="btn-text" data-i18n="reset_all">Сбросить все</button></div>
     </section>
 
     <div class="toolbar card">
       <div class="deal-tabs" role="tablist">
-        <button class="dtab" id="dealBuy" data-deal="sale">Купить</button>
-        <button class="dtab active" id="dealRent" data-deal="rent">Арендовать</button>
-        <button class="dtab" id="dealMap" data-deal="map">Поиск по карте</button>
+        <button class="dtab" id="dealBuy" data-deal="sale" data-i18n="deal_buy">Купить</button>
+        <button class="dtab active" id="dealRent" data-deal="rent" data-i18n="deal_rent">Арендовать</button>
+        <button class="dtab" id="dealMap" data-deal="map" data-i18n="map_search">Поиск по карте</button>
       </div>
       <div class="search-row">
         <div class="search-input"><span>⌕</span><input id="dquery" placeholder="Район, объект или бюджет" autocomplete="off"></div>
@@ -74,13 +74,13 @@
         <button id="applyBtn" class="btn-primary">⌕ Показать</button>
       </div>
       <div class="filters" id="filtersBar">
-        <div class="filter-group"><label>Тип недвижимости</label>
+        <div class="filter-group"><label data-i18n="ptype">Тип недвижимости</label>
           <select id="fType"><option value="">Все</option><option value="villa">Виллы</option><option value="house">Дома</option><option value="apartment">Апарты</option><option value="room">Комнаты</option><option value="invest">Инвестпроекты</option><option value="homestay">Homestay</option><option value="land">Земля</option><option value="commercial">Коммерческая</option><option value="townhouse">Таунхаусы</option><option value="boarding">Sewa Kos</option></select></div>
-        <div class="filter-group" id="rentCatWrap"><label>Срок</label>
+        <div class="filter-group" id="rentCatWrap"><label data-i18n="rent_cat">Срок</label>
           <div class="tipe-box"><div class="seg"><button class="seg-btn" data-cat="monthly" id="catMonthly">мес</button><button class="seg-btn" data-cat="yearly" id="catYearly">год</button></div><span class="chev">▼</span></div></div>
-        <div class="filter-group" id="tenureWrap"><label>Тип владения</label>
+        <div class="filter-group" id="tenureWrap"><label data-i18n="tenure_label">Тип владения</label>
           <div class="tipe-box"><div class="seg"><button class="seg-btn" data-tenure="freehold">Freehold</button><button class="seg-btn" data-tenure="leasehold">Leasehold</button></div><span class="chev">▼</span></div></div>
-        <div class="filter-group"><label>Локация</label>
+        <div class="filter-group"><label data-i18n="district">Локация</label>
           <div class="filter-location" id="locFilter">
             <button type="button" class="filter-header" id="locHeader" aria-haspopup="true" aria-expanded="false">
               <span class="filter-selected" id="locSelected">Любая</span>
@@ -91,17 +91,17 @@
         </div>
         <div class="filter-group"><label>Цена · <span id="curLabel">IDR</span></label>
           <div class="price-inputs"><input type="number" id="priceMin" placeholder="от" min="0"><span>–</span><input type="number" id="priceMax" placeholder="до" min="0"></div></div>
-        <div class="filter-group"><label>Спальни</label>
+        <div class="filter-group"><label data-i18n="bedrooms">Спальни</label>
           <select id="fRooms"><option value="">Все</option><option>1</option><option>2</option><option>3</option><option>4</option><option value="5">5+</option></select></div>
-        <div class="filter-group"><label>Удобства</label>
+        <div class="filter-group"><label data-i18n="amenities_label">Удобства</label>
           <select id="fAmen"><option value="">Выберите</option><option>Бассейн</option><option>Wi-Fi</option><option>Кондиционер</option><option>Кухня</option><option>Парковка</option><option>Сад</option><option>Холодильник</option><option>Телевизор</option></select></div>
         <div class="filter-group filter-icongroup"><label>&nbsp;</label>
           <button id="advIconBtn" class="btn-ghost" title="Расширенный поиск">☰</button></div>
         <div id="advPanel" class="adv-panel hidden">
-        <div class="filter-group" id="availWrap"><label>Доступно с</label><input type="month" id="fAvail" min="2026-09" max="2028-12"></div>
-        <div class="filter-group"><label>Гостиная</label>
+        <div class="filter-group" id="availWrap"><label data-i18n="avail_from">Доступно с</label><input type="month" id="fAvail" min="2026-09" max="2028-12"></div>
+        <div class="filter-group"><label data-i18n="living_label">Гостиная</label>
           <select id="fLiving"><option value="">Любая</option><option value="1">1</option><option value="2">2+</option></select></div>
-        <div class="filter-group"><label>Мебель</label>
+        <div class="filter-group"><label data-i18n="furn">Мебель</label>
           <select id="furnQ"><option value="">Любая</option><option value="yes">Да</option><option value="no">Нет</option></select></div>
         <div class="filter-group"><label data-i18n="land_area">Участок, м²</label><div class="price-inputs"><input type="number" id="landMin" placeholder="от"><span>–</span><input type="number" id="landMax" placeholder="до"></div></div>
         <div class="filter-group"><label data-i18n="build_area">Строение, м²</label><div class="price-inputs"><input type="number" id="areaMin" placeholder="от"><span>–</span><input type="number" id="areaMax" placeholder="до"></div></div>
@@ -110,16 +110,16 @@
         <div class="filter-group"><label data-i18n="parking">Парковка</label><select id="fPark"><option value="">—</option><option>1</option><option>2</option><option>3</option></select></div>
         </div>
         <div class="sheet-foot">
-          <button id="sheetAdv" class="btn-ghost">Расширенный</button>
-          <button id="sheetReset" class="btn-text">Сбросить</button>
-          <button id="sheetApply" class="btn-primary">Показать</button>
+          <button id="sheetAdv" class="btn-ghost" data-i18n="advanced">Расширенный</button>
+          <button id="sheetReset" class="btn-text" data-i18n="reset">Сбросить</button>
+          <button id="sheetApply" class="btn-primary" data-i18n="apply">Показать</button>
         </div>
       </div>
       <div class="bottom-row">
         <button id="resetBtn" class="btn-text">↻ Сбросить все</button>
         <button id="mapBtn" class="btn-ghost">◎ <span data-i18n="deal_map">Карта</span></button>
         <div class="results-count" id="resultsCount">…</div>
-        <div class="sort-wrap"><span class="sort-ic">⇅</span><span class="sort-label">Сортировка:</span>
+        <div class="sort-wrap"><span class="sort-ic">⇅</span><span class="sort-label" data-i18n="sort_label">Сортировка:</span>
           <select id="sortSelect" class="mini-select"><option value="date_desc">Сначала новые</option><option value="avail">Сначала доступные</option><option value="price_asc">Дешевле</option><option value="price_desc">Дороже</option><option value="popular">Популярные</option></select>
           <button id="listModeBtn" class="btn-ghost" title="Вид списка">☰ Списком</button>
         </div>
@@ -141,7 +141,7 @@
       </div>
     </section>
 
-    <div class="sec-head"><h2>Проверенные объекты</h2><button id="seeAll">Смотреть все</button></div>
+    <div class="sec-head"><h2 data-i18n="verified_objects">Проверенные объекты</h2><button id="seeAll" data-i18n="see_all">Смотреть все</button></div>
     <div id="cardsGrid" class="grid"></div>
     <div id="emptyState" class="empty hidden"><b>∅</b><p data-i18n="empty">Ничего не найдено. Попробуйте сбросить фильтры.</p></div>
     <div id="pagination" class="pagination"></div>
@@ -487,7 +487,7 @@
   </div>
 </div>
 
-<script>document.write('<script src="js/app.js?v=177"><\/script>');</script>
+<script>document.write('<script src="js/app.js?v=178"><\/script>');</script>
 <script>(function(){try{if(/googtrans=/.test(document.cookie||"")){["/",location.pathname.replace(/[^/]*$/,"")].forEach(function(pt){["max-age=0","expires=Thu, 01 Jan 1970 00:00:00 GMT"].forEach(function(t){document.cookie="googtrans=;path="+pt+";"+t;});});}}catch(e){}})();</script>
 </body>
 </html>

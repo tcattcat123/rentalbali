@@ -634,8 +634,8 @@ function fmtDT(ts){try{return new Date(ts).toLocaleString("ru-RU",{day:"2-digit"
 let detailId=null,detailIdx=0;
 
 const I18N = {
-ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",tab_service:"Услуги",sub_hint:"предлагаю / ищу / услуги",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",nav_want:"Ищу",nav_partners:"Партнёры",nav_contracts:"Договора",nav_market:"Участники рынка",nav_services:"Услуги",nav_community:"Сообщество",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",service_h:"Услуги",t_service:"Услуга",t_villa:"Вилла",t_house:"Дом",t_apartment:"Апарты",t_room:"Комнаты",t_invest:"Инвестпроекты",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:""},
-en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",tab_service:"Services",sub_hint:"offer / wanted / services",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",nav_want:"Wanted",nav_partners:"Partners",nav_contracts:"Contracts",nav_market:"Market people",nav_services:"Services",nav_community:"Community",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",service_h:"Services",t_service:"Service",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_room:"Rooms",t_invest:"Investment projects",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:""}
+ru:{topbar:"Проверенные объекты Бали · прозрачная цена · русскоязычная поддержка",deal_buy:"Купить",deal_rent:"Арендовать",deal_map:"Карта",tab_offer:"Сдам / Продам",tab_request:"Сниму / Куплю",tab_service:"Услуги",sub_hint:"предлагаю / ищу / услуги",price:"Цена",ptype:"Тип недвижимости",all:"Все",any:"Любой",any_area:"Вся Бали",bedrooms:"Спальни",district:"Локация",loc_any:"Любая локация",loc_clear:"Очистить",apply:"Показать",reset:"Сбросить",filters:"Фильтры",advanced:"Расширенный",rent_cat:"Срок",monthly:"мес",yearly:"год",land_area:"Участок, м²",build_area:"Строение, м²",floors:"Этажей",year:"Год от",furn:"Меблировка",yes:"Да",no:"Нет",parking:"Парковка",s_date:"Сначала новые",s_price_asc:"Дешевле",s_price_desc:"Дороже",s_pop:"Популярные",empty:"Ничего не найдено. Попробуйте сбросить фильтры.",fav_title:"Избранное",fav_empty:"Пока пусто. Нажмите ♡ на карточке, чтобы сохранить.",verified:"Проверено",owner:"Собственник",my_listings:"Мои объявления",nav_list:"Каталог",nav_map:"Карта",nav_fav:"Сохранённое",nav_profile:"Профиль",nav_want:"Ищу",nav_partners:"Партнёры",nav_contracts:"Договора",nav_market:"Участники рынка",nav_services:"Услуги",nav_community:"Сообщество",filters_hint:"Задайте значения и нажмите Показать.",variants:"вариантов",new:"New",top:"Топ",agent:"Агент",urgent:"Срочно",offer_btn:"Предложить вариант",legal_txt:"Юр. сопровождение",move_in:"Заезд",month:"/ мес",year_per:"/ год",total:"total",new_objects:"Новые объекты недвижимости",q_buy_house:"Купить дом",q_buy_land:"Купить землю",q_rent_house:"Арендовать дом",q_rent_land:"Аренда земли",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Моделирование кредита",sim_hint:"Simulasi Kredit — прикиньте ежемесячный платёж.",sim_price:"Цена объекта",sim_dp:"Первый взнос, %",sim_rate:"Ставка, % годовых",sim_years:"Срок, лет",sim_go:"Рассчитать",map_hint:"Фильтры применяются к карте.",f_product:"Продукт",f_help:"Помощь",f_policy:"Право",home:"Главная",long_rent:"Аренда · помесячно",year_rent:"Аренда · на год",sale_h:"Покупка",offer_h:"Предлагаю",request_h:"Ищу",service_h:"Услуги",t_service:"Услуга",t_villa:"Вилла",t_house:"Дом",t_apartment:"Апарты",t_room:"Комнаты",t_invest:"Инвестпроекты",t_homestay:"Homestay",t_land:"Земельные участки",t_commercial:"Коммерческая",t_townhouse:"Таунхаусы",t_boarding:"Sewa Kos",char_land:"Участок",char_house:"Дом",char_floors:"Эт.",char_bed:"сп.",char_bath:"ван.",char_year:"",seg_rent:"Аренда",map_search:"Поиск по карте",search_ph:"Район, объект или бюджет",show_variants:"Показать варианты",reset_all:"Сбросить все",tenure_label:"Тип владения",amenities_label:"Удобства",avail_from:"Доступно с",living_label:"Гостиная",verified_objects:"Проверенные объекты",see_all:"Смотреть все",sort_label:"Сортировка:",s_avail:"Сначала доступные"},
+en:{topbar:"Verified Bali listings · transparent pricing · EN support",deal_buy:"Buy",deal_rent:"Rent",deal_map:"Map",tab_offer:"Offer",tab_request:"Wanted",tab_service:"Services",sub_hint:"offer / wanted / services",price:"Price",ptype:"Property type",all:"All",any:"Any",any_area:"All Bali",bedrooms:"Bedrooms",district:"Location",loc_any:"Any",loc_clear:"Clear",apply:"Show",reset:"Reset",filters:"Filters",advanced:"Advanced",rent_cat:"Term",monthly:"mo",yearly:"yr",land_area:"Land, m²",build_area:"Building, m²",floors:"Floors",year:"Year from",furn:"Furnished",yes:"Yes",no:"No",parking:"Parking",s_date:"Newest",s_price_asc:"Cheapest",s_price_desc:"Priciest",s_pop:"Popular",empty:"Nothing found. Try resetting filters.",fav_title:"Favorites",fav_empty:"Empty yet. Tap ♡ on a card to save.",verified:"Verified",owner:"Owner",my_listings:"My listings",nav_list:"Catalog",nav_map:"Map",nav_fav:"Saved",nav_profile:"Profile",nav_want:"Wanted",nav_partners:"Partners",nav_contracts:"Contracts",nav_market:"Market people",nav_services:"Services",nav_community:"Community",filters_hint:"Set values and press Show.",variants:"places",new:"New",top:"Top",agent:"Agent",urgent:"Urgent",offer_btn:"Propose option",legal_txt:"Legal support",move_in:"Move-in",month:"/ mo",year_per:"/ yr",total:"total",new_objects:"New properties",q_buy_house:"Buy house",q_buy_land:"Buy land",q_rent_house:"Rent house",q_rent_land:"Land lease",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Credit simulation",sim_hint:"Simulasi Kredit — estimate your monthly payment.",sim_price:"Price",sim_dp:"Down payment, %",sim_rate:"Rate, % yearly",sim_years:"Term, years",sim_go:"Calculate",map_hint:"Filters apply to the map.",f_product:"Product",f_help:"Help",f_policy:"Legal",home:"Home",long_rent:"Rent · monthly",year_rent:"Rent · yearly",sale_h:"Sale",offer_h:"Offer",request_h:"Wanted",service_h:"Services",t_service:"Service",t_villa:"Villa",t_house:"House",t_apartment:"Apartments",t_room:"Rooms",t_invest:"Investment projects",t_homestay:"Homestay",t_land:"Land plots",t_commercial:"Commercial",t_townhouse:"Townhouses",t_boarding:"Sewa Kos",char_land:"Land",char_house:"House",char_floors:"fl.",char_bed:"bd",char_bath:"ba",char_year:"",seg_rent:"Rent",map_search:"Search on map",search_ph:"Area, property or budget",show_variants:"Show options",reset_all:"Reset all",tenure_label:"Ownership type",amenities_label:"Amenities",avail_from:"Available from",living_label:"Living room",verified_objects:"Verified listings",see_all:"See all",sort_label:"Sort:",s_avail:"Available first"},id:{topbar:"Listing Bali terverifikasi · harga transparan · dukungan bahasa Indonesia",deal_buy:"Beli",deal_rent:"Sewa",deal_map:"Peta",tab_offer:"Tawarkan",tab_request:"Dicari",tab_service:"Jasa",sub_hint:"tawaran / dicari / jasa",price:"Harga",ptype:"Jenis properti",all:"Semua",any:"Semua",any_area:"Seluruh Bali",bedrooms:"Kamar tidur",district:"Lokasi",loc_any:"Semua lokasi",loc_clear:"Hapus",apply:"Tampilkan",reset:"Atur ulang",filters:"Filter",advanced:"Lanjutan",rent_cat:"Jangka waktu",monthly:"bln",yearly:"thn",land_area:"Tanah, m²",build_area:"Bangunan, m²",floors:"Lantai",year:"Tahun mulai",furn:"Perabot",yes:"Ya",no:"Tidak",parking:"Parkir",s_date:"Terbaru",s_price_asc:"Termurah",s_price_desc:"Termahal",s_pop:"Populer",empty:"Tidak ada hasil. Coba atur ulang filter.",fav_title:"Favorit",fav_empty:"Masih kosong. Ketuk ♡ pada kartu untuk menyimpan.",verified:"Terverifikasi",owner:"Pemilik",my_listings:"Iklan saya",nav_list:"Katalog",nav_map:"Peta",nav_fav:"Tersimpan",nav_profile:"Profil",nav_want:"Dicari",nav_partners:"Mitra",nav_contracts:"Kontrak",nav_market:"Pelaku pasar",nav_services:"Jasa",nav_community:"Komunitas",filters_hint:"Atur nilai lalu tekan Tampilkan.",variants:"properti",new:"Baru",top:"Unggulan",agent:"Agen",urgent:"Mendesak",offer_btn:"Ajukan opsi",legal_txt:"Pendampingan hukum",move_in:"Tanggal masuk",month:"/ bln",year_per:"/ thn",total:"total",new_objects:"Properti baru",q_buy_house:"Beli rumah",q_buy_land:"Beli tanah",q_rent_house:"Sewa rumah",q_rent_land:"Sewa tanah",q_homestay:"Homestay",q_rent_board:"Sewa Kos",q_sim:"Simulasi kredit",sim_hint:"Simulasi Kredit - perkirakan cicilan bulanan Anda.",sim_price:"Harga properti",sim_dp:"Uang muka, %",sim_rate:"Suku bunga, % tahunan",sim_years:"Jangka waktu, tahun",sim_go:"Hitung",map_hint:"Filter berlaku untuk peta.",f_product:"Produk",f_help:"Bantuan",f_policy:"Hukum",home:"Beranda",long_rent:"Sewa · bulanan",year_rent:"Sewa · tahunan",sale_h:"Dijual",offer_h:"Tawaran",request_h:"Dicari",service_h:"Jasa",t_service:"Jasa",t_villa:"Vila",t_house:"Rumah",t_apartment:"Apartemen",t_room:"Kamar",t_invest:"Proyek investasi",t_homestay:"Homestay",t_land:"Kavling tanah",t_commercial:"Komersial",t_townhouse:"Townhouse",t_boarding:"Sewa Kos",char_land:"Tanah",char_house:"Rumah",char_floors:"lt.",char_bed:"kt",char_bath:"km",char_year:"",seg_rent:"Sewa",map_search:"Cari di peta",search_ph:"Area, properti atau anggaran",show_variants:"Tampilkan pilihan",reset_all:"Atur ulang semua",tenure_label:"Jenis kepemilikan",amenities_label:"Fasilitas",avail_from:"Tersedia mulai",living_label:"Ruang tamu",verified_objects:"Listing terverifikasi",see_all:"Lihat semua",sort_label:"Urutkan:",s_avail:"Tersedia dulu"}
 };
 
 const state = {deal:"rent",role:"offer",rentCat:"",tenure:"",query:"",view:"list",page:1,perPage:9,sort:"date_desc",lang:(function(){var l=localStorage.getItem("rh_lang");return (l==="en"||l==="id")?l:"ru";})(),currency:"IDR",fav:new Set(JSON.parse(localStorage.getItem(favKey())||"[]")),carIdx:{},districts:new Set()};
@@ -780,7 +780,7 @@ function notify(msg,ms){
   setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms||3200);
   while(box.children.length>3)box.firstChild.remove();
 }
-const APP_V="2.84";const APP_BUILD="149";
+const APP_V="2.84";const APP_BUILD="150";
 try{
   const mb=document.querySelector('meta[name="app-build"]');
   if(mb&&mb.content!==APP_BUILD){
@@ -791,7 +791,9 @@ try{
     document.body.prepend(b);
   }
 }catch(e){}
-const t = k=>I18N[state.lang][k]||k;
+const t = k=>(I18N[state.lang]||I18N.en)[k]||k;
+function tr(ru,en,id){return state.lang==="ru"?ru:(state.lang==="id"?id:en);}
+function noun(n,f,en,id){return state.lang==="ru"?plural(n,f):(state.lang==="id"?id:en);}
 const isNew = it=>(Date.now()-it.createdAt)<24*H;
 
 function convertPrice(v){return state.currency==="USD"?Math.round(v/RATE):v;}
@@ -802,22 +804,22 @@ function updDateHtml(it){
   const s=it.updatedAt||it.createdAt; if(!s)return "";
   const d=new Date(s); if(isNaN(d.getTime()))return "";
   const ds=("0"+d.getDate()).slice(-2)+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+d.getFullYear();
-  return '<span class="upd-date">'+(state.lang==="ru"?"обновлено ":"updated ")+ds+'</span>';
+  return '<span class="upd-date">'+(tr("обновлено ","updated ","diperbarui "))+ds+'</span>';
 }
 function fmtPrice(it){
   if(it.type==="service"){
-    if(!(it.price>0))return "Цена по запросу";
+    if(!(it.price>0))return tr("Цена по запросу","Price on request","Harga atas permintaan");
     return `${state.currency==="USD"?"$ ":""}${fmtNum(it.price)} ${curSuffix()}`;
   }
   if(it.type==="request"){
     const lo=it.priceMin||0,hi=it.price||0;
     const tail=it.dealType==="sale"?" "+t("total"):(it.dealType==="rent"?" "+(it.category==="yearly"?t("year_per"):t("month")):"");
-    if(lo>0&&hi>0)return state.lang==="ru"?`от ${fmtMoney(lo)} до ${fmtMoney(hi)}${tail}`:`${fmtMoney(lo)} – ${fmtMoney(hi)}${tail}`;
-    if(hi>0)return state.lang==="ru"?`до ${fmtMoney(hi)}${tail}`:`up to ${fmtMoney(hi)}${tail}`;
-    if(lo>0)return state.lang==="ru"?`от ${fmtMoney(lo)}${tail}`:`from ${fmtMoney(lo)}${tail}`;
-    return "Цена по запросу";
+    if(lo>0&&hi>0)return tr(`от ${fmtMoney(lo)} до ${fmtMoney(hi)}${tail}`,`${fmtMoney(lo)} – ${fmtMoney(hi)}${tail}`,`dari ${fmtMoney(lo)} sampai ${fmtMoney(hi)}${tail}`);
+    if(hi>0)return tr(`до ${fmtMoney(hi)}${tail}`,`up to ${fmtMoney(hi)}${tail}`,`hingga ${fmtMoney(hi)}${tail}`);
+    if(lo>0)return tr(`от ${fmtMoney(lo)}${tail}`,`from ${fmtMoney(lo)}${tail}`,`dari ${fmtMoney(lo)}${tail}`);
+    return tr("Цена по запросу","Price on request","Harga atas permintaan");
   }
-  if(!(it.price>0))return "Цена по запросу";
+  if(!(it.price>0))return tr("Цена по запросу","Price on request","Harga atas permintaan");
   if(it.dealType==="sale")return `${state.currency==="USD"?"$ ":""}${fmtNum(it.price)} ${curSuffix()}${state.lang==="ru"?" "+t("total"):" "+t("total")}`;
   const per = it.category==="yearly"?t("year_per"):t("month");
   return `${state.currency==="USD"?"$ ":""}${fmtNum(it.price)} ${curSuffix()} ${per}`;
@@ -825,6 +827,8 @@ function fmtPrice(it){
 function timeAgo(ts){
   const d=Date.now()-ts, m=Math.floor(d/M), h=Math.floor(d/H), days=Math.floor(h/24);
   if(state.lang==="ru"){if(m<1)return"только что";if(m<60)return`${m} мин. назад`;if(h<24)return`${h} ч. назад`;if(days===1)return"вчера";return`${days} дн. назад`;}
+  if(state.lang==="id"){if(m<1)return"baru saja";if(m<60)return`${m} mnt lalu`;if(h<24)return`${h} jam lalu`;if(days===1)return"kemarin";return`${days} hari lalu`;
+  }
   if(m<1)return"just now";if(m<60)return`${m} min ago`;if(h<24)return`${h} h ago`;if(days===1)return"yesterday";return`${days} days ago`;
 }
 function pTypeLabel(v){return t("t_"+v)||v;}
@@ -881,15 +885,15 @@ let listMode=false;
 try{listMode=localStorage.getItem("rh_listmode")==="1";}catch(e){}
 function paintListModeBtn(){
   const b=$("listModeBtn");if(!b)return;
-  b.textContent=listMode?(state.lang==="ru"?"🖼 Показать фото":"🖼 Photos"):(state.lang==="ru"?"☰ Списком":"☰ List");
+  b.textContent=listMode?(tr("🖼 Показать фото","🖼 Photos","🖼 Lihat foto")):(tr("☰ Списком","☰ List","☰ Daftar"));
 }
 function rowHTML(it,i){
   i=i||0;
   const fav=state.fav.has(it.id);
-  const p1=[pTypeLabel(it.propertyType),it.bedrooms>0?it.bedrooms+" "+plural(it.bedrooms,["спальня","спальни","спален"]):"",it.area>0?it.area+" м²":""].filter(Boolean).join(" · ");
-  const p2=[locLabel(it)+", Бали",it.code?("ID: "+it.code):""].filter(Boolean).join(" · ");
+  const p1=[pTypeLabel(it.propertyType),it.bedrooms>0?it.bedrooms+" "+noun(it.bedrooms,["спальня","спальни","спален"],"bedrooms","kamar tidur"):"",it.area>0?it.area+tr(" м²"," m²"," m²"):""].filter(Boolean).join(" · ");
+  const p2=[locLabel(it)+tr(", Бали",", Bali",", Bali"),it.code?("ID: "+it.code):""].filter(Boolean).join(" · ");
   return `<div class="lrow${it.ai?" ai":""}${it.type==="request"?" req":""}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
-    <div class="lrow-main"><div class="lrow-title">${it.type==="request"?`<span class="badge want">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"}</span> `:""}${it.title||pTypeLabel(it.propertyType)}</div>
+    <div class="lrow-main"><div class="lrow-title">${it.type==="request"?`<span class="badge want">${tr("🔍 ИЩУ","🔍 WANTED","🔍 DICARI")}</span> `:""}${it.title||pTypeLabel(it.propertyType)}</div>
     ${p1?`<div class="lrow-sub">${p1}</div>`:""}
     ${p2?`<div class="lrow-sub muted">${p2}</div>`:""}</div>
     <div class="lrow-side"><div class="price">${fmtPrice(it)}${updDateHtml(it)}</div>
@@ -901,30 +905,30 @@ function cardHTML(it,i){
   const fav=state.fav.has(it.id);
   const heart=fav?"♥":"♡";
   let badges="";
-  if(it.type==="request")badges+=`<span class="badge want">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"}</span>`;
-  if(it.type==="service")badges+=`<span class="badge want">${state.lang==="ru"?"🛠 УСЛУГА":"🛠 SERVICE"}</span>`;
+  if(it.type==="request")badges+=`<span class="badge want">${tr("🔍 ИЩУ","🔍 WANTED","🔍 DICARI")}</span>`;
+  if(it.type==="service")badges+=`<span class="badge want">${tr("🛠 УСЛУГА","🛠 SERVICE","🛠 JASA")}</span>`;
   if(it.dealType==="sale"&&it.tenure)badges+=`<span class="badge tenure">${it.tenure==="freehold"?"Hak Milik":"Hak Sewa"}</span>`;
   if(it.isVerified)badges+=`<span class="badge verified">${SVG_SHIELD} ${t("verified")}</span>`;
   if(it.isTop)badges+=`<span class="badge top">${SVG_CUP} ${t("top")}</span>`;
   if(isNew(it))badges+=`<span class="badge new">★ ${t("new")}</span>`;
-  if(it.status==="draft")badges+=`<span class="badge" style="background:#9e9e9e;color:#fff">Черновик</span>`;
+  if(it.status==="draft")badges+=`<span class="badge" style="background:#9e9e9e;color:#fff">${tr("Черновик","Draft","Draf")}</span>`;
   if(it.isAgent)badges+=`<span class="badge agent">${t("agent")}${it.agentName?" · "+it.agentName:""}</span>`;
   if(it.isUrgent)badges+=`<span class="badge urgent">${t("urgent")}</span>`;
   if(it.ai)badges+=`<span class="badge ai-badge">🤖 AI</span>`;
   const areaV=it.area>0?it.area:it.landArea;
-  const sub=it.type==="service"?(locLabel(it)||""):(it.propertyType==="land"?`Участок ${it.landArea} м²`:(it.amenities||[]).slice(0,3).join(" · "));
+  const sub=it.type==="service"?(locLabel(it)||""):(it.propertyType==="land"?`${tr("Участок","Land","Tanah")} ${it.landArea} ${tr("м²","m²","m²")}`:(it.amenities||[]).slice(0,3).join(" · "));
   const am=(it.amenities||[]).concat(["—","—"]);
-  const agent=it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");
+  const agent=it.isAgent&&it.agentName?it.agentName:(tr("Собственник","Owner","Pemilik"));
   const specs=it.type==="service"?"":`<div class="specs">
-    <div class="spec">${SVG_BED}<b>${it.bedrooms||"—"}</b><span>${plural(it.bedrooms||0,["спальня","спальни","спален"])}</span></div>
-    <div class="spec">${SVG_BATH}<b>${it.bathrooms||"—"}</b><span>${plural(it.bathrooms||0,["ванная","ванные","ванных"])}</span></div>
-    <div class="spec">${SVG_AREA}<b>${areaV||"—"}${areaV?" м²":""}</b><span>площадь</span></div>
+    <div class="spec">${SVG_BED}<b>${it.bedrooms||"—"}</b><span>${noun(it.bedrooms||0,["спальня","спальни","спален"],"bd","kt")}</span></div>
+    <div class="spec">${SVG_BATH}<b>${it.bathrooms||"—"}</b><span>${noun(it.bathrooms||0,["ванная","ванные","ванных"],"ba","km")}</span></div>
+    <div class="spec">${SVG_AREA}<b>${areaV||"—"}${areaV?tr(" м²"," m²"," m²"):""}</b><span>${tr("площадь","area","luas")}</span></div>
     <div class="spec">${SVG_POOL}<b>${am[0]}</b><span>${am[1]}</span></div></div>`;
-  const agentRow=it.type==="request"?"":`<div class="agent-row"><div class="who"><b>${it.isAgent?"Агент "+agent:agent}</b><small>На связи · 10:00–20:00</small></div><button class="btn-ghost sm" data-contact="${it.id}">Связаться</button></div>`;
+  const agentRow=it.type==="request"?"":`<div class="agent-row"><div class="who"><b>${it.isAgent?tr("Агент ","Agent ","Agen ")+agent:agent}</b><small>${tr("На связи · 10:00–20:00","Online · 10:00–20:00","Online · 10:00–20:00")}</small></div><button class="btn-ghost sm" data-contact="${it.id}">${tr("Связаться","Contact","Hubungi")}</button></div>`;
   const extra=it.type==="request"?`<button class="offer-btn" data-offer="${it.id}">${t("offer_btn")}</button>`:"";
   const hasPhoto=it.images&&it.images.length>0;
   return `<div class="property-card${it.ai?" ai":""}${it.type==="request"?" req":""}${hasPhoto?"":" no-photo"}" data-card="${it.id}" style="animation-delay:${Math.min(i,8)*45}ms">
-    ${hasPhoto?`<div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="Фото объекта">
+    ${hasPhoto?`<div class="card-image"><img loading="lazy" decoding="async" src="${it.images[idx%it.images.length]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="${tr("Фото объекта","Property photo","Foto properti")}">
       ${it.images.length>1?`<button class="car-btn prev" data-car="prev" data-id="${it.id}" aria-label="prev">‹</button><button class="car-btn next" data-car="next" data-id="${it.id}" aria-label="next">›</button>`:""}
       <span class="photo-counter">${(idx%it.images.length)+1}/${it.images.length}</span>
       <div class="badges">${badges}</div>
@@ -932,8 +936,8 @@ function cardHTML(it,i){
       ${it.bedrooms>0?`<span class="bed-badge">${SVG_BED} ${it.bedrooms}</span>`:""}
       <div class="photo-titles"><div class="pt-title">${it.title||pTypeLabel(it.propertyType)}</div>${sub?`<div class="pt-sub">${sub}</div>`:""}</div></div>`:`<div style="position:relative;display:flex;gap:4px;flex-wrap:wrap;align-items:center;padding:8px 10px 0">${badges}<button class="favorite-btn ${fav?"active":""}" data-fav="${it.id}" aria-label="fav" style="position:static;width:30px;height:30px">${heart}</button></div>`}
     <div class="card-body">${hasPhoto?"":`<div class="title">${it.title||pTypeLabel(it.propertyType)}</div>`}<div class="price">${fmtPrice(it)}${updDateHtml(it)}</div>
-      <div class="location-sm">${locLabel(it)}, Бали</div>
-      ${it.code?`<div class="location-sm" style="opacity:.65">ID объекта: ${it.code} / ${shortId(it)}</div>`:""}
+      <div class="location-sm">${locLabel(it)}${tr(", Бали",", Bali",", Bali")}</div>
+      ${it.code?`<div class="location-sm" style="opacity:.65">${tr("ID объекта: ","Object ID: ","ID objek: ")}${it.code} / ${shortId(it)}</div>`:""}
       ${specs}
       ${agentRow}
       ${extra}</div></div>`;
@@ -1005,8 +1009,27 @@ function renderCrumbs(){
     <span>${typeName} · ${distName}</span>`;
 }
 
+function localizeStatic(){
+  const ru=state.lang==="ru";
+  const set=(id,txt)=>{const e=$(id);if(e)e.textContent=txt;};
+  const ph=ru?"Район, объект или бюджет":t("search_ph");
+  ["mquery","dquery"].forEach(id=>{const e=$(id);if(e)e.placeholder=ph;});
+  set("applyBtn","\u2315 "+(ru?"Показать":t("apply")));
+  set("resetBtn","\u21bb "+(ru?"Сбросить все":t("reset_all")));
+  set("mshow",ru?"Показать варианты":t("show_variants"));
+  set("mreset",ru?"Сбросить все":t("reset_all"));
+  const mf=$("mfilterBtn");if(mf&&mf.firstChild&&mf.firstChild.nodeType===3)mf.firstChild.textContent="\u2630 "+(ru?"Фильтры ":t("filters")+" ");
+  const cl=$("curLabel");if(cl&&cl.parentNode&&cl.parentNode.firstChild&&cl.parentNode.firstChild.nodeType===3)cl.parentNode.firstChild.textContent=(ru?"Цена":t("price"))+" \u00b7 ";
+  const opt=(sel,map)=>{const e=$(sel);if(!e)return;[...e.options].forEach(o=>{if(!o.dataset.ru)o.dataset.ru=o.textContent;const k=map[o.value];if(k)o.textContent=ru?o.dataset.ru:t(k);});};
+  opt("fType",{"":"all",villa:"t_villa",house:"t_house",apartment:"t_apartment",room:"t_room",invest:"t_invest",homestay:"t_homestay",land:"t_land",commercial:"t_commercial",townhouse:"t_townhouse",boarding:"t_boarding",service:"t_service"});
+  opt("fRooms",{"":"all"});
+  opt("fLiving",{"":"any"});
+  opt("furnQ",{"":"any",yes:"yes",no:"no"});
+  opt("sortSelect",{date_desc:"s_date",avail:"s_avail",price_asc:"s_price_asc",price_desc:"s_price_desc",popular:"s_pop"});
+}
 function render(){
   document.querySelectorAll("[data-i18n]").forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  localizeStatic();
   $("favCount").textContent=state.fav.size;
   $("curLabel").textContent=state.currency;
   $("rentCatWrap").style.display=state.deal==="rent"?"":"none";
@@ -1020,7 +1043,7 @@ function render(){
   const arr=getFiltered();
   $("resultsCount").textContent=`${arr.length} ${t("variants")}`;
   if($("statCount"))$("statCount").textContent=LISTINGS.length;
-  if($("heroTitle"))$("heroTitle").textContent=state.lang==="ru"?"Недвижимость на Бали без лишнего шума":"Bali property with no hassle";
+  if($("heroTitle"))$("heroTitle").textContent=tr("Недвижимость на Бали без лишнего шума","Bali property with no hassle","Properti Bali tanpa ribet");
   if($("advBtn"))$("advBtn").textContent=t("advanced")+($("advPanel").classList.contains("hidden")?"  +":"  –");
   const pages=Math.max(1,Math.ceil(arr.length/state.perPage));
   if(state.page>pages)state.page=pages;
@@ -1118,8 +1141,8 @@ function mapBadge(kind){
   if(!el){el=document.createElement("div");el.id="mapBadge";box.appendChild(el);}
   if(!kind){el.classList.remove("on","load");el.innerHTML="";return;}
   el.classList.add("on");el.classList.toggle("load",kind==="load");
-  el.innerHTML=kind==="load"?(state.lang==="ru"?"Карта загружается…":"Loading map…")
-    :((state.lang==="ru"?"Карту не удалось загрузить — видны только метки":"Map tiles did not load — only pins are visible")+' <button type="button" id="mapRetry">'+(state.lang==="ru"?"Повторить":"Retry")+'</button>');
+  el.innerHTML=kind==="load"?(tr("Карта загружается…","Loading map…","Memuat peta…"))
+    :((tr("Карту не удалось загрузить — видны только метки","Map tiles did not load — only pins are visible","Peta gagal dimuat - hanya pin yang terlihat"))+' <button type="button" id="mapRetry">'+(tr("Повторить","Retry","Coba lagi"))+'</button>');
   const b=$("mapRetry");if(b)b.onclick=()=>{tileErrs=0;tileIdx=0;addTileLayer();};
 }
 function addTileLayer(){
@@ -1155,7 +1178,7 @@ function pinIcon(sel){
 }
 function mapPopupHtml(it){
   const ph=(it.images&&it.images[0])||it.fb||"";
-  return '<div class="map-pop">'+(ph?'<img class="map-prev" data-prev="'+it.id+'" src="'+ph+'" alt="" loading="lazy">':'<div class="map-prev no-ph" data-prev="'+it.id+'">'+(state.lang==="ru"?"Фото скоро появятся":"Photos coming soon")+'</div>')+'<div class="map-pop-txt"><b>'+fmtPrice(it)+'</b><span>'+pTypeLabel(it.propertyType)+" · "+locLabel(it)+'</span></div><button type="button" class="btn-primary" style="height:34px;font-size:13px" data-open="'+it.id+'">'+(state.lang==="ru"?"Просмотреть":"View")+'</button></div>';
+  return '<div class="map-pop">'+(ph?'<img class="map-prev" data-prev="'+it.id+'" src="'+ph+'" alt="" loading="lazy">':'<div class="map-prev no-ph" data-prev="'+it.id+'">'+(tr("Фото скоро появятся","Photos coming soon","Foto segera hadir"))+'</div>')+'<div class="map-pop-txt"><b>'+fmtPrice(it)+'</b><span>'+pTypeLabel(it.propertyType)+" · "+locLabel(it)+'</span></div><button type="button" class="btn-primary" style="height:34px;font-size:13px" data-open="'+it.id+'">'+(tr("Просмотреть","View","Lihat"))+'</button></div>';
 }
 function paintMapSel(){
   document.querySelectorAll("#mapList .map-mini").forEach(el=>el.classList.toggle("sel",+el.dataset.card===mapSel));
@@ -1200,7 +1223,7 @@ function showHoverCard(it,anchor){
   const el=hoverCardEl();
   const ph=(it.images&&it.images[0])||it.fb||"";
   const d=String(it.desc||"");
-  el.innerHTML=(ph?'<img src="'+ph+'" alt="">':"")+'<div class="hc-title">'+esc(it.title||"")+'</div><p class="hc-desc">'+esc(d.slice(0,160))+(d.length>160?"…":"")+'</p><div class="hc-price">'+fmtPrice(it)+'</div><button type="button" class="btn-primary" style="height:36px;font-size:13px;width:100%" data-open="'+it.id+'">'+(state.lang==="ru"?"Просмотреть объект":"View object")+'</button>';
+  el.innerHTML=(ph?'<img src="'+ph+'" alt="">':"")+'<div class="hc-title">'+esc(it.title||"")+'</div><p class="hc-desc">'+esc(d.slice(0,160))+(d.length>160?"…":"")+'</p><div class="hc-price">'+fmtPrice(it)+'</div><button type="button" class="btn-primary" style="height:36px;font-size:13px;width:100%" data-open="'+it.id+'">'+(tr("Просмотреть объект","View object","Lihat properti"))+'</button>';
   el.dataset.for=String(it.id);
   el.classList.add("on");
   const r=anchor.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;
@@ -2027,66 +2050,66 @@ function openDetail(id){
   if(it.type==="service"&&state.role!=="service"){state.role="service";state.page=1;syncRoleTabs();}
   detailId=it.id;detailIdx=0;
   refreshListingContacts(it);
-  const term=it.type==="service"?(state.lang==="ru"?"Услуга":"Service"):(it.dealType==="sale"?(state.lang==="ru"?"Продажа":"Sale"):(it.category==="yearly"?(state.lang==="ru"?"На год":"Yearly"):(state.lang==="ru"?"Долгосрочно":"Long-term")));
+  const term=it.type==="service"?(tr("Услуга","Service","Jasa")):(it.dealType==="sale"?(tr("Продажа","Sale","Dijual")):(it.category==="yearly"?(tr("На год","Yearly","Tahunan")):(tr("Долгосрочно","Long-term","Jangka panjang"))));
   const dep=it.dealType==="rent"?(it.category==="yearly"?Math.round(it.price/12):it.price):0;
   const rows=it.type==="service"?[
-    [state.lang==="ru"?"ID объекта":"Object ID",(it.code?it.code+" / "+shortId(it):"—")],
-    [state.lang==="ru"?"Тип":"Type",state.lang==="ru"?"Услуга":"Service"],
-    [state.lang==="ru"?"Локация":"Location",locLabel(it)||"—"]]
+    [tr("ID объекта","Object ID","ID objek"),(it.code?it.code+" / "+shortId(it):"—")],
+    [tr("Тип","Type","Jenis"),tr("Услуга","Service","Jasa")],
+    [tr("Локация","Location","Lokasi"),locLabel(it)||"—"]]
    :[
-    [state.lang==="ru"?"ID объекта":"Object ID",(it.code?it.code+" / "+shortId(it):"—")],
-    [state.lang==="ru"?"Тип":"Type",pTypeLabel(it.propertyType)],
-    [state.lang==="ru"?"Спальни":"Bedrooms",it.bedrooms||"—"],
-    [state.lang==="ru"?"Площадь":"Area",(it.area>0?it.area+" м²":"—")],
-    [state.lang==="ru"?"Участок":"Land",(it.landArea>0?it.landArea+" м²":"—")],
-    [state.lang==="ru"?"Ванные":"Baths",it.bathrooms||"—"],
-    [state.lang==="ru"?"Доступно":"Available",it.type==="request"?(it.moveIn||"—"):(it.available?fmtDate(it.available):(state.lang==="ru"?"Сейчас":"Now"))]];
-  if(it.dealType==="sale"&&it.tenure==="leasehold"&&it.leaseYears)rows.push([state.lang==="ru"?"Срок аренды":"Lease term",it.leaseYears+" "+(state.lang==="ru"?"лет":"yrs")]);
-  const agent=it.isAgent&&it.agentName?it.agentName:(state.lang==="ru"?"Собственник":"Owner");
+    [tr("ID объекта","Object ID","ID objek"),(it.code?it.code+" / "+shortId(it):"—")],
+    [tr("Тип","Type","Jenis"),pTypeLabel(it.propertyType)],
+    [tr("Спальни","Bedrooms","Kamar tidur"),it.bedrooms||"—"],
+    [tr("Площадь","Area","Luas"),(it.area>0?it.area+tr(" м²"," m²"," m²"):"—")],
+    [tr("Участок","Land","Tanah"),(it.landArea>0?it.landArea+tr(" м²"," m²"," m²"):"—")],
+    [tr("Ванные","Baths","Kamar mandi"),it.bathrooms||"—"],
+    [tr("Доступно","Available","Tersedia"),it.type==="request"?(it.moveIn||"—"):(it.available?fmtDate(it.available):(tr("Сейчас","Now","Sekarang")))]];
+  if(it.dealType==="sale"&&it.tenure==="leasehold"&&it.leaseYears)rows.push([tr("Срок аренды","Lease term","Jangka sewa"),it.leaseYears+" "+(tr("лет","yrs","tahun"))]);
+  const agent=it.isAgent&&it.agentName?it.agentName:(tr("Собственник","Owner","Pemilik"));
   const d=0.02,box=`${(it.lng-d).toFixed(4)},${(it.lat-d*0.7).toFixed(4)},${(it.lng+d).toFixed(4)},${(it.lat+d*0.7).toFixed(4)}`;
   const fav=state.fav.has(it.id);
   const chips=[`<span class="param-chip">${pTypeLabel(it.propertyType)}</span>`];
-  if(it.bedrooms>0)chips.push(`<span class="param-chip">${it.bedrooms} ${plural(it.bedrooms,["спальня","спальни","спален"])}</span>`);
-  if(it.area>0)chips.push(`<span class="param-chip">${it.area} м²</span>`);
+  if(it.bedrooms>0)chips.push(`<span class="param-chip">${it.bedrooms} ${noun(it.bedrooms,["спальня","спальни","спален"],"bedrooms","kamar tidur")}</span>`);
+  if(it.area>0)chips.push(`<span class="param-chip">${it.area} ${tr("м²","m²","m²")}</span>`);
   chips.push(`<span class="param-chip">${term}</span>`);
   $("detailContent").innerHTML=`
   <div class="d-layout"><div class="d-left">
-    <div><button type="button" class="back-link" data-back style="border:0;background:none;cursor:pointer">← ${mapReturn?(state.lang==="ru"?"Назад к карте":"Back to map"):(state.lang==="ru"?"Назад в ленту":"Back to feed")}</button></div>
-    ${it.type==="request"?`<div class="want-banner">${state.lang==="ru"?"🔍 ИЩУ":"🔍 WANTED"} · ${term}</div>`:""}
+    <div><button type="button" class="back-link" data-back style="border:0;background:none;cursor:pointer">← ${mapReturn?(tr("Назад к карте","Back to map","Kembali ke peta")):(tr("Назад в ленту","Back to feed","Kembali ke daftar"))}</button></div>
+    ${it.type==="request"?`<div class="want-banner">${tr("🔍 ИЩУ","🔍 WANTED","🔍 DICARI")} · ${term}</div>`:""}
     ${(it.images&&it.images.length)?`<div class="main-photo"><img id="dMain" src="${it.images[0]}" onerror="this.onerror=null;this.src='${it.fb}'" alt="">
       ${it.images.length>1?`<button class="car-btn prev" data-dnav="prev" style="display:block">‹</button><button class="car-btn next" data-dnav="next" style="display:block">›</button>`:""}
-      <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>`:`<div class="main-photo no-photo-ph">📷 Фото скоро появятся</div>`}
+      <span class="photo-counter" id="dCount">1/${it.images.length}</span></div>`:`<div class="main-photo no-photo-ph">${tr("📷 Фото скоро появятся","📷 Photos coming soon","📷 Foto segera hadir")}</div>`}
     <div class="d-price-row"><div class="price">${fmtPrice(it)}${updDateHtml(it)}</div>
-      <div class="d-icons"><button id="dShare" title="Скопировать ссылку"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M7 8l5-5 5 5"/><path d="M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg></button>
-      <button id="dFav" class="${fav?"on":""}" title="В избранное">${fav?"♥":"♡"}</button>${canEditListing(it)?`<button id="dEdit" title="Редактировать">✎</button>`:""}</div></div>
+      <div class="d-icons"><button id="dShare" title="${tr("Скопировать ссылку","Copy link","Salin tautan")}"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M7 8l5-5 5 5"/><path d="M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg></button>
+      <button id="dFav" class="${fav?"on":""}" title="${tr("В избранное","Add to favorites","Tambah ke favorit")}">${fav?"♥":"♡"}</button>${canEditListing(it)?`<button id="dEdit" title="${tr("Редактировать","Edit","Edit")}">✎</button>`:""}</div></div>
     <div class="params">${chips.join("")}</div>
-    <div class="d-locrow"><span class="d-loc">${SVG_PIN} ${locLabel(it)}, Бали</span>
+    <div class="d-locrow"><span class="d-loc">${SVG_PIN} ${locLabel(it)}${tr(", Бали",", Bali",", Bali")}</span>
       <span class="d-meta">${SVG_EYE} ${it.views} <span class="time-pill">${timeAgo(it.createdAt)}</span></span></div>
-    ${it.addr?`<div class="d-addr">${SVG_PIN} ${it.addr} ${it.geoAcc==="approx"?'<span class="acc-badge">Ориентир</span>':'<span class="acc-badge ok">Точный адрес</span>'}</div>`:""}
+    ${it.addr?`<div class="d-addr">${SVG_PIN} ${it.addr} ${it.geoAcc==="approx"?'<span class="acc-badge">'+tr("Ориентир","Approximate","Perkiraan")+'</span>':'<span class="acc-badge ok">'+tr("Точный адрес","Exact address","Alamat tepat")+'</span>'}</div>`:""}
     <div class="d-actions">
       <a class="btn-wa-left" href="https://wa.me/${waNum(it)}" target="_blank" rel="noopener">WhatsApp</a>
-      <button class="btn-contact" data-contact-menu="obj">Связаться</button>
-      <button class="btn-renthome" data-contact-menu="rh">спросить RentHome</button>
+      <button class="btn-contact" data-contact-menu="obj">${tr("Связаться","Contact","Hubungi")}</button>
+      <button class="btn-renthome" data-contact-menu="rh">${tr("спросить RentHome","ask RentHome","tanya RentHome")}</button>
     </div>
     ${it.desc?`<div class="desc-block open"><div class="desc-body"><div class="desc-in"><div class="desc-text"></div></div></div></div>`:""}
     ${it.legal?`<div class="legal">◈ ${t("legal_txt")} · ${agent}</div>`:""}
   </div><div class="d-right">
-    <div class="card d-card"><h3>${state.lang==="ru"?"Характеристики":"Features"}</h3>
+    <div class="card d-card"><h3>${tr("Характеристики","Features","Spesifikasi")}</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">${rows.map(r=>`<div class="flex items-baseline justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50 rounded px-2 -mx-2 transition-colors"><span class="text-[13px] text-slate-500">${r[0]}</span><span class="text-[13px] font-semibold text-slate-800 text-right">${r[1]}</span></div>`).join("")}</div></div>
-    <div class="card d-card"><h3>${state.lang==="ru"?"Удобства":"Amenities"}</h3>
+    <div class="card d-card"><h3>${tr("Удобства","Amenities","Fasilitas")}</h3>
       <div class="flex flex-wrap gap-2">${((it.amenities||[]).length?(it.amenities||[]):["—"]).map(a=>`<span class="rounded-full bg-brand-soft text-brand-dark text-[13px] font-semibold px-3.5 py-1">${a}</span>`).join("")}</div></div>
-    ${((it.parties||[]).length)?`<div class="card d-card"><h3>${state.lang==="ru"?"Участники":"Parties"}</h3>
+    ${((it.parties||[]).length)?`<div class="card d-card"><h3>${tr("Участники","Parties","Pihak")}</h3>
       <div class="flex flex-wrap gap-2">${it.parties.map(p=>`<span class="rounded-full text-[13px] font-semibold px-3.5 py-1"${p.role==="admin"?' style="background:#EB5757;color:#fff"':' style="background:var(--line-soft);color:var(--ink2)"'}>${String(p.name).replace(/</g,"&lt;")} · ${PARTY_ROLES[p.role]||p.role}</span>`).join("")}</div></div>`:""}
-    ${(isCurrentAdmin(it)&&(it.history||[]).length)?`<div class="card d-card"><h3>${state.lang==="ru"?"История участников":"Member history"}</h3>
-      <div class="grid grid-cols-1 gap-y-0.5">${it.history.slice().reverse().map(h=>`<div class="flex items-baseline justify-between py-1.5 border-b border-slate-100 px-2 -mx-2"><span class="text-[13px] text-slate-800">${String(h.name||"").replace(/</g,"&lt;")} — ${h.action==="join"?(state.lang==="ru"?"вступил":"joined"):(state.lang==="ru"?"вышел":"left")}</span><span class="text-[12px] text-slate-500">${fmtDT(h.at)}</span></div>`).join("")}</div><p class="hint">${state.lang==="ru"?"Видно только администратору проекта":"Visible to project admin only"}</p></div>`:""}
-    <div class="card d-card"><h3>${state.lang==="ru"?"На карте":"On map"}</h3>
+    ${(isCurrentAdmin(it)&&(it.history||[]).length)?`<div class="card d-card"><h3>${tr("История участников","Member history","Riwayat anggota")}</h3>
+      <div class="grid grid-cols-1 gap-y-0.5">${it.history.slice().reverse().map(h=>`<div class="flex items-baseline justify-between py-1.5 border-b border-slate-100 px-2 -mx-2"><span class="text-[13px] text-slate-800">${String(h.name||"").replace(/</g,"&lt;")} — ${h.action==="join"?(tr("вступил","joined","bergabung")):(tr("вышел","left","keluar"))}</span><span class="text-[12px] text-slate-500">${fmtDT(h.at)}</span></div>`).join("")}</div><p class="hint">${tr("Видно только администратору проекта","Visible to project admin only","Hanya terlihat oleh admin proyek")}</p></div>`:""}
+    <div class="card d-card"><h3>${tr("На карте","On map","Di peta")}</h3>
       <iframe title="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${it.lat},${it.lng}"></iframe>
-      <div class="map-row"><span class="muted">${locLabel(it)}, Бали, Индонезия</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${state.lang==="ru"?"Построить маршрут":"Directions"} →</a></div></div>
+      <div class="map-row"><span class="muted">${locLabel(it)}${tr(", Бали, Индонезия",", Bali, Indonesia",", Bali, Indonesia")}</span><a class="btn-ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}">${tr("Построить маршрут","Directions","Petunjuk arah")} →</a></div></div>
   </div></div>`;
   switchView("detail");window.scrollTo({top:0});
   try{history.replaceState(null,"",listingPath(it));}catch(e){try{location.hash="listing-"+it.id;}catch(_){}}
   const dt=document.querySelector(".desc-text");if(dt)dt.textContent=it.desc||"";
-  $("dShare").onclick=()=>{try{navigator.clipboard.writeText(listingUrl(it));}catch(e){}notify(state.lang==="ru"?"Ссылка скопирована!":"Link copied!");};
+  $("dShare").onclick=()=>{try{navigator.clipboard.writeText(listingUrl(it));}catch(e){}notify(tr("Ссылка скопирована!","Link copied!","Tautan disalin!"));};
   $("dFav").onclick=()=>{const on=!state.fav.has(it.id);on?state.fav.add(it.id):state.fav.delete(it.id);localStorage.setItem(favKey(),JSON.stringify([...state.fav]));const b=$("dFav");b.textContent=on?"♥":"♡";b.classList.toggle("on",on);render();const t=sessionToken();if(t)apiPost("/favorites",{listingId:it.id,action:on?"add":"remove"},t).catch(()=>{});};
   if($("dEdit"))$("dEdit").onclick=()=>fillEditForm(it.id);
 }
@@ -2119,19 +2142,19 @@ function buildContactMenu(kind,it){
   const email=String((it&&it.email)||a.email||c.email||"").trim();
   const items=[];let title="";
   if(kind==="obj"){
-    title="Связаться с владельцем объекта";
+    title=tr("Связаться с владельцем объекта","Contact the owner","Hubungi pemilik");
     if(wa)items.push({label:"WhatsApp",icon:"💬",href:"https://wa.me/"+waNum(it)});
     items.push({label:"Telegram",icon:"📩",href:tg?"https://t.me/"+tg:"https://t.me/BaliLegalVilla"});
-    if(phone)items.push({label:"Позвонить",icon:"📞",href:"tel:"+phone});
+    if(phone)items.push({label:tr("Позвонить","Call","Telepon"),icon:"📞",href:"tel:"+phone});
     if(email)items.push({label:"Email",icon:"✉",href:"mailto:"+String(email).replace(/&/g,"&amp;").replace(/</g,"&lt;")});
-    if(!items.length)items.push({label:"Контакты не указаны",icon:"—",href:"#"});
+    if(!items.length)items.push({label:tr("Контакты не указаны","No contacts listed","Kontak tidak tersedia"),icon:"—",href:"#"});
   } else {
-    title="Связаться с RentHome";
+    title=tr("Связаться с RentHome","Contact RentHome","Hubungi RentHome");
     items.push({label:"WhatsApp",icon:"💬",href:"https://wa.me/6281337341275"});
     items.push({label:"Telegram",icon:"📩",href:"https://t.me/BaliLegalVilla"});
-    items.push({label:"Позвонить",icon:"📞",href:"tel:+6281337341275"});
+    items.push({label:tr("Позвонить","Call","Telepon"),icon:"📞",href:"tel:+6281337341275"});
     items.push({label:"Email",icon:"✉",href:"mailto:info@balilegalvilla.com"});
-    items.push({label:"Чат-бот",icon:"🤖",href:"https://t.me/BaliLegalVilla"});
+    items.push({label:tr("Чат-бот","Chat bot","Bot chat"),icon:"🤖",href:"https://t.me/BaliLegalVilla"});
   }
   return{title,items};
 }
@@ -2199,7 +2222,7 @@ document.addEventListener("click",e=>{
   const c=e.target.closest("[data-car]");
   if(c){e.stopPropagation();const id=+c.dataset.id;const it=LISTINGS.find(x=>x.id===id);let i=state.carIdx[id]||0;i=(i+(c.dataset.car==="next"?1:-1)+it.images.length)%it.images.length;state.carIdx[id]=i;render();return;}
   const o=e.target.closest("[data-offer]");
-  if(o){e.stopPropagation();notify(state.lang==="ru"?"Заявка отправлена владельцу запроса!":"Proposal sent!");return;}
+  if(o){e.stopPropagation();notify(tr("Заявка отправлена владельцу запроса!","Proposal sent!","Proposal terkirim!"));return;}
   const ct=e.target.closest("[data-contact]");
   if(ct){e.stopPropagation();const it=findListing(+ct.dataset.contact);showContactMenu(ct,"obj",it);refreshListingContacts(it);return;}
   const cmi=e.target.closest(".contact-menu-item");
